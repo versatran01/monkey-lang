@@ -8,4 +8,5 @@ Token Lexer::NextToken() {
   // TODO: not implemented
   return {};
 }
+
 }  // namespace monkey
