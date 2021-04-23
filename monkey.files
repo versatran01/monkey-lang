@@ -1,6 +1,9 @@
 include/monkey/lexer.h
+include/monkey/repl.h
 include/monkey/token.h
 src/lexer.cpp
+src/repl.cpp
+src/repl_main.cpp
 src/token.cpp
 tests/lexer_test.cpp
 CMakeLists.txt
