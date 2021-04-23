@@ -7,7 +7,10 @@ namespace monkey {
 namespace {
 
 const absl::flat_hash_map<std::string, TokenType> keywords = {
-    {"let", token_type::kLet}, {"fn", token_type::kFunction}};
+    {"let", token_type::kLet},      {"fn", token_type::kFunction},
+    {"if", token_type::kLet},       {"else", token_type::kElse},
+    {"true", token_type::kTrue},    {"false", token_type::kFalse},
+    {"return", token_type::kReturn}};
 
 }
 

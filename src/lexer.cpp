@@ -18,7 +18,13 @@ Token Lexer::NextToken() {
 
   switch (ch_) {
     case '=':
-      token = Token{token_type::kAssign, {ch_}};
+      if (PeekChar() == '=') {
+        auto prev_ch = ch_;
+        ReadChar();
+        token = Token{token_type::kEq, std::string{prev_ch} + ch_};
+      } else {
+        token = Token{token_type::kAssign, {ch_}};
+      }
       break;
     case ';':
       token = Token{token_type::kSemicolon, {ch_}};
@@ -32,8 +38,32 @@ Token Lexer::NextToken() {
     case ',':
       token = Token{token_type::kComma, {ch_}};
       break;
+    case '!':
+      if (PeekChar() == '=') {
+        auto prev_ch = ch_;
+        ReadChar();
+        token = Token{token_type::kNe, std::string{prev_ch} + ch_};
+      } else {
+        token = Token{token_type::kBang, {ch_}};
+      }
+      break;
     case '+':
       token = Token{token_type::kPlus, {ch_}};
+      break;
+    case '-':
+      token = Token{token_type::kMinus, {ch_}};
+      break;
+    case '*':
+      token = Token{token_type::kAsterisk, {ch_}};
+      break;
+    case '/':
+      token = Token{token_type::kSlash, {ch_}};
+      break;
+    case '<':
+      token = Token{token_type::kLt, {ch_}};
+      break;
+    case '>':
+      token = Token{token_type::kGt, {ch_}};
       break;
     case '{':
       token = Token{token_type::kLBrace, {ch_}};
@@ -77,6 +107,12 @@ void Lexer::SkipWhitespace() {
   while (std::isspace(ch_)) {
     ReadChar();
   }
+}
+
+char Lexer::PeekChar() const {
+  return (read_position_ >= static_cast<int>(input_.size()))
+             ? 0
+             : input_[read_position_];
 }
 
 std::string Lexer::ReadNumber() {
