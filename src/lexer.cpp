@@ -44,7 +44,8 @@ Token Lexer::NextToken() {
     default:
       if (IsLetter(ch_)) {
         token.literal = ReadIdentifier();
-
+        token.type = LookupIdentifier(token.literal);
+        return token;
       } else {
         token = Token{token_type::kIllegal, {ch_}};
       }

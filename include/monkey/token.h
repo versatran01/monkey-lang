@@ -39,4 +39,6 @@ class Token {
   std::string literal;
 };
 
+TokenType LookupIdentifier(const std::string& ident);
+
 }  // namespace monkey
