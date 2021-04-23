@@ -14,8 +14,12 @@ class Lexer {
 
  private:
   void ReadChar();
+  void SkipWhitespace();
+
+  std::string ReadNumber();
   std::string ReadIdentifier();
 
+  // data
   std::string input_;
   int position_{0};       // current position in input (points to current char)
   int read_position_{0};  // current read position in input (after current char)

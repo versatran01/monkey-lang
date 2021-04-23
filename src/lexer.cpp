@@ -4,6 +4,7 @@ namespace monkey {
 
 namespace {
 
+bool IsDigit(char c) { return std::isdigit(c); }
 bool IsLetter(char c) { return std::isalpha(c) || c == '_'; }
 
 }  // namespace
@@ -12,6 +13,8 @@ Lexer::Lexer(std::string input) : input_(std::move(input)) { ReadChar(); }
 
 Token Lexer::NextToken() {
   Token token;
+
+  SkipWhitespace();
 
   switch (ch_) {
     case '=':
@@ -45,7 +48,12 @@ Token Lexer::NextToken() {
       if (IsLetter(ch_)) {
         token.literal = ReadIdentifier();
         token.type = LookupIdentifier(token.literal);
-        return token;
+        return token;  // early return to prevent extra ReadChar();
+      } else if (IsDigit(ch_)) {
+        token.type = token_type::kInt;
+        token.literal = ReadNumber();
+        return token;  // early return to prevent extra ReadChar();
+
       } else {
         token = Token{token_type::kIllegal, {ch_}};
       }
@@ -63,6 +71,20 @@ void Lexer::ReadChar() {
   }
   position_ = read_position_;
   ++read_position_;
+}
+
+void Lexer::SkipWhitespace() {
+  while (std::isspace(ch_)) {
+    ReadChar();
+  }
+}
+
+std::string Lexer::ReadNumber() {
+  const int start = position_;
+  while (IsDigit(ch_)) {
+    ReadChar();
+  }
+  return input_.substr(start, position_ - start);
 }
 
 std::string Lexer::ReadIdentifier() {
