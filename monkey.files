@@ -4,3 +4,4 @@ src/lexer.cpp
 src/token.cpp
 tests/lexer_test.cpp
 CMakeLists.txt
+tests/CMakeLists.txt

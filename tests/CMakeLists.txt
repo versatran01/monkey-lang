@@ -1,4 +1,5 @@
 find_package(GTest REQUIRED)
+find_package(GMock REQUIRED)
 
 add_executable(monkey_test lexer_test.cpp)
 target_link_libraries(monkey_test PRIVATE monkey GTest::GTest GTest::Main)

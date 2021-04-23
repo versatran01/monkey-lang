@@ -10,13 +10,15 @@ class Lexer {
   explicit Lexer(std::string input);
 
   // Get the next token
-  Token NextToken();
+  Token NextToken() noexcept;
 
  private:
+  void ReadChar();
+
   std::string input_;
-  int position_;       // current position in input (points to current char)
-  int read_position_;  // current reading position in input (after current char)
-  char ch;             // current char under examination
+  int position_{0};       // current position in input (points to current char)
+  int read_position_{0};  // current read position in input (after current char)
+  char ch_;               // current char under examination
 };
 
 }  // namespace monkey
