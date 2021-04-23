@@ -2,9 +2,15 @@
 
 namespace monkey {
 
+namespace {
+
+bool IsLetter(char c) { return std::isalpha(c) || c == '_'; }
+
+}  // namespace
+
 Lexer::Lexer(std::string input) : input_(std::move(input)) { ReadChar(); }
 
-Token Lexer::NextToken() noexcept {
+Token Lexer::NextToken() {
   Token token;
 
   switch (ch_) {
@@ -36,7 +42,12 @@ Token Lexer::NextToken() noexcept {
       token = Token{token_type::kEof, ""};
       break;
     default:
-      token.type = token_type::kIllegal;
+      if (IsLetter(ch_)) {
+        token.literal = ReadIdentifier();
+
+      } else {
+        token = Token{token_type::kIllegal, {ch_}};
+      }
   }
 
   ReadChar();
@@ -51,6 +62,14 @@ void Lexer::ReadChar() {
   }
   position_ = read_position_;
   ++read_position_;
+}
+
+std::string Lexer::ReadIdentifier() {
+  const int start = position_;
+  while (IsLetter(ch_)) {
+    ReadChar();
+  }
+  return input_.substr(start, position_ - start);
 }
 
 }  // namespace monkey

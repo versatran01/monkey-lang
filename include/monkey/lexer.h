@@ -10,10 +10,11 @@ class Lexer {
   explicit Lexer(std::string input);
 
   // Get the next token
-  Token NextToken() noexcept;
+  Token NextToken();
 
  private:
   void ReadChar();
+  std::string ReadIdentifier();
 
   std::string input_;
   int position_{0};       // current position in input (points to current char)
