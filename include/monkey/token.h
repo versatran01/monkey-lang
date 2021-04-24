@@ -43,7 +43,7 @@ class Token {
  public:
   Token() = default;
 
-  TokenType type;
+  TokenType type{TokenType::kIllegal};
   std::string literal;
 
   friend std::ostream& operator<<(std::ostream& os, Token token);

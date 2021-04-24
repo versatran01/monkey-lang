@@ -12,19 +12,19 @@ enum class NodeType { kBase, kProgram, kStatement, kExpression };
 
 // Interface of Node
 struct NodeInterface {
-  std::string TokenLiteral() const noexcept {
+  std::string TokenLiteral() const {
     return boost::te::call<std::string>(
-        [](const auto &self) { self.TokenLiteral(); }, *this);
+        [](const auto &self) { return self.TokenLiteral(); }, *this);
   }
 
-  std::string String() const noexcept {
-    return boost::te::call<std::string>([](const auto &self) { self.String(); },
-                                        *this);
+  std::string String() const {
+    return boost::te::call<std::string>(
+        [](const auto &self) { return self.String(); }, *this);
   }
 
-  NodeType Type() const noexcept {
-    return boost::te::call<NodeType>([](const auto &self) { self.Type(); },
-                                     *this);
+  NodeType Type() const {
+    return boost::te::call<NodeType>(
+        [](const auto &self) { return self.Type(); }, *this);
   }
 };
 
@@ -39,15 +39,16 @@ struct NodeBase {
   NodeType Type() const { return type; }
 
   virtual std::string TokenLiteralImpl() const { return token.literal; }
-  virtual std::string StringImpl() const { return {}; }
+  virtual std::string StringImpl() const { return token.literal; }
 
   NodeType type{NodeType::kBase};
   Token token;
 };
 
 struct Program final : public NodeBase {
-  Program() : NodeBase(NodeType::kProgram) {}
+  Program() : NodeBase{NodeType::kProgram} {}
   std::string TokenLiteralImpl() const override;
+  std::string StringImpl() const override;
 
   std::vector<Node> statements;
 };
@@ -56,13 +57,17 @@ struct Statement : public NodeBase {
   explicit Statement(NodeType type = NodeType::kStatement) : NodeBase{type} {}
 };
 
-struct Expression : public NodeBase {};
+struct Expression : public NodeBase {
+  explicit Expression(NodeType type = NodeType::kExpression) : NodeBase{type} {}
+};
 
 struct Identifier final : public Expression {
   std::string value;
 };
 
 struct LetStatement final : public Statement {
+  std::string StringImpl() const override;
+
   Identifier name;
   Expression value;
 };

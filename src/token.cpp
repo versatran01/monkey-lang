@@ -3,6 +3,7 @@
 #include <absl/container/flat_hash_map.h>
 #include <fmt/core.h>
 #include <fmt/ostream.h>
+#include <glog/logging.h>
 
 #include <ostream>
 
@@ -10,13 +11,13 @@ namespace monkey {
 
 namespace {
 
-const absl::flat_hash_map<std::string, TokenType> gKeywords = {
+const auto gKeywords = absl::flat_hash_map<std::string, TokenType>{
     {"let", TokenType::kLet},      {"fn", TokenType::kFunction},
-    {"if", TokenType::kLet},       {"else", TokenType::kElse},
+    {"if", TokenType::kIf},        {"else", TokenType::kElse},
     {"true", TokenType::kTrue},    {"false", TokenType::kFalse},
     {"return", TokenType::kReturn}};
 
-const absl::flat_hash_map<TokenType, std::string> gTokenTypeStrings{
+const auto gTokenTypeStrings = absl::flat_hash_map<TokenType, std::string>{
     {TokenType::kIllegal, "ILLEGAL"},
     {TokenType::kEof, "EOF"},
     {TokenType::kIdent, "IDENT"},
@@ -39,7 +40,7 @@ const absl::flat_hash_map<TokenType, std::string> gTokenTypeStrings{
     {TokenType::kRParen, ")"},
     {TokenType::kLBrace, "{"},
     {TokenType::kRBrace, "}"},
-    {TokenType::kFunction, "FUNCTION"},
+    {TokenType::kFunction, "FN"},
     {TokenType::kLet, "LET"},
     {TokenType::kTrue, "TRUE"},
     {TokenType::kFalse, "FALSE"},
@@ -58,6 +59,8 @@ TokenType LookupIdentifier(const std::string& ident) {
 }
 
 std::ostream& operator<<(std::ostream& os, TokenType token_type) {
+  CHECK(gTokenTypeStrings.find(token_type) != gTokenTypeStrings.end())
+      << token_type;
   return os << gTokenTypeStrings.at(token_type);
 }
 

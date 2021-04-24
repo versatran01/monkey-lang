@@ -7,6 +7,7 @@ include/monkey/token.h
 src/ast.cpp
 src/lexer.cpp
 src/parser.cpp
+src/play.cpp
 src/repl.cpp
 src/repl_main.cpp
 src/token.cpp

@@ -1,5 +1,9 @@
 #include "monkey/parser.h"
 
+#include <fmt/core.h>
+#include <fmt/ostream.h>
+#include <glog/logging.h>
+
 namespace monkey {
 
 Parser::Parser(Lexer lexer) : lexer_(std::move(lexer)) {
@@ -42,10 +46,8 @@ Node Parser::ParseLetStatement() {
     return NodeBase{};
   }
 
-  Identifier ident;
-  ident.token = curr_token_;
-  ident.value = curr_token_.literal;
-  stmt.name = ident;
+  stmt.name.token = curr_token_;
+  stmt.name.value = curr_token_.literal;
 
   if (!ExpectPeek(TokenType::kAssign)) {
     return NodeBase{};
@@ -63,8 +65,16 @@ bool Parser::ExpectPeek(TokenType type) {
   if (IsPeekToken(type)) {
     NextToken();
     return true;
+  } else {
+    PeekError(type);
+    return false;
   }
-  return false;
+}
+
+void Parser::PeekError(TokenType type) {
+  std::string msg = fmt::format("Expected next token to be {}, got {} instead",
+                                type, peek_token_.type);
+  errors_.push_back(std::move(msg));
 }
 
 }  // namespace monkey

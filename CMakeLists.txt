@@ -21,5 +21,8 @@ target_link_libraries(monkey PUBLIC absl::flat_hash_map fmt::fmt glog::glog)
 add_executable(monkey_repl src/repl_main.cpp)
 target_link_libraries(monkey_repl PUBLIC monkey)
 
+add_executable(monkey_play src/play.cpp)
+target_link_libraries(monkey_play PUBLIC monkey)
+
 enable_testing()
 add_subdirectory(tests)

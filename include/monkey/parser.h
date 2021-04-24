@@ -12,6 +12,7 @@ class Parser {
   explicit Parser(std::string input) : Parser{Lexer{input}} {}
 
   Program ParseProgram();
+  std::vector<std::string> errors() const noexcept { return errors_; }
 
  private:
   void NextToken();
@@ -21,10 +22,12 @@ class Parser {
   bool IsCurrToken(TokenType type) const { return curr_token_.type == type; }
   bool IsPeekToken(TokenType type) const { return peek_token_.type == type; }
   bool ExpectPeek(TokenType type);
+  void PeekError(TokenType type);
 
   Lexer lexer_;
   Token curr_token_;
   Token peek_token_;
+  std::vector<std::string> errors_;
 };
 
 }  // namespace monkey
