@@ -2,7 +2,7 @@
 
 namespace monkey {
 
-std::string Program::TokenLiteralImpl() {
+std::string Program::TokenLiteralImpl() const {
   if (statements.empty()) {
     return {};
   }

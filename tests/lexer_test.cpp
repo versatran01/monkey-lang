@@ -1,21 +1,31 @@
 #include "monkey/lexer.h"
 
+#include <glog/logging.h>
 #include <gtest/gtest.h>
 
 namespace monkey {
-
 namespace {
+
+TEST(LexerTest, TestTokenTypeOstream) {
+  auto tt = TokenType::kIllegal;
+  LOG(INFO) << tt;
+}
+
+TEST(LexerTest, TestTokenOstream) {
+  auto t = Token{TokenType::kAssign, "="};
+  LOG(INFO) << t;
+}
 
 TEST(LexerTest, TestNextToken) {
   const std::string input = "=+(){},;";
 
   Lexer lexer(input);
   std::vector<Token> true_tokens{
-      {token_type::kAssign, "="}, {token_type::kPlus, "+"},
-      {token_type::kLParen, "("}, {token_type::kRParen, ")"},
-      {token_type::kLBrace, "{"}, {token_type::kRBrace, "}"},
-      {token_type::kComma, ","},  {token_type::kSemicolon, ";"},
-      {token_type::kEof, ""}};
+      {TokenType::kAssign, "="}, {TokenType::kPlus, "+"},
+      {TokenType::kLParen, "("}, {TokenType::kRParen, ")"},
+      {TokenType::kLBrace, "{"}, {TokenType::kRBrace, "}"},
+      {TokenType::kComma, ","},  {TokenType::kSemicolon, ";"},
+      {TokenType::kEof, ""}};
 
   for (const auto& true_token : true_tokens) {
     const auto next_token = lexer.NextToken();
@@ -42,38 +52,38 @@ TEST(LexerTest, TestSimpleCode) {
 
   Lexer lexer(input);
   std::vector<Token> true_tokens{
-      {token_type::kLet, "let"},       {token_type::kIdent, "five"},
-      {token_type::kAssign, "="},      {token_type::kInt, "5"},
-      {token_type::kSemicolon, ";"},   {token_type::kLet, "let"},
-      {token_type::kIdent, "ten"},     {token_type::kAssign, "="},
-      {token_type::kInt, "10"},        {token_type::kSemicolon, ";"},
-      {token_type::kLet, "let"},       {token_type::kIdent, "add"},
-      {token_type::kAssign, "="},      {token_type::kFunction, "fn"},
-      {token_type::kLParen, "("},      {token_type::kIdent, "x"},
-      {token_type::kComma, ","},       {token_type::kIdent, "y"},
-      {token_type::kRParen, ")"},      {token_type::kLBrace, "{"},
-      {token_type::kIdent, "x"},       {token_type::kPlus, "+"},
-      {token_type::kIdent, "y"},       {token_type::kSemicolon, ";"},
-      {token_type::kRBrace, "}"},      {token_type::kSemicolon, ";"},
-      {token_type::kLet, "let"},       {token_type::kIdent, "result"},
-      {token_type::kAssign, "="},      {token_type::kIdent, "add"},
-      {token_type::kLParen, "("},      {token_type::kIdent, "five"},
-      {token_type::kComma, ","},       {token_type::kIdent, "ten"},
-      {token_type::kRParen, ")"},      {token_type::kSemicolon, ";"},
-      {token_type::kBang, "!"},        {token_type::kMinus, "-"},
-      {token_type::kSlash, "/"},       {token_type::kAsterisk, "*"},
-      {token_type::kInt, "5"},         {token_type::kSemicolon, ";"},
-      {token_type::kInt, "5"},         {token_type::kLt, "<"},
-      {token_type::kInt, "10"},        {token_type::kGt, ">"},
-      {token_type::kInt, "5"},         {token_type::kSemicolon, ";"},
-      {token_type::kReturn, "return"}, {token_type::kTrue, "true"},
-      {token_type::kSemicolon, ";"},   {token_type::kReturn, "return"},
-      {token_type::kFalse, "false"},   {token_type::kSemicolon, ";"},
-      {token_type::kInt, "10"},        {token_type::kEq, "=="},
-      {token_type::kInt, "10"},        {token_type::kSemicolon, ";"},
-      {token_type::kInt, "10"},        {token_type::kNe, "!="},
-      {token_type::kInt, "9"},         {token_type::kSemicolon, ";"},
-      {token_type::kEof, ""}};
+      {TokenType::kLet, "let"},       {TokenType::kIdent, "five"},
+      {TokenType::kAssign, "="},      {TokenType::kInt, "5"},
+      {TokenType::kSemicolon, ";"},   {TokenType::kLet, "let"},
+      {TokenType::kIdent, "ten"},     {TokenType::kAssign, "="},
+      {TokenType::kInt, "10"},        {TokenType::kSemicolon, ";"},
+      {TokenType::kLet, "let"},       {TokenType::kIdent, "add"},
+      {TokenType::kAssign, "="},      {TokenType::kFunction, "fn"},
+      {TokenType::kLParen, "("},      {TokenType::kIdent, "x"},
+      {TokenType::kComma, ","},       {TokenType::kIdent, "y"},
+      {TokenType::kRParen, ")"},      {TokenType::kLBrace, "{"},
+      {TokenType::kIdent, "x"},       {TokenType::kPlus, "+"},
+      {TokenType::kIdent, "y"},       {TokenType::kSemicolon, ";"},
+      {TokenType::kRBrace, "}"},      {TokenType::kSemicolon, ";"},
+      {TokenType::kLet, "let"},       {TokenType::kIdent, "result"},
+      {TokenType::kAssign, "="},      {TokenType::kIdent, "add"},
+      {TokenType::kLParen, "("},      {TokenType::kIdent, "five"},
+      {TokenType::kComma, ","},       {TokenType::kIdent, "ten"},
+      {TokenType::kRParen, ")"},      {TokenType::kSemicolon, ";"},
+      {TokenType::kBang, "!"},        {TokenType::kMinus, "-"},
+      {TokenType::kSlash, "/"},       {TokenType::kAsterisk, "*"},
+      {TokenType::kInt, "5"},         {TokenType::kSemicolon, ";"},
+      {TokenType::kInt, "5"},         {TokenType::kLt, "<"},
+      {TokenType::kInt, "10"},        {TokenType::kGt, ">"},
+      {TokenType::kInt, "5"},         {TokenType::kSemicolon, ";"},
+      {TokenType::kReturn, "return"}, {TokenType::kTrue, "true"},
+      {TokenType::kSemicolon, ";"},   {TokenType::kReturn, "return"},
+      {TokenType::kFalse, "false"},   {TokenType::kSemicolon, ";"},
+      {TokenType::kInt, "10"},        {TokenType::kEq, "=="},
+      {TokenType::kInt, "10"},        {TokenType::kSemicolon, ";"},
+      {TokenType::kInt, "10"},        {TokenType::kNe, "!="},
+      {TokenType::kInt, "9"},         {TokenType::kSemicolon, ";"},
+      {TokenType::kEof, ""}};
 
   for (const auto& true_token : true_tokens) {
     const auto next_token = lexer.NextToken();
@@ -83,5 +93,4 @@ TEST(LexerTest, TestSimpleCode) {
 }
 
 }  // namespace
-
 }  // namespace monkey

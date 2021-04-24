@@ -21,58 +21,58 @@ Token Lexer::NextToken() {
       if (PeekChar() == '=') {
         auto prev_ch = ch_;
         ReadChar();
-        token = Token{token_type::kEq, std::string{prev_ch} + ch_};
+        token = Token{TokenType::kEq, std::string{prev_ch} + ch_};
       } else {
-        token = Token{token_type::kAssign, {ch_}};
+        token = Token{TokenType::kAssign, {ch_}};
       }
       break;
     case ';':
-      token = Token{token_type::kSemicolon, {ch_}};
+      token = Token{TokenType::kSemicolon, {ch_}};
       break;
     case '(':
-      token = Token{token_type::kLParen, {ch_}};
+      token = Token{TokenType::kLParen, {ch_}};
       break;
     case ')':
-      token = Token{token_type::kRParen, {ch_}};
+      token = Token{TokenType::kRParen, {ch_}};
       break;
     case ',':
-      token = Token{token_type::kComma, {ch_}};
+      token = Token{TokenType::kComma, {ch_}};
       break;
     case '!':
       if (PeekChar() == '=') {
         auto prev_ch = ch_;
         ReadChar();
-        token = Token{token_type::kNe, std::string{prev_ch} + ch_};
+        token = Token{TokenType::kNe, std::string{prev_ch} + ch_};
       } else {
-        token = Token{token_type::kBang, {ch_}};
+        token = Token{TokenType::kBang, {ch_}};
       }
       break;
     case '+':
-      token = Token{token_type::kPlus, {ch_}};
+      token = Token{TokenType::kPlus, {ch_}};
       break;
     case '-':
-      token = Token{token_type::kMinus, {ch_}};
+      token = Token{TokenType::kMinus, {ch_}};
       break;
     case '*':
-      token = Token{token_type::kAsterisk, {ch_}};
+      token = Token{TokenType::kAsterisk, {ch_}};
       break;
     case '/':
-      token = Token{token_type::kSlash, {ch_}};
+      token = Token{TokenType::kSlash, {ch_}};
       break;
     case '<':
-      token = Token{token_type::kLt, {ch_}};
+      token = Token{TokenType::kLt, {ch_}};
       break;
     case '>':
-      token = Token{token_type::kGt, {ch_}};
+      token = Token{TokenType::kGt, {ch_}};
       break;
     case '{':
-      token = Token{token_type::kLBrace, {ch_}};
+      token = Token{TokenType::kLBrace, {ch_}};
       break;
     case '}':
-      token = Token{token_type::kRBrace, {ch_}};
+      token = Token{TokenType::kRBrace, {ch_}};
       break;
     case 0:
-      token = Token{token_type::kEof, ""};
+      token = Token{TokenType::kEof, ""};
       break;
     default:
       if (IsLetter(ch_)) {
@@ -80,12 +80,12 @@ Token Lexer::NextToken() {
         token.type = LookupIdentifier(token.literal);
         return token;  // early return to prevent extra ReadChar();
       } else if (IsDigit(ch_)) {
-        token.type = token_type::kInt;
+        token.type = TokenType::kInt;
         token.literal = ReadNumber();
         return token;  // early return to prevent extra ReadChar();
 
       } else {
-        token = Token{token_type::kIllegal, {ch_}};
+        token = Token{TokenType::kIllegal, {ch_}};
       }
   }
 

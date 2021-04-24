@@ -17,7 +17,7 @@ void StartRepl() {
 
     Lexer lexer{line};
 
-    for (Token t = lexer.NextToken(); t.type != token_type::kEof;
+    for (Token t = lexer.NextToken(); t.type != TokenType::kEof;
          t = lexer.NextToken()) {
       fmt::print("{},\t {}\n", t.type, t.literal);
     }

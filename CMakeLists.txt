@@ -13,9 +13,10 @@ find_package(absl REQUIRED)
 find_package(glog REQUIRED)
 find_package(fmt REQUIRED)
 
-add_library(monkey src/lexer.cpp src/token.cpp src/repl.cpp src/ast.cpp)
+add_library(monkey src/lexer.cpp src/token.cpp src/repl.cpp src/ast.cpp
+                   src/parser.cpp)
 target_include_directories(monkey PUBLIC include)
-target_link_libraries(monkey PUBLIC absl::flat_hash_map fmt::fmt)
+target_link_libraries(monkey PUBLIC absl::flat_hash_map fmt::fmt glog::glog)
 
 add_executable(monkey_repl src/repl_main.cpp)
 target_link_libraries(monkey_repl PUBLIC monkey)

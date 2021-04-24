@@ -8,51 +8,62 @@
 
 namespace monkey {
 
-namespace te = boost::te;
+enum class NodeType { kBase, kProgram, kStatement, kExpression };
 
-enum class NodeType { kBase, kStatement, kExpression };
-
+// Interface of Node
 struct NodeInterface {
   std::string TokenLiteral() const noexcept {
-    return te::call<std::string>([](const auto &self) { self.TokenLiteral(); },
-                                 *this);
+    return boost::te::call<std::string>(
+        [](const auto &self) { self.TokenLiteral(); }, *this);
+  }
+
+  std::string String() const noexcept {
+    return boost::te::call<std::string>([](const auto &self) { self.String(); },
+                                        *this);
+  }
+
+  NodeType Type() const noexcept {
+    return boost::te::call<NodeType>([](const auto &self) { self.Type(); },
+                                     *this);
   }
 };
 
-using Node = te::poly<NodeInterface>;
+using Node = boost::te::poly<NodeInterface>;
 
 struct NodeBase {
-  std::string TokenLiteral();
-  std::string String();
-  std::string Type();
+  explicit NodeBase(NodeType type = NodeType::kBase) : type{type} {}
+  virtual ~NodeBase() noexcept = default;
 
-  virtual std::string TokenLiteralImpl();
-  virtual std::string StringImpl();
-  virtual std::string TypeImpl();
+  std::string TokenLiteral() const { return TokenLiteralImpl(); }
+  std::string String() const { return StringImpl(); }
+  NodeType Type() const { return type; }
+
+  virtual std::string TokenLiteralImpl() const { return token.literal; }
+  virtual std::string StringImpl() const { return {}; }
 
   NodeType type{NodeType::kBase};
+  Token token;
 };
 
-struct Statement : public NodeBase {};
-
-struct Expression : public NodeBase {};
-
 struct Program final : public NodeBase {
-  std::string TokenLiteralImpl() override;
-  std::string StringImpl() override;
-  std::string TypeImpl() override;
+  Program() : NodeBase(NodeType::kProgram) {}
+  std::string TokenLiteralImpl() const override;
 
   std::vector<Node> statements;
 };
 
-struct Identifier {
-  Token token;
+struct Statement : public NodeBase {
+  explicit Statement(NodeType type = NodeType::kStatement) : NodeBase{type} {}
+};
+
+struct Expression : public NodeBase {};
+
+struct Identifier final : public Expression {
   std::string value;
 };
 
-struct LetStatement : public Statement {
-  Token token;
-  // Identifier name;
+struct LetStatement final : public Statement {
+  Identifier name;
   Expression value;
 };
 

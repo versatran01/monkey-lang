@@ -13,3 +13,4 @@ src/token.cpp
 tests/lexer_test.cpp
 CMakeLists.txt
 tests/CMakeLists.txt
+tests/parser_test.cpp
