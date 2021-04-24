@@ -1,6 +1,10 @@
+include/monkey/ast.h
 include/monkey/lexer.h
+include/monkey/parser.h
 include/monkey/repl.h
+include/monkey/te.hpp
 include/monkey/token.h
+src/ast.cpp
 src/lexer.cpp
 src/repl.cpp
 src/repl_main.cpp
