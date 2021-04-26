@@ -22,11 +22,11 @@ std::string Program::StringImpl() const {
 std::string LetStatement::StringImpl() const {
   // let name = expr;
   return fmt::format("{} {} = {};", TokenLiteral(), name.String(),
-                     value.String());
+                     expr.String());
 }
 
 std::string ReturnStatement::StringImpl() const {
-  return fmt::format("{} {};", TokenLiteral(), value.String());
+  return fmt::format("{} {};", TokenLiteral(), expr.String());
 }
 
 }  // namespace monkey

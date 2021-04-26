@@ -59,15 +59,16 @@ struct Program final : public NodeBase {
   std::vector<Node> statements;
 };
 
-struct Statement : public NodeBase {
-  explicit Statement(NodeType type = NodeType::kStatement) : NodeBase{type} {}
-};
-
 struct Expression : public NodeBase {
   explicit Expression(NodeType type = NodeType::kExpression) : NodeBase{type} {}
 };
 
+struct Statement : public NodeBase {
+  explicit Statement(NodeType type = NodeType::kStatement) : NodeBase{type} {}
+};
+
 struct Identifier final : public Expression {
+  std::string StringImpl() const override { return value; }
   std::string value;
 };
 
@@ -75,13 +76,18 @@ struct LetStatement final : public Statement {
   std::string StringImpl() const override;
 
   Identifier name;
-  Expression value;
+  Expression expr;
 };
 
 struct ReturnStatement final : public Statement {
   std::string StringImpl() const override;
 
-  Expression value;
+  Expression expr;
+};
+
+struct ExpressionStatement final : public Statement {
+  std::string TokenLiteralImpl() const override { return expr.TokenLiteral(); }
+  Expression expr;
 };
 
 }  // namespace monkey

@@ -9,7 +9,7 @@ int main() {
   const std::string input = R"raw(
     let x = 5;
     let y = 10;
-    let 123;
+    let z = 123;
    )raw";
 
   Parser parser{input};
