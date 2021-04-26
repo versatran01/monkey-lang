@@ -20,8 +20,8 @@ void Parser::NextToken() {
 Program Parser::ParseProgram() {
   Program program;
   while (curr_token_.type != TokenType::kEof) {
-    Node stmt = ParseStatement();
-    if (stmt.Type() != NodeType::kBase) {
+    const Node stmt = ParseStatement();
+    if (stmt.Ok()) {
       program.statements.push_back(stmt);
     }
     NextToken();
@@ -33,6 +33,8 @@ Node Parser::ParseStatement() {
   switch (curr_token_.type) {
     case TokenType::kLet:
       return ParseLetStatement();
+    case TokenType::kReturn:
+      return ParseReturnStatement();
     default:
       return NodeBase{};
   }
@@ -54,6 +56,19 @@ Node Parser::ParseLetStatement() {
   }
 
   // TODO: we're skipping the expressions until we encounter a semicolon
+  while (!IsCurrToken(TokenType::kSemicolon)) {
+    NextToken();
+  }
+
+  return stmt;
+}
+
+Node Parser::ParseReturnStatement() {
+  ReturnStatement stmt;
+  stmt.token = curr_token_;
+
+  NextToken();
+
   while (!IsCurrToken(TokenType::kSemicolon)) {
     NextToken();
   }

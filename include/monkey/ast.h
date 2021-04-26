@@ -26,6 +26,11 @@ struct NodeInterface {
     return boost::te::call<NodeType>(
         [](const auto &self) { return self.Type(); }, *this);
   }
+
+  bool Ok() const {
+    return boost::te::call<bool>([](const auto &self) { return self.Ok(); },
+                                 *this);
+  }
 };
 
 using Node = boost::te::poly<NodeInterface>;
@@ -37,6 +42,7 @@ struct NodeBase {
   std::string TokenLiteral() const { return TokenLiteralImpl(); }
   std::string String() const { return StringImpl(); }
   NodeType Type() const { return type; }
+  bool Ok() const { return type != NodeType::kBase; }
 
   virtual std::string TokenLiteralImpl() const { return token.literal; }
   virtual std::string StringImpl() const { return token.literal; }
@@ -69,6 +75,12 @@ struct LetStatement final : public Statement {
   std::string StringImpl() const override;
 
   Identifier name;
+  Expression value;
+};
+
+struct ReturnStatement final : public Statement {
+  std::string StringImpl() const override;
+
   Expression value;
 };
 

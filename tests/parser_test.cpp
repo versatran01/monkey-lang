@@ -7,7 +7,7 @@
 namespace monkey {
 namespace {
 
-TEST(ParserTest, TestParseSimpleProgram) {
+TEST(ParserTest, TestParseLetStatement) {
   const std::string input = R"raw(
     let x = 5;
     let y = 10;
@@ -25,7 +25,7 @@ TEST(ParserTest, TestParseSimpleProgram) {
   }
 }
 
-TEST(ParserTest, TestSimpleProgramError) {
+TEST(ParserTest, TestParseLetStatementWithError) {
   const std::string input = R"raw(
     let x = 5;
     let y = 10;
@@ -42,6 +42,23 @@ TEST(ParserTest, TestSimpleProgramError) {
     EXPECT_EQ(program.statements[i].TokenLiteral(), "let");
   }
   LOG(INFO) << fmt::format("{}", parser.errors());
+}
+
+TEST(ParserTest, TestParseReturnStatement) {
+  const std::string input = R"raw(
+    return 5;
+    return 10;
+    return 123;
+   )raw";
+
+  Parser parser{input};
+
+  auto program = parser.ParseProgram();
+  ASSERT_EQ(program.statements.size(), 3);
+
+  for (size_t i = 0; i < program.statements.size(); ++i) {
+    EXPECT_EQ(program.statements[i].TokenLiteral(), "return");
+  }
 }
 
 }  // namespace

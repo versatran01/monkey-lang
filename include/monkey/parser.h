@@ -18,6 +18,7 @@ class Parser {
   void NextToken();
   Node ParseStatement();
   Node ParseLetStatement();
+  Node ParseReturnStatement();
 
   bool IsCurrToken(TokenType type) const { return curr_token_.type == type; }
   bool IsPeekToken(TokenType type) const { return peek_token_.type == type; }
