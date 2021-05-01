@@ -20,7 +20,7 @@ void Parser::NextToken() {
 Program Parser::ParseProgram() {
   Program program;
   while (curr_token_.type != TokenType::kEof) {
-    const Node stmt = ParseStatement();
+    const StmtNode stmt = ParseStatement();
     if (stmt.Ok()) {
       program.statements.push_back(stmt);
     }
@@ -29,7 +29,7 @@ Program Parser::ParseProgram() {
   return program;
 }
 
-Node Parser::ParseStatement() {
+StmtNode Parser::ParseStatement() {
   switch (curr_token_.type) {
     case TokenType::kLet:
       return ParseLetStatement();
@@ -40,7 +40,7 @@ Node Parser::ParseStatement() {
   }
 }
 
-Node Parser::ParseLetStatement() {
+StmtNode Parser::ParseLetStatement() {
   LetStatement stmt;
   stmt.token = curr_token_;
 
@@ -63,7 +63,7 @@ Node Parser::ParseLetStatement() {
   return stmt;
 }
 
-Node Parser::ParseReturnStatement() {
+StmtNode Parser::ParseReturnStatement() {
   ReturnStatement stmt;
   stmt.token = curr_token_;
 

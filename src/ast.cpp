@@ -5,10 +5,7 @@
 namespace monkey {
 
 std::string Program::TokenLiteralImpl() const {
-  if (statements.empty()) {
-    return {};
-  }
-  return statements.front().TokenLiteral();
+  return statements.empty() ? "" : statements.front().TokenLiteral();
 }
 
 std::string Program::StringImpl() const {

@@ -33,7 +33,9 @@ struct NodeInterface {
   }
 };
 
-using Node = boost::te::poly<NodeInterface>;
+using AstNode = boost::te::poly<NodeInterface>;
+using ExprNode = AstNode;
+using StmtNode = AstNode;
 
 struct NodeBase {
   NodeBase() = default;
@@ -57,7 +59,7 @@ struct Program final : public NodeBase {
   std::string TokenLiteralImpl() const override;
   std::string StringImpl() const override;
 
-  std::vector<Node> statements;
+  std::vector<StmtNode> statements;
 };
 
 struct Expression : public NodeBase {
@@ -70,6 +72,7 @@ struct Statement : public NodeBase {
 
 struct Identifier final : public Expression {
   std::string StringImpl() const override { return value; }
+
   std::string value;
 };
 
@@ -77,18 +80,19 @@ struct LetStatement final : public Statement {
   std::string StringImpl() const override;
 
   Identifier name;
-  Node expr{NodeBase{}};  // Expression
+  ExprNode expr{Expression{}};  // Expression
 };
 
 struct ReturnStatement final : public Statement {
   std::string StringImpl() const override;
 
-  Node expr{NodeBase{}};  // Expression
+  ExprNode expr{Expression{}};  // Expression
 };
 
 struct ExpressionStatement final : public Statement {
   std::string TokenLiteralImpl() const override { return expr.TokenLiteral(); }
-  Node expr{NodeBase{}};  // Expression
+
+  ExprNode expr{Expression{}};  // Expression
 };
 
 }  // namespace monkey

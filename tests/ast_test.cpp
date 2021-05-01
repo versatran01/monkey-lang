@@ -4,8 +4,15 @@
 #include <gtest/gtest.h>
 
 namespace monkey {
-
 namespace {
+
+TEST(AstTest, TestExpression) {
+  Expression expr;
+  EXPECT_EQ(expr.type, NodeType::kExpression);
+
+  Identifier ident;
+  EXPECT_EQ(ident.type, NodeType::kExpression);
+}
 
 TEST(AstTest, TestProgramString) {
   Program program;
@@ -23,5 +30,4 @@ TEST(AstTest, TestProgramString) {
 }
 
 }  // namespace
-
 }  // namespace monkey
