@@ -10,6 +10,16 @@
 
 namespace monkey {
 
+enum class Precedence {
+  kLowest,
+  kEquals,
+  kLessGreater,
+  kSum,
+  kProduct,
+  kPrefix,
+  kCall
+};
+
 class Parser {
  public:
   explicit Parser(Lexer lexer);
@@ -19,20 +29,27 @@ class Parser {
   std::vector<std::string> errors() const noexcept { return errors_; }
 
  private:
-  void NextToken();
-  StmtNode ParseStatement();
-  StmtNode ParseLetStatement();
-  StmtNode ParseReturnStatement();
-  StmtNode ParseExpressionStatement();
+  // Parsing functions
+  Statement ParseStatement();
+  Statement ParseLetStatement();
+  Statement ParseReturnStatement();
+  Statement ParseExpressionStatement();
 
+  Expression ParseExpression(Precedence precedence);
+  Expression ParseIdentifier();
+  Expression ParseIntegerLiteral();
+
+  // Token functions
+  void NextToken();
   bool IsCurrToken(TokenType type) const { return curr_token_.type == type; }
   bool IsPeekToken(TokenType type) const { return peek_token_.type == type; }
   bool ExpectPeek(TokenType type);
   void PeekError(TokenType type);
 
-  using PrefixParseFn = std::function<ExprNode()>;
-  using InfixParseFn = std::function<ExprNode(ExprNode)>;
+  using PrefixParseFn = std::function<Expression()>;
+  using InfixParseFn = std::function<Expression(Expression)>;
 
+  void RegisterParseFns();
   void RegisterInfix(TokenType type, InfixParseFn fn) {
     infix_parse_fn_[type] = std::move(fn);
   }

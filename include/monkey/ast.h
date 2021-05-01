@@ -14,6 +14,7 @@ enum class NodeType {
   kProgram,
   // Expression
   kIdentExpr,
+  kIntExpr,
   // Statment
   kExprStmt,
   kLetStmt,
@@ -45,18 +46,30 @@ struct NodeInterface {
   }
 };
 
-using ExprNode = boost::te::poly<NodeInterface>;
+// fwd
+struct ExpressionBase;
+
+struct ExprInterface : public NodeInterface {
+  ExprInterface() { boost::te::extends<NodeInterface>(*this); }
+
+  auto *Ptr() const {
+    return boost::te::call<ExpressionBase *>(
+        [](const auto &self) { return self.Ptr(); }, *this);
+  }
+};
+
+using Expression = boost::te::poly<ExprInterface>;
 
 struct StmtInterface : public NodeInterface {
   StmtInterface() { boost::te::extends<NodeInterface>(*this); }
 
   auto Expr() const {
-    return boost::te::call<ExprNode>([](const auto &self) { return self.expr; },
-                                     *this);
+    return boost::te::call<Expression>(
+        [](const auto &self) { return self.expr; }, *this);
   }
 };
 
-using StmtNode = boost::te::poly<StmtInterface>;
+using Statement = boost::te::poly<StmtInterface>;
 
 // Types of Node
 struct NodeBase {
@@ -81,43 +94,52 @@ struct Program final : public NodeBase {
   std::string TokenLiteralImpl() const override;
   std::string StringImpl() const override;
 
-  void AddStatement(const StmtNode &stmt) { statements.push_back(stmt); }
+  void AddStatement(const Statement &stmt) { statements.push_back(stmt); }
   auto NumStatments() const { return statements.size(); }
 
-  std::vector<StmtNode> statements;
+  std::vector<Statement> statements;
 };
 
-struct Expression : public NodeBase {
+struct ExpressionBase : public NodeBase {
   using NodeBase::NodeBase;
+
+  const ExpressionBase *Ptr() const { return this; }
 };
 
-struct Identifier final : public Expression {
-  Identifier() : Expression{NodeType::kIdentExpr} {}
+struct Identifier final : public ExpressionBase {
+  Identifier() : ExpressionBase{NodeType::kIdentExpr} {}
   std::string StringImpl() const override { return value; }
 
   std::string value;
 };
 
-struct Statement : public NodeBase {
-  using NodeBase::NodeBase;
+struct IntegerLiteral final : public ExpressionBase {
+  IntegerLiteral() : ExpressionBase{NodeType::kIntExpr} {}
+  std::string StringImpl() const override { return token.literal; }
 
-  ExprNode expr{Expression{}};
+  int64_t value;  // use 64 bits
 };
 
-struct LetStatement final : public Statement {
-  LetStatement() : Statement{NodeType::kLetStmt} {}
+struct StatementBase : public NodeBase {
+  using NodeBase::NodeBase;
+
+  Expression expr{ExpressionBase{}};
+};
+
+struct LetStatement final : public StatementBase {
+  LetStatement() : StatementBase{NodeType::kLetStmt} {}
   std::string StringImpl() const override;
 
   Identifier name;
 };
 
-struct ReturnStatement final : public Statement {
-  ReturnStatement() : Statement{NodeType::kReturnStmt} {}
+struct ReturnStatement final : public StatementBase {
+  ReturnStatement() : StatementBase{NodeType::kReturnStmt} {}
   std::string StringImpl() const override;
 };
 
-struct ExpressionStatement final : public Statement {
-  ExpressionStatement() : Statement{NodeType::kExprStmt} {}
+struct ExpressionStatement final : public StatementBase {
+  ExpressionStatement() : StatementBase{NodeType::kExprStmt} {}
   std::string TokenLiteralImpl() const override { return expr.TokenLiteral(); }
 };
 

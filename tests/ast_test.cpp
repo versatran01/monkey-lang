@@ -7,7 +7,7 @@ namespace monkey {
 namespace {
 
 TEST(AstTest, TestExpressionType) {
-  Expression expr;
+  ExpressionBase expr;
   EXPECT_EQ(expr.Type(), NodeType::kBase);
 
   Identifier ident;
@@ -20,23 +20,27 @@ TEST(AstTest, TestExpressionValue) {
   expr.token = Token{TokenType::kIdent, "abc"};
   expr.value = "abc";
 
-  ExprNode node = expr;
+  Expression node = expr;
   EXPECT_EQ(node.String(), expr.value);
   EXPECT_EQ(node.TokenLiteral(), expr.token.literal);
 }
 
 TEST(AstTest, TestStatementType) {
-  Statement stmt;
+  StatementBase stmt;
   EXPECT_EQ(stmt.Type(), NodeType::kBase);
+  EXPECT_EQ(stmt.Ok(), false);
 
   LetStatement let;
   EXPECT_EQ(let.Type(), NodeType::kLetStmt);
+  EXPECT_EQ(let.Ok(), true);
 
   ReturnStatement ret;
   EXPECT_EQ(ret.Type(), NodeType::kReturnStmt);
+  EXPECT_EQ(ret.Ok(), true);
 
   ExpressionStatement expr;
   EXPECT_EQ(expr.Type(), NodeType::kExprStmt);
+  EXPECT_EQ(expr.Ok(), true);
 }
 
 TEST(AstTest, TestExpressionStatement) {
@@ -50,10 +54,26 @@ TEST(AstTest, TestExpressionStatement) {
   stmt.token = expr.token;
   stmt.expr = expr;
 
-  StmtNode node = stmt;
+  Statement node = stmt;
   EXPECT_EQ(node.TokenLiteral(), expr.TokenLiteral());
   EXPECT_EQ(node.Expr().String(), expr.String());
   EXPECT_EQ(node.Expr().Type(), expr.Type());
+}
+
+TEST(AstTest, TestExpressionPtr) {
+  IntegerLiteral intl;
+  intl.type = NodeType::kIntExpr;
+  intl.token = Token{TokenType::kInt, "5"};
+  intl.value = 5;
+
+  Expression expr = intl;
+  ExpressionBase* base_ptr = expr.Ptr();
+  auto* intl_ptr = dynamic_cast<IntegerLiteral*>(base_ptr);
+  ASSERT_NE(intl_ptr, nullptr);
+  EXPECT_EQ(intl_ptr->value, intl.value);
+
+  auto* bad_ptr = dynamic_cast<Identifier*>(base_ptr);
+  ASSERT_EQ(bad_ptr, nullptr);
 }
 
 TEST(AstTest, TestProgramString) {

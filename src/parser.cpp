@@ -1,5 +1,6 @@
 #include "monkey/parser.h"
 
+#include <absl/strings/numbers.h>
 #include <fmt/core.h>
 #include <fmt/ostream.h>
 #include <glog/logging.h>
@@ -10,6 +11,12 @@ Parser::Parser(Lexer lexer) : lexer_(std::move(lexer)) {
   // Read two tokens, so curToken and peekToken are both set
   NextToken();
   NextToken();
+  RegisterParseFns();
+}
+
+void Parser::RegisterParseFns() {
+  RegisterPrefix(TokenType::kIdent, [this]() { return ParseIdentifier(); });
+  RegisterPrefix(TokenType::kInt, [this]() { return ParseIntegerLiteral(); });
 }
 
 void Parser::NextToken() {
@@ -20,7 +27,7 @@ void Parser::NextToken() {
 Program Parser::ParseProgram() {
   Program program;
   while (curr_token_.type != TokenType::kEof) {
-    const StmtNode stmt = ParseStatement();
+    const Statement stmt = ParseStatement();
     if (stmt.Ok()) {
       program.statements.push_back(stmt);
     }
@@ -29,30 +36,32 @@ Program Parser::ParseProgram() {
   return program;
 }
 
-StmtNode Parser::ParseStatement() {
+Statement Parser::ParseStatement() {
   switch (curr_token_.type) {
     case TokenType::kLet:
       return ParseLetStatement();
     case TokenType::kReturn:
       return ParseReturnStatement();
     default:
-      return Statement{};
+      return ParseExpressionStatement();
   }
 }
 
-StmtNode Parser::ParseLetStatement() {
+Statement Parser::ParseLetStatement() {
   LetStatement stmt;
   stmt.token = curr_token_;
 
   if (!ExpectPeek(TokenType::kIdent)) {
-    return Statement{};
+    LOG(INFO) << "[ParseLetStatement] Next token is not Ident";
+    return StatementBase{};
   }
 
   stmt.name.token = curr_token_;
   stmt.name.value = curr_token_.literal;
 
   if (!ExpectPeek(TokenType::kAssign)) {
-    return Statement{};
+    LOG(INFO) << "[ParseLetStatement] Next token is not Assing";
+    return StatementBase{};
   }
 
   // TODO: we're skipping the expressions until we encounter a semicolon
@@ -63,7 +72,7 @@ StmtNode Parser::ParseLetStatement() {
   return stmt;
 }
 
-StmtNode Parser::ParseReturnStatement() {
+Statement Parser::ParseReturnStatement() {
   ReturnStatement stmt;
   stmt.token = curr_token_;
 
@@ -75,6 +84,50 @@ StmtNode Parser::ParseReturnStatement() {
   }
 
   return stmt;
+}
+
+Statement Parser::ParseExpressionStatement() {
+  ExpressionStatement stmt;
+  stmt.token = curr_token_;
+  stmt.expr = ParseExpression(Precedence::kLowest);
+
+  if (IsPeekToken(TokenType::kSemicolon)) {
+    NextToken();
+  }
+
+  return stmt;
+}
+
+Expression Parser::ParseExpression(Precedence precedence) {
+  const auto it = prefix_parse_fn_.find(curr_token_.type);
+  if (it == prefix_parse_fn_.end()) {
+    return ExpressionBase{};
+  }
+
+  return it->second();  // call the function
+}
+
+Expression Parser::ParseIdentifier() {
+  Identifier ident;
+  ident.token = curr_token_;
+  ident.value = curr_token_.literal;
+  return ident;
+}
+
+Expression Parser::ParseIntegerLiteral() {
+  IntegerLiteral lit;
+  lit.token = curr_token_;
+
+  bool ok = absl::SimpleAtoi(lit.token.literal, &lit.value);
+  if (!ok) {
+    const auto msg =
+        fmt::format("could not parse {} as integer", curr_token_.literal);
+    LOG(WARNING) << msg;
+    errors_.push_back(msg);
+    return ExpressionBase{};
+  }
+
+  return lit;
 }
 
 bool Parser::ExpectPeek(TokenType type) {
