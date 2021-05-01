@@ -1,4 +1,2 @@
 include
 tests
-src
-include/monkey

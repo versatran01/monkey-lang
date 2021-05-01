@@ -36,7 +36,8 @@ struct NodeInterface {
 using Node = boost::te::poly<NodeInterface>;
 
 struct NodeBase {
-  explicit NodeBase(NodeType type = NodeType::kBase) : type{type} {}
+  NodeBase() = default;
+  explicit NodeBase(NodeType type) : type{type} {}
   virtual ~NodeBase() noexcept = default;
 
   std::string TokenLiteral() const { return TokenLiteralImpl(); }
@@ -76,18 +77,18 @@ struct LetStatement final : public Statement {
   std::string StringImpl() const override;
 
   Identifier name;
-  Expression expr;
+  Node expr{NodeBase{}};  // Expression
 };
 
 struct ReturnStatement final : public Statement {
   std::string StringImpl() const override;
 
-  Expression expr;
+  Node expr{NodeBase{}};  // Expression
 };
 
 struct ExpressionStatement final : public Statement {
   std::string TokenLiteralImpl() const override { return expr.TokenLiteral(); }
-  Expression expr;
+  Node expr{NodeBase{}};  // Expression
 };
 
 }  // namespace monkey

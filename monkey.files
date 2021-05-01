@@ -11,6 +11,7 @@ src/play.cpp
 src/repl.cpp
 src/repl_main.cpp
 src/token.cpp
+tests/ast_test.cpp
 tests/lexer_test.cpp
 CMakeLists.txt
 tests/CMakeLists.txt
