@@ -36,7 +36,7 @@ StmtNode Parser::ParseStatement() {
     case TokenType::kReturn:
       return ParseReturnStatement();
     default:
-      return NodeBase{};
+      return Statement{};
   }
 }
 
@@ -45,14 +45,14 @@ StmtNode Parser::ParseLetStatement() {
   stmt.token = curr_token_;
 
   if (!ExpectPeek(TokenType::kIdent)) {
-    return NodeBase{};
+    return Statement{};
   }
 
   stmt.name.token = curr_token_;
   stmt.name.value = curr_token_.literal;
 
   if (!ExpectPeek(TokenType::kAssign)) {
-    return NodeBase{};
+    return Statement{};
   }
 
   // TODO: we're skipping the expressions until we encounter a semicolon
@@ -69,6 +69,7 @@ StmtNode Parser::ParseReturnStatement() {
 
   NextToken();
 
+  // TODO: we're skipping the expressions until we encounter a semicolon
   while (!IsCurrToken(TokenType::kSemicolon)) {
     NextToken();
   }

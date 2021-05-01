@@ -13,7 +13,7 @@ namespace monkey {
 class Parser {
  public:
   explicit Parser(Lexer lexer);
-  explicit Parser(std::string input) : Parser{Lexer{input}} {}
+  explicit Parser(const std::string& input) : Parser{Lexer{input}} {}
 
   Program ParseProgram();
   std::vector<std::string> errors() const noexcept { return errors_; }
@@ -23,14 +23,15 @@ class Parser {
   StmtNode ParseStatement();
   StmtNode ParseLetStatement();
   StmtNode ParseReturnStatement();
+  StmtNode ParseExpressionStatement();
 
   bool IsCurrToken(TokenType type) const { return curr_token_.type == type; }
   bool IsPeekToken(TokenType type) const { return peek_token_.type == type; }
   bool ExpectPeek(TokenType type);
   void PeekError(TokenType type);
 
-  using PrefixParseFn = std::function<Expression()>;
-  using InfixParseFn = std::function<Expression(Expression)>;
+  using PrefixParseFn = std::function<ExprNode()>;
+  using InfixParseFn = std::function<ExprNode(ExprNode)>;
 
   void RegisterInfix(TokenType type, InfixParseFn fn) {
     infix_parse_fn_[type] = std::move(fn);
@@ -43,6 +44,7 @@ class Parser {
   Token curr_token_;
   Token peek_token_;
   std::vector<std::string> errors_;
+
   absl::flat_hash_map<TokenType, InfixParseFn> infix_parse_fn_;
   absl::flat_hash_map<TokenType, PrefixParseFn> prefix_parse_fn_;
 };

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iosfwd>
 #include <string>
 #include <vector>
 
@@ -8,35 +9,56 @@
 
 namespace monkey {
 
-enum class NodeType { kBase, kProgram, kStatement, kExpression };
+enum class NodeType {
+  kBase,
+  kProgram,
+  // Expression
+  kIdentExpr,
+  // Statment
+  kExprStmt,
+  kLetStmt,
+  kReturnStmt
+};
+
+// std::ostream &operator<<(std::ostream &os, NodeType node_type);
 
 // Interface of Node
 struct NodeInterface {
-  std::string TokenLiteral() const {
+  auto TokenLiteral() const {
     return boost::te::call<std::string>(
         [](const auto &self) { return self.TokenLiteral(); }, *this);
   }
 
-  std::string String() const {
+  auto String() const {
     return boost::te::call<std::string>(
         [](const auto &self) { return self.String(); }, *this);
   }
 
-  NodeType Type() const {
+  auto Type() const {
     return boost::te::call<NodeType>(
         [](const auto &self) { return self.Type(); }, *this);
   }
 
-  bool Ok() const {
+  auto Ok() const {
     return boost::te::call<bool>([](const auto &self) { return self.Ok(); },
                                  *this);
   }
 };
 
-using AstNode = boost::te::poly<NodeInterface>;
-using ExprNode = AstNode;
-using StmtNode = AstNode;
+using ExprNode = boost::te::poly<NodeInterface>;
 
+struct StmtInterface : public NodeInterface {
+  StmtInterface() { boost::te::extends<NodeInterface>(*this); }
+
+  auto Expr() const {
+    return boost::te::call<ExprNode>([](const auto &self) { return self.expr; },
+                                     *this);
+  }
+};
+
+using StmtNode = boost::te::poly<StmtInterface>;
+
+// Types of Node
 struct NodeBase {
   NodeBase() = default;
   explicit NodeBase(NodeType type) : type{type} {}
@@ -59,40 +81,44 @@ struct Program final : public NodeBase {
   std::string TokenLiteralImpl() const override;
   std::string StringImpl() const override;
 
+  void AddStatement(const StmtNode &stmt) { statements.push_back(stmt); }
+  auto NumStatments() const { return statements.size(); }
+
   std::vector<StmtNode> statements;
 };
 
 struct Expression : public NodeBase {
-  explicit Expression(NodeType type = NodeType::kExpression) : NodeBase{type} {}
-};
-
-struct Statement : public NodeBase {
-  explicit Statement(NodeType type = NodeType::kStatement) : NodeBase{type} {}
+  using NodeBase::NodeBase;
 };
 
 struct Identifier final : public Expression {
+  Identifier() : Expression{NodeType::kIdentExpr} {}
   std::string StringImpl() const override { return value; }
 
   std::string value;
 };
 
+struct Statement : public NodeBase {
+  using NodeBase::NodeBase;
+
+  ExprNode expr{Expression{}};
+};
+
 struct LetStatement final : public Statement {
+  LetStatement() : Statement{NodeType::kLetStmt} {}
   std::string StringImpl() const override;
 
   Identifier name;
-  ExprNode expr{Expression{}};  // Expression
 };
 
 struct ReturnStatement final : public Statement {
+  ReturnStatement() : Statement{NodeType::kReturnStmt} {}
   std::string StringImpl() const override;
-
-  ExprNode expr{Expression{}};  // Expression
 };
 
 struct ExpressionStatement final : public Statement {
+  ExpressionStatement() : Statement{NodeType::kExprStmt} {}
   std::string TokenLiteralImpl() const override { return expr.TokenLiteral(); }
-
-  ExprNode expr{Expression{}};  // Expression
 };
 
 }  // namespace monkey

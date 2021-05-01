@@ -18,10 +18,10 @@ TEST(ParserTest, TestParseLetStatement) {
 
   auto program = parser.ParseProgram();
   const std::vector<std::string> expected_idents = {"x", "y", "foobar"};
-  ASSERT_EQ(program.statements.size(), expected_idents.size());
 
-  for (size_t i = 0; i < program.statements.size(); ++i) {
-    EXPECT_EQ(program.statements[i].TokenLiteral(), "let");
+  ASSERT_EQ(program.NumStatments(), expected_idents.size());
+  for (const auto& stmt : program.statements) {
+    EXPECT_EQ(stmt.TokenLiteral(), "let");
   }
 }
 
@@ -34,12 +34,12 @@ TEST(ParserTest, TestParseLetStatementWithError) {
 
   Parser parser{input};
 
-  auto program = parser.ParseProgram();
+  const auto program = parser.ParseProgram();
   const std::vector<std::string> expected_idents = {"x", "y"};
-  ASSERT_EQ(program.statements.size(), expected_idents.size());
+  ASSERT_EQ(program.NumStatments(), expected_idents.size());
 
-  for (size_t i = 0; i < program.statements.size(); ++i) {
-    EXPECT_EQ(program.statements[i].TokenLiteral(), "let");
+  for (const auto& stmt : program.statements) {
+    EXPECT_EQ(stmt.TokenLiteral(), "let");
   }
   LOG(INFO) << fmt::format("{}", parser.errors());
 }
@@ -54,12 +54,26 @@ TEST(ParserTest, TestParseReturnStatement) {
   Parser parser{input};
 
   auto program = parser.ParseProgram();
-  ASSERT_EQ(program.statements.size(), 3);
 
-  for (size_t i = 0; i < program.statements.size(); ++i) {
-    EXPECT_EQ(program.statements[i].TokenLiteral(), "return");
+  ASSERT_EQ(program.NumStatments(), 3);
+  for (const auto& stmt : program.statements) {
+    EXPECT_EQ(stmt.TokenLiteral(), "return");
   }
 }
+
+//TEST(ParserTest, TestIdentifierExpression) {
+//  const std::string input = "foobar";
+//  Parser parser{input};
+//  const auto program = parser.ParseProgram();
+//  ASSERT_EQ(program.NumStatments(), 1);
+
+//  const auto stmt = program.statements.front();
+//  ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
+
+//  const auto expr = stmt.Expr();
+//  EXPECT_EQ(expr.TokenLiteral(), input);
+//  EXPECT_EQ(expr.String(), input);
+//}
 
 }  // namespace
 }  // namespace monkey
