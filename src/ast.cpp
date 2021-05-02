@@ -33,4 +33,8 @@ std::string InfixExpression::StringImpl() const {
   return fmt::format("({} {} {})", lhs.String(), op, rhs.String());
 }
 
+std::string ExpressionStatement::StringImpl() const {
+  return fmt::format("{};", expr.String());
+}
+
 }  // namespace monkey

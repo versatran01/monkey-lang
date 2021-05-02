@@ -19,6 +19,7 @@ class Lexer {
   char PeekChar() const;
   std::string ReadNumber();
   std::string ReadIdentifier();
+  Token ReadDualToken(TokenType type1, char next_ch, TokenType type2);
 
   // data
   std::string input_;

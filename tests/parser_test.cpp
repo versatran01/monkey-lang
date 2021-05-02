@@ -92,7 +92,7 @@ TEST(ParserTest, TestIntLiteralExpression) {
   EXPECT_EQ(intl_ptr->value, 5);
 }
 
-void TestIntegerLiteral(const Expression& expr, int64_t value) {
+void CheckIntegerLiteral(const Expression& expr, int64_t value) {
   const auto* ptr = dynamic_cast<IntegerLiteral*>(expr.Ptr());
   ASSERT_NE(ptr, nullptr);
   EXPECT_EQ(ptr->value, value);
@@ -118,7 +118,7 @@ TEST(ParserTest, TestPrefixOperator) {
     const auto* ptr = dynamic_cast<PrefixExpression*>(expr.Ptr());
     ASSERT_NE(ptr, nullptr);
     EXPECT_EQ(ptr->op, prefix.op);
-    TestIntegerLiteral(ptr->rhs, prefix.value);
+    CheckIntegerLiteral(ptr->rhs, prefix.value);
   }
 }
 
@@ -133,6 +133,7 @@ TEST(ParserTest, TestInfixOperator) {
   std::vector<Infix> infixes = {{"5+5;", 5, "+", 5},   {"5-5;", 5, "-", 5},
                                 {"5*5;", 5, "*", 5},   {"5/5;", 5, "/", 5},
                                 {"5>5;", 5, ">", 5},   {"5<5;", 5, "<", 5},
+                                {"5>=5;", 5, ">=", 5}, {"5<=5;", 5, "<=", 5},
                                 {"5==5;", 5, "==", 5}, {"5!=5;", 5, "!=", 5}};
 
   for (const auto& infix : infixes) {
@@ -145,9 +146,9 @@ TEST(ParserTest, TestInfixOperator) {
     ASSERT_EQ(expr.Type(), NodeType::kInfixExpr);
     const auto* ptr = dynamic_cast<InfixExpression*>(expr.Ptr());
     ASSERT_NE(ptr, nullptr);
-    TestIntegerLiteral(ptr->lhs, infix.lhs);
+    CheckIntegerLiteral(ptr->lhs, infix.lhs);
     EXPECT_EQ(ptr->op, infix.op);
-    TestIntegerLiteral(ptr->rhs, infix.rhs);
+    CheckIntegerLiteral(ptr->rhs, infix.rhs);
   }
 }
 

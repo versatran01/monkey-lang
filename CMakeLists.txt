@@ -9,20 +9,25 @@ include(cmake/CompilerWarnings.cmake)
 add_library(${PROJECT_NAME}_warnings INTERFACE)
 set_project_warnings(${PROJECT_NAME}_warnings)
 
-find_package(absl REQUIRED)
-find_package(glog REQUIRED)
 find_package(fmt REQUIRED)
+find_package(glog REQUIRED)
+find_package(absl REQUIRED)
 
-add_library(monkey src/lexer.cpp src/token.cpp src/repl.cpp src/ast.cpp
-                   src/parser.cpp)
-target_include_directories(monkey PUBLIC include)
-target_link_libraries(monkey PUBLIC absl::flat_hash_map fmt::fmt glog::glog)
+add_library(monkey_lexer src/token.cpp src/lexer.cpp)
+target_include_directories(monkey_lexer PUBLIC include)
+target_link_libraries(
+  monkey_lexer
+  PUBLIC glog::glog fmt::fmt
+  PRIVATE absl::flat_hash_map)
 
-add_executable(monkey_repl src/repl_main.cpp)
-target_link_libraries(monkey_repl PUBLIC monkey)
+add_library(monkey_parser src/ast.cpp src/parser.cpp)
+target_link_libraries(
+  monkey_parser
+  PUBLIC monkey_lexer absl::flat_hash_map
+  PRIVATE absl::strings)
 
-add_executable(monkey_play src/play.cpp)
-target_link_libraries(monkey_play PUBLIC monkey)
+add_library(monkey_repl src/repl.cpp)
+target_link_libraries(monkey_repl PUBLIC monkey_lexer)
 
 enable_testing()
 add_subdirectory(tests)

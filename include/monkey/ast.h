@@ -158,6 +158,7 @@ struct ReturnStatement final : public StatementBase {
 struct ExpressionStatement final : public StatementBase {
   ExpressionStatement() : StatementBase{NodeType::kExprStmt} {}
   std::string TokenLiteralImpl() const override { return expr.TokenLiteral(); }
+  std::string StringImpl() const override;
 };
 
 }  // namespace monkey

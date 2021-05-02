@@ -7,18 +7,16 @@ using namespace monkey;
 
 int main() {
   const std::string input = R"raw(
-    let x = 5;
-    let y = 10;
-    let 123;
+    5 == 5;
    )raw";
 
   Parser parser{input};
 
   auto program = parser.ParseProgram();
-  LOG(INFO) << program.statements.size();
+  LOG(INFO) << program.NumStatments();
 
   for (const auto& stmt : program.statements) {
-    LOG(INFO) << stmt.TokenLiteral();
+    LOG(INFO) << stmt.String();
   }
   LOG(INFO) << "\n" << program.String();
   LOG(INFO) << fmt::format("{}", parser.ErrorMsg());

@@ -11,6 +11,16 @@ bool IsLetter(char c) { return std::isalpha(c) || c == '_'; }
 
 Lexer::Lexer(std::string input) : input_(std::move(input)) { ReadChar(); }
 
+Token Lexer::ReadDualToken(TokenType type1, char next_ch, TokenType type2) {
+  if (PeekChar() == next_ch) {
+    auto prev_ch = ch_;
+    ReadChar();
+    return Token{type2, std::string{prev_ch} + ch_};
+  } else {
+    return Token{type1, {ch_}};
+  }
+}
+
 Token Lexer::NextToken() {
   Token token;
 
@@ -18,13 +28,16 @@ Token Lexer::NextToken() {
 
   switch (ch_) {
     case '=':
-      if (PeekChar() == '=') {
-        auto prev_ch = ch_;
-        ReadChar();
-        token = Token{TokenType::kEq, std::string{prev_ch} + ch_};
-      } else {
-        token = Token{TokenType::kAssign, {ch_}};
-      }
+      token = ReadDualToken(TokenType::kAssign, '=', TokenType::kEq);
+      break;
+    case '!':
+      token = ReadDualToken(TokenType::kBang, '=', TokenType::kNe);
+      break;
+    case '<':
+      token = ReadDualToken(TokenType::kLt, '=', TokenType::kLe);
+      break;
+    case '>':
+      token = ReadDualToken(TokenType::kGt, '=', TokenType::kGe);
       break;
     case ';':
       token = Token{TokenType::kSemicolon, {ch_}};
@@ -38,15 +51,6 @@ Token Lexer::NextToken() {
     case ',':
       token = Token{TokenType::kComma, {ch_}};
       break;
-    case '!':
-      if (PeekChar() == '=') {
-        auto prev_ch = ch_;
-        ReadChar();
-        token = Token{TokenType::kNe, std::string{prev_ch} + ch_};
-      } else {
-        token = Token{TokenType::kBang, {ch_}};
-      }
-      break;
     case '+':
       token = Token{TokenType::kPlus, {ch_}};
       break;
@@ -58,12 +62,6 @@ Token Lexer::NextToken() {
       break;
     case '/':
       token = Token{TokenType::kSlash, {ch_}};
-      break;
-    case '<':
-      token = Token{TokenType::kLt, {ch_}};
-      break;
-    case '>':
-      token = Token{TokenType::kGt, {ch_}};
       break;
     case '{':
       token = Token{TokenType::kLBrace, {ch_}};
