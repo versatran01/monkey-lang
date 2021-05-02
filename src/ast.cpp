@@ -29,4 +29,8 @@ std::string PrefixExpression::StringImpl() const {
   return fmt::format("({}{})", op, rhs.String());
 }
 
+std::string InfixExpression::StringImpl() const {
+  return fmt::format("({} {} {})", lhs.String(), op, rhs.String());
+}
+
 }  // namespace monkey

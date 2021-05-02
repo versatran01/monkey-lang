@@ -1,5 +1,6 @@
 #include "monkey/parser.h"
 
+#include <absl/container/flat_hash_map.h>
 #include <absl/strings/numbers.h>
 #include <absl/strings/str_join.h>
 #include <fmt/core.h>
@@ -7,6 +8,23 @@
 #include <glog/logging.h>
 
 namespace monkey {
+
+namespace {
+
+absl::flat_hash_map<TokenType, Precedence> gTokenPrecedence = {
+    {TokenType::kEq, Precedence::kEquality},
+    {TokenType::kNe, Precedence::kEquality},
+    {TokenType::kLt, Precedence::kInequality},
+    {TokenType::kLe, Precedence::kInequality},
+    {TokenType::kGt, Precedence::kInequality},
+    {TokenType::kGe, Precedence::kInequality},
+    {TokenType::kPlus, Precedence::kSum},
+    {TokenType::kMinus, Precedence::kSum},
+    {TokenType::kSlash, Precedence::kProduct},
+    {TokenType::kAsterisk, Precedence::kProduct},
+};
+
+}
 
 Parser::Parser(Lexer lexer) : lexer_(std::move(lexer)) {
   // Read two tokens, so curToken and peekToken are both set
@@ -18,10 +36,24 @@ Parser::Parser(Lexer lexer) : lexer_(std::move(lexer)) {
 void Parser::RegisterParseFns() {
   RegisterPrefix(TokenType::kIdent, [this]() { return ParseIdentifier(); });
   RegisterPrefix(TokenType::kInt, [this]() { return ParseIntegerLiteral(); });
-  RegisterPrefix(TokenType::kBang,
-                 [this]() { return ParsePrefixExpression(); });
-  RegisterPrefix(TokenType::kMinus,
-                 [this]() { return ParsePrefixExpression(); });
+
+  auto parse_prefix = [this]() { return ParsePrefixExpression(); };
+  RegisterPrefix(TokenType::kBang, parse_prefix);
+  RegisterPrefix(TokenType::kMinus, parse_prefix);
+
+  auto parse_infix = [this](const auto& expr) {
+    return ParseInfixExpression(expr);
+  };
+  RegisterInfix(TokenType::kPlus, parse_infix);
+  RegisterInfix(TokenType::kMinus, parse_infix);
+  RegisterInfix(TokenType::kSlash, parse_infix);
+  RegisterInfix(TokenType::kAsterisk, parse_infix);
+  RegisterInfix(TokenType::kEq, parse_infix);
+  RegisterInfix(TokenType::kNe, parse_infix);
+  RegisterInfix(TokenType::kLt, parse_infix);
+  RegisterInfix(TokenType::kGt, parse_infix);
+  RegisterInfix(TokenType::kLe, parse_infix);
+  RegisterInfix(TokenType::kGe, parse_infix);
 }
 
 void Parser::NextToken() {
@@ -106,8 +138,8 @@ Statement Parser::ParseExpressionStatement() {
 }
 
 Expression Parser::ParseExpression(Precedence precedence) {
-  const auto it = prefix_parse_fn_.find(curr_token_.type);
-  if (it == prefix_parse_fn_.end()) {
+  const auto prefix_it = prefix_parse_fn_.find(curr_token_.type);
+  if (prefix_it == prefix_parse_fn_.end()) {
     const std::string msg =
         fmt::format("no prefix parse function for {}", curr_token_.type);
     LOG(WARNING) << msg;
@@ -115,7 +147,18 @@ Expression Parser::ParseExpression(Precedence precedence) {
     return ExpressionBase{};
   }
 
-  return it->second();  // call the function
+  auto lhs = prefix_it->second();
+
+  while (!IsPeekToken(TokenType::kSemicolon) && precedence < PeekPrecedence()) {
+    const auto infix_it = infix_parse_fn_.find(peek_token_.type);
+    if (infix_it == infix_parse_fn_.end()) {
+      return lhs;
+    }
+    NextToken();
+    lhs = infix_it->second(lhs);
+  }
+
+  return lhs;  // call the function
 }
 
 Expression Parser::ParseIdentifier() {
@@ -139,6 +182,18 @@ Expression Parser::ParseIntegerLiteral() {
   }
 
   return lit;
+}
+
+Expression Parser::ParseInfixExpression(const Expression& lhs) {
+  InfixExpression expr;
+  expr.token = curr_token_;
+  expr.op = curr_token_.literal;
+  expr.lhs = lhs;
+
+  const auto precedence = CurrPrecedence();
+  NextToken();
+  expr.rhs = ParseExpression(precedence);
+  return expr;
 }
 
 Expression Parser::ParsePrefixExpression() {
@@ -166,6 +221,22 @@ void Parser::PeekError(TokenType type) {
   std::string msg = fmt::format("Expected next token to be {}, got {} instead",
                                 type, peek_token_.type);
   errors_.push_back(std::move(msg));
+}
+
+Precedence Parser::TokenPrecedence(TokenType type) const {
+  const auto it = gTokenPrecedence.find(type);
+  if (it != gTokenPrecedence.end()) {
+    return it->second;
+  }
+  return Precedence::kLowest;
+}
+
+Precedence Parser::CurrPrecedence() const {
+  return TokenPrecedence(curr_token_.type);
+}
+
+Precedence Parser::PeekPrecedence() const {
+  return TokenPrecedence(peek_token_.type);
 }
 
 }  // namespace monkey

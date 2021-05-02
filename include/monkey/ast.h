@@ -16,6 +16,7 @@ enum class NodeType {
   kIdentExpr,
   kIntLiteral,
   kPrefixExpr,
+  kInfixExpr,
   // Statement
   kExprStmt,
   kLetStmt,
@@ -123,6 +124,15 @@ struct PrefixExpression final : public ExpressionBase {
   PrefixExpression() : ExpressionBase{NodeType::kPrefixExpr} {}
   std::string StringImpl() const override;
 
+  std::string op;
+  Expression rhs{ExpressionBase{}};
+};
+
+struct InfixExpression final : public ExpressionBase {
+  InfixExpression() : ExpressionBase{NodeType::kInfixExpr} {}
+
+  std::string StringImpl() const override;
+  Expression lhs{ExpressionBase{}};
   std::string op;
   Expression rhs{ExpressionBase{}};
 };

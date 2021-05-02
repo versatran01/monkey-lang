@@ -12,8 +12,8 @@ namespace monkey {
 
 enum class Precedence {
   kLowest,
-  kEquals,
-  kLessGreater,
+  kEquality,
+  kInequality,
   kSum,
   kProduct,
   kPrefix,
@@ -39,6 +39,7 @@ class Parser {
   Expression ParseIdentifier();
   Expression ParseIntegerLiteral();
   Expression ParsePrefixExpression();
+  Expression ParseInfixExpression(const Expression& expr);
 
   // Token functions
   void NextToken();
@@ -47,14 +48,18 @@ class Parser {
   bool ExpectPeek(TokenType type);
   void PeekError(TokenType type);
 
+  Precedence TokenPrecedence(TokenType type) const;
+  Precedence CurrPrecedence() const;
+  Precedence PeekPrecedence() const;
+
   using PrefixParseFn = std::function<Expression()>;
   using InfixParseFn = std::function<Expression(Expression)>;
 
   void RegisterParseFns();
-  void RegisterInfix(TokenType type, InfixParseFn&& fn) {
+  void RegisterInfix(TokenType type, InfixParseFn fn) {
     infix_parse_fn_[type] = std::move(fn);
   }
-  void RegisterPrefix(TokenType type, PrefixParseFn&& fn) {
+  void RegisterPrefix(TokenType type, PrefixParseFn fn) {
     prefix_parse_fn_[type] = std::move(fn);
   }
 

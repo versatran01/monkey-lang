@@ -122,5 +122,34 @@ TEST(ParserTest, TestPrefixOperator) {
   }
 }
 
+TEST(ParserTest, TestInfixOperator) {
+  struct Infix {
+    std::string input;
+    int64_t lhs;
+    std::string op;
+    int64_t rhs;
+  };
+
+  std::vector<Infix> infixes = {{"5+5;", 5, "+", 5},   {"5-5;", 5, "-", 5},
+                                {"5*5;", 5, "*", 5},   {"5/5;", 5, "/", 5},
+                                {"5>5;", 5, ">", 5},   {"5<5;", 5, "<", 5},
+                                {"5==5;", 5, "==", 5}, {"5!=5;", 5, "!=", 5}};
+
+  for (const auto& infix : infixes) {
+    Parser parser{infix.input};
+    const auto program = parser.ParseProgram();
+    ASSERT_EQ(program.NumStatments(), 1);
+    const auto stmt = program.statements.front();
+    ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
+    const auto expr = stmt.Expr();
+    ASSERT_EQ(expr.Type(), NodeType::kInfixExpr);
+    const auto* ptr = dynamic_cast<InfixExpression*>(expr.Ptr());
+    ASSERT_NE(ptr, nullptr);
+    TestIntegerLiteral(ptr->lhs, infix.lhs);
+    EXPECT_EQ(ptr->op, infix.op);
+    TestIntegerLiteral(ptr->rhs, infix.rhs);
+  }
+}
+
 }  // namespace
 }  // namespace monkey
