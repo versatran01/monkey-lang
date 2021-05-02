@@ -1,4 +1,5 @@
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 
 #include <iostream>
 
@@ -6,7 +7,7 @@
 
 namespace monkey {
 
-const std::string kPrompt = ">>";
+const std::string kPrompt = ">> ";
 
 void StartRepl() {
   std::string line;

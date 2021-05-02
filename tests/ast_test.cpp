@@ -8,7 +8,7 @@ namespace {
 
 TEST(AstTest, TestExpressionType) {
   ExpressionBase expr;
-  EXPECT_EQ(expr.Type(), NodeType::kBase);
+  EXPECT_EQ(expr.Type(), NodeType::kInvalid);
 
   Identifier ident;
   EXPECT_EQ(ident.Type(), NodeType::kIdentExpr);
@@ -27,7 +27,7 @@ TEST(AstTest, TestExpressionValue) {
 
 TEST(AstTest, TestStatementType) {
   StatementBase stmt;
-  EXPECT_EQ(stmt.Type(), NodeType::kBase);
+  EXPECT_EQ(stmt.Type(), NodeType::kInvalid);
   EXPECT_EQ(stmt.Ok(), false);
 
   LetStatement let;

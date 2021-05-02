@@ -10,7 +10,7 @@
 namespace monkey {
 
 enum class NodeType {
-  kBase,
+  kInvalid,
   kProgram,
   // Expression
   kIdentExpr,
@@ -25,7 +25,7 @@ enum class NodeType {
 
 // std::ostream &operator<<(std::ostream &os, NodeType node_type);
 
-// Interface of Node
+/// Interface of Node
 struct NodeInterface {
   auto TokenLiteral() const {
     return boost::te::call<std::string>(
@@ -51,6 +51,8 @@ struct NodeInterface {
 // fwd
 struct ExpressionBase;
 
+/// Interface of expression, extends NodeInterface and also returns a ptr to the
+/// underlying node that can be used to recover its original type
 struct ExprInterface : public NodeInterface {
   ExprInterface() { boost::te::extends<NodeInterface>(*this); }
 
@@ -73,7 +75,7 @@ struct StmtInterface : public NodeInterface {
 
 using Statement = boost::te::poly<StmtInterface>;
 
-// Types of Node
+/// Implementation of Node
 struct NodeBase {
   NodeBase() = default;
   explicit NodeBase(NodeType type) : type{type} {}
@@ -82,12 +84,12 @@ struct NodeBase {
   std::string TokenLiteral() const { return TokenLiteralImpl(); }
   std::string String() const { return StringImpl(); }
   NodeType Type() const { return type; }
-  bool Ok() const { return type != NodeType::kBase; }
+  bool Ok() const { return type != NodeType::kInvalid; }
 
   virtual std::string TokenLiteralImpl() const { return token.literal; }
   virtual std::string StringImpl() const { return token.literal; }
 
-  NodeType type{NodeType::kBase};
+  NodeType type{NodeType::kInvalid};
   Token token;
 };
 

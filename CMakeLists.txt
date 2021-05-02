@@ -26,7 +26,7 @@ target_link_libraries(
   PUBLIC monkey_lexer absl::flat_hash_map
   PRIVATE absl::strings)
 
-add_library(monkey_repl src/repl.cpp)
+add_executable(monkey_repl src/repl.cpp src/repl_main.cpp)
 target_link_libraries(monkey_repl PUBLIC monkey_lexer)
 
 enable_testing()
