@@ -1,6 +1,7 @@
 #include "monkey/parser.h"
 
 #include <absl/strings/numbers.h>
+#include <absl/strings/str_join.h>
 #include <fmt/core.h>
 #include <fmt/ostream.h>
 #include <glog/logging.h>
@@ -17,6 +18,10 @@ Parser::Parser(Lexer lexer) : lexer_(std::move(lexer)) {
 void Parser::RegisterParseFns() {
   RegisterPrefix(TokenType::kIdent, [this]() { return ParseIdentifier(); });
   RegisterPrefix(TokenType::kInt, [this]() { return ParseIntegerLiteral(); });
+  RegisterPrefix(TokenType::kBang,
+                 [this]() { return ParsePrefixExpression(); });
+  RegisterPrefix(TokenType::kMinus,
+                 [this]() { return ParsePrefixExpression(); });
 }
 
 void Parser::NextToken() {
@@ -35,6 +40,8 @@ Program Parser::ParseProgram() {
   }
   return program;
 }
+
+std::string Parser::ErrorMsg() const { return absl::StrJoin(errors_, "\n"); }
 
 Statement Parser::ParseStatement() {
   switch (curr_token_.type) {
@@ -101,6 +108,10 @@ Statement Parser::ParseExpressionStatement() {
 Expression Parser::ParseExpression(Precedence precedence) {
   const auto it = prefix_parse_fn_.find(curr_token_.type);
   if (it == prefix_parse_fn_.end()) {
+    const std::string msg =
+        fmt::format("no prefix parse function for {}", curr_token_.type);
+    LOG(WARNING) << msg;
+    errors_.push_back(msg);
     return ExpressionBase{};
   }
 
@@ -128,6 +139,17 @@ Expression Parser::ParseIntegerLiteral() {
   }
 
   return lit;
+}
+
+Expression Parser::ParsePrefixExpression() {
+  PrefixExpression expr;
+  expr.token = curr_token_;
+  expr.op = curr_token_.literal;
+
+  NextToken();
+  expr.rhs = ParseExpression(Precedence::kPrefix);
+
+  return expr;
 }
 
 bool Parser::ExpectPeek(TokenType type) {

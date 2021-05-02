@@ -4,8 +4,6 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
-#include <typeinfo>
-
 namespace monkey {
 namespace {
 
@@ -43,7 +41,7 @@ TEST(ParserTest, TestParseLetStatementWithError) {
   for (size_t i = 0; i < expected_idents.size(); ++i) {
     EXPECT_EQ(program.statements[i].TokenLiteral(), "let");
   }
-  LOG(INFO) << fmt::format("{}", parser.errors());
+  LOG(INFO) << fmt::format("{}", parser.ErrorMsg());
 }
 
 TEST(ParserTest, TestParseReturnStatement) {
@@ -87,12 +85,41 @@ TEST(ParserTest, TestIntLiteralExpression) {
   EXPECT_EQ(stmt.Type(), NodeType::kExprStmt);
 
   const auto expr = stmt.Expr();
-  EXPECT_EQ(expr.Type(), NodeType::kIntExpr);
+  EXPECT_EQ(expr.Type(), NodeType::kIntLiteral);
   EXPECT_EQ(expr.TokenLiteral(), "5");
   auto* intl_ptr = dynamic_cast<IntegerLiteral*>(expr.Ptr());
-  LOG(INFO) << typeid(expr.Ptr()).name();
   ASSERT_TRUE(intl_ptr != nullptr);
   EXPECT_EQ(intl_ptr->value, 5);
+}
+
+void TestIntegerLiteral(const Expression& expr, int64_t value) {
+  const auto* ptr = dynamic_cast<IntegerLiteral*>(expr.Ptr());
+  ASSERT_NE(ptr, nullptr);
+  EXPECT_EQ(ptr->value, value);
+  EXPECT_EQ(ptr->TokenLiteral(), std::to_string(value));
+}
+
+TEST(ParserTest, TestPrefixOperator) {
+  struct Prefix {
+    std::string input;
+    std::string op;
+    int64_t value;
+  };
+
+  std::vector<Prefix> prefixes = {{"!5", "!", 5}, {"-15", "-", 15}};
+  for (const auto& prefix : prefixes) {
+    Parser parser{prefix.input};
+    const auto program = parser.ParseProgram();
+    ASSERT_EQ(program.NumStatments(), 1) << parser.ErrorMsg();
+    const auto stmt = program.statements.front();
+    ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
+    const auto expr = stmt.Expr();
+    ASSERT_EQ(expr.Type(), NodeType::kPrefixExpr);
+    const auto* ptr = dynamic_cast<PrefixExpression*>(expr.Ptr());
+    ASSERT_NE(ptr, nullptr);
+    EXPECT_EQ(ptr->op, prefix.op);
+    TestIntegerLiteral(ptr->rhs, prefix.value);
+  }
 }
 
 }  // namespace

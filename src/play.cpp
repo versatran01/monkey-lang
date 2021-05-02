@@ -21,5 +21,5 @@ int main() {
     LOG(INFO) << stmt.TokenLiteral();
   }
   LOG(INFO) << "\n" << program.String();
-  LOG(INFO) << fmt::format("{}", parser.errors());
+  LOG(INFO) << fmt::format("{}", parser.ErrorMsg());
 }

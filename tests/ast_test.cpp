@@ -62,7 +62,7 @@ TEST(AstTest, TestExpressionStatement) {
 
 TEST(AstTest, TestExpressionPtr) {
   IntegerLiteral intl;
-  intl.type = NodeType::kIntExpr;
+  intl.type = NodeType::kIntLiteral;
   intl.token = Token{TokenType::kInt, "5"};
   intl.value = 5;
 

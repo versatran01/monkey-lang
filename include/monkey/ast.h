@@ -14,8 +14,9 @@ enum class NodeType {
   kProgram,
   // Expression
   kIdentExpr,
-  kIntExpr,
-  // Statment
+  kIntLiteral,
+  kPrefixExpr,
+  // Statement
   kExprStmt,
   kLetStmt,
   kReturnStmt
@@ -108,16 +109,22 @@ struct ExpressionBase : public NodeBase {
 
 struct Identifier final : public ExpressionBase {
   Identifier() : ExpressionBase{NodeType::kIdentExpr} {}
-  std::string StringImpl() const override { return value; }
 
   std::string value;
 };
 
 struct IntegerLiteral final : public ExpressionBase {
-  IntegerLiteral() : ExpressionBase{NodeType::kIntExpr} {}
-  std::string StringImpl() const override { return token.literal; }
+  IntegerLiteral() : ExpressionBase{NodeType::kIntLiteral} {}
 
-  int64_t value;  // use 64 bits
+  int64_t value{};  // use 64 bits
+};
+
+struct PrefixExpression final : public ExpressionBase {
+  PrefixExpression() : ExpressionBase{NodeType::kPrefixExpr} {}
+  std::string StringImpl() const override;
+
+  std::string op;
+  Expression rhs{ExpressionBase{}};
 };
 
 struct StatementBase : public NodeBase {

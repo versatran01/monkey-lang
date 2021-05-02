@@ -26,7 +26,7 @@ class Parser {
   explicit Parser(const std::string& input) : Parser{Lexer{input}} {}
 
   Program ParseProgram();
-  std::vector<std::string> errors() const noexcept { return errors_; }
+  std::string ErrorMsg() const;
 
  private:
   // Parsing functions
@@ -38,6 +38,7 @@ class Parser {
   Expression ParseExpression(Precedence precedence);
   Expression ParseIdentifier();
   Expression ParseIntegerLiteral();
+  Expression ParsePrefixExpression();
 
   // Token functions
   void NextToken();
@@ -50,10 +51,10 @@ class Parser {
   using InfixParseFn = std::function<Expression(Expression)>;
 
   void RegisterParseFns();
-  void RegisterInfix(TokenType type, InfixParseFn fn) {
+  void RegisterInfix(TokenType type, InfixParseFn&& fn) {
     infix_parse_fn_[type] = std::move(fn);
   }
-  void RegisterPrefix(TokenType type, PrefixParseFn fn) {
+  void RegisterPrefix(TokenType type, PrefixParseFn&& fn) {
     prefix_parse_fn_[type] = std::move(fn);
   }
 
