@@ -13,13 +13,13 @@ class Lexer {
   Token NextToken();
 
  private:
-  void ReadChar();
+  void ReadChar() noexcept;
   void SkipWhitespace();
 
-  char PeekChar() const;
+  char PeekChar() const noexcept;
   std::string ReadNumber();
   std::string ReadIdentifier();
-  Token ReadDualToken(TokenType type1, char next_ch, TokenType type2);
+  Token ReadDualToken(TokenType type1, char next_ch, TokenType type2) noexcept;
 
   // data
   std::string input_;

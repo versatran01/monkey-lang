@@ -44,8 +44,12 @@ class Parser {
 
   // Token functions
   void NextToken();
-  bool IsCurrToken(TokenType type) const { return curr_token_.type == type; }
-  bool IsPeekToken(TokenType type) const { return peek_token_.type == type; }
+  bool IsCurrToken(TokenType type) const noexcept {
+    return curr_token_.type == type;
+  }
+  bool IsPeekToken(TokenType type) const noexcept {
+    return peek_token_.type == type;
+  }
   bool ExpectPeek(TokenType type);
   void PeekError(TokenType type);
 

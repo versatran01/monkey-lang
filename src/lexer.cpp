@@ -1,5 +1,7 @@
 #include "monkey/lexer.h"
 
+#include <cctype>
+
 namespace monkey {
 
 namespace {
@@ -11,13 +13,14 @@ bool IsLetter(char c) { return std::isalpha(c) || c == '_'; }
 
 Lexer::Lexer(std::string input) : input_(std::move(input)) { ReadChar(); }
 
-Token Lexer::ReadDualToken(TokenType type1, char next_ch, TokenType type2) {
+Token Lexer::ReadDualToken(TokenType type1, char next_ch,
+                           TokenType type2) noexcept {
   if (PeekChar() == next_ch) {
     auto prev_ch = ch_;
     ReadChar();
-    return Token{type2, std::string{prev_ch} + ch_};
+    return {type2, std::string{prev_ch} + ch_};
   } else {
-    return Token{type1, {ch_}};
+    return {type1, {ch_}};
   }
 }
 
@@ -40,37 +43,37 @@ Token Lexer::NextToken() {
       token = ReadDualToken(TokenType::kGt, '=', TokenType::kGe);
       break;
     case ';':
-      token = Token{TokenType::kSemicolon, {ch_}};
+      token = {TokenType::kSemicolon, {ch_}};
       break;
     case '(':
-      token = Token{TokenType::kLParen, {ch_}};
+      token = {TokenType::kLParen, {ch_}};
       break;
     case ')':
-      token = Token{TokenType::kRParen, {ch_}};
+      token = {TokenType::kRParen, {ch_}};
       break;
     case ',':
-      token = Token{TokenType::kComma, {ch_}};
+      token = {TokenType::kComma, {ch_}};
       break;
     case '+':
-      token = Token{TokenType::kPlus, {ch_}};
+      token = {TokenType::kPlus, {ch_}};
       break;
     case '-':
-      token = Token{TokenType::kMinus, {ch_}};
+      token = {TokenType::kMinus, {ch_}};
       break;
     case '*':
-      token = Token{TokenType::kAsterisk, {ch_}};
+      token = {TokenType::kAsterisk, {ch_}};
       break;
     case '/':
-      token = Token{TokenType::kSlash, {ch_}};
+      token = {TokenType::kSlash, {ch_}};
       break;
     case '{':
-      token = Token{TokenType::kLBrace, {ch_}};
+      token = {TokenType::kLBrace, {ch_}};
       break;
     case '}':
-      token = Token{TokenType::kRBrace, {ch_}};
+      token = {TokenType::kRBrace, {ch_}};
       break;
     case 0:
-      token = Token{TokenType::kEof, ""};
+      token = {TokenType::kEof, ""};
       break;
     default:
       if (IsLetter(ch_)) {
@@ -83,7 +86,7 @@ Token Lexer::NextToken() {
         return token;  // early return to prevent extra ReadChar();
 
       } else {
-        token = Token{TokenType::kIllegal, {ch_}};
+        token = {TokenType::kIllegal, {ch_}};
       }
   }
 
@@ -91,7 +94,7 @@ Token Lexer::NextToken() {
   return token;
 }
 
-void Lexer::ReadChar() {
+void Lexer::ReadChar() noexcept {
   if (position_ >= static_cast<int>(input_.size())) {
     ch_ = 0;
   } else {
@@ -107,7 +110,7 @@ void Lexer::SkipWhitespace() {
   }
 }
 
-char Lexer::PeekChar() const {
+char Lexer::PeekChar() const noexcept {
   return (read_position_ >= static_cast<int>(input_.size()))
              ? 0
              : input_[read_position_];

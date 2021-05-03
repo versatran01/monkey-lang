@@ -38,12 +38,12 @@ struct NodeInterface {
         [](const auto &self) { return self.String(); }, *this);
   }
 
-  auto Type() const {
+  auto Type() const noexcept {
     return boost::te::call<NodeType>(
         [](const auto &self) { return self.Type(); }, *this);
   }
 
-  auto Ok() const {
+  auto Ok() const noexcept {
     return boost::te::call<bool>([](const auto &self) { return self.Ok(); },
                                  *this);
   }
@@ -57,7 +57,7 @@ struct ExpressionBase;
 struct ExprInterface : public NodeInterface {
   ExprInterface() { boost::te::extends<NodeInterface>(*this); }
 
-  auto *Ptr() const {
+  auto *Ptr() const noexcept {
     return boost::te::call<ExpressionBase *>(
         [](const auto &self) { return self.Ptr(); }, *this);
   }
@@ -76,16 +76,16 @@ struct StmtInterface : public NodeInterface {
 
 using Statement = boost::te::poly<StmtInterface>;
 
-/// Implementation of Node
+/// Base Node
 struct NodeBase {
   NodeBase() = default;
   explicit NodeBase(NodeType type) : type{type} {}
   virtual ~NodeBase() noexcept = default;
 
-  std::string TokenLiteral() const { return TokenLiteralImpl(); }
-  std::string String() const { return StringImpl(); }
-  NodeType Type() const { return type; }
-  bool Ok() const { return type != NodeType::kInvalid; }
+  std::string TokenLiteral() const noexcept { return TokenLiteralImpl(); }
+  std::string String() const noexcept { return StringImpl(); }
+  NodeType Type() const noexcept { return type; }
+  bool Ok() const noexcept { return type != NodeType::kInvalid; }
 
   virtual std::string TokenLiteralImpl() const { return token.literal; }
   virtual std::string StringImpl() const { return token.literal; }
@@ -100,15 +100,16 @@ struct Program final : public NodeBase {
   std::string StringImpl() const override;
 
   void AddStatement(const Statement &stmt) { statements.push_back(stmt); }
-  auto NumStatments() const { return statements.size(); }
+  auto NumStatments() const noexcept { return statements.size(); }
 
   std::vector<Statement> statements;
 };
 
+/// Base expression
 struct ExpressionBase : public NodeBase {
   using NodeBase::NodeBase;
 
-  const ExpressionBase *Ptr() const { return this; }
+  const ExpressionBase *Ptr() const noexcept { return this; }
 };
 
 struct Identifier final : public ExpressionBase {
@@ -146,6 +147,7 @@ struct InfixExpression final : public ExpressionBase {
   Expression rhs{ExpressionBase{}};
 };
 
+/// Base statement
 struct StatementBase : public NodeBase {
   using NodeBase::NodeBase;
 

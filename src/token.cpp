@@ -52,7 +52,7 @@ const auto gTokenTypeStrings = absl::flat_hash_map<TokenType, std::string>{
 
 TokenType LookupIdentifier(const std::string& ident) {
   const auto it = gKeywords.find(ident);
-  if (it != gKeywords.end()) {
+  if (it != gKeywords.cend()) {
     return it->second;
   }
   return TokenType::kIdent;
