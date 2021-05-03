@@ -11,12 +11,12 @@ TEST(AstTest, TestExpressionType) {
   EXPECT_EQ(expr.Type(), NodeType::kInvalid);
 
   Identifier ident;
-  EXPECT_EQ(ident.Type(), NodeType::kIdentExpr);
+  EXPECT_EQ(ident.Type(), NodeType::kIdentifier);
 }
 
 TEST(AstTest, TestExpressionValue) {
   Identifier expr;
-  expr.type = NodeType::kIdentExpr;
+  expr.type = NodeType::kIdentifier;
   expr.token = Token{TokenType::kIdent, "abc"};
   expr.value = "abc";
 
@@ -45,7 +45,7 @@ TEST(AstTest, TestStatementType) {
 
 TEST(AstTest, TestExpressionStatement) {
   Identifier expr;
-  expr.type = NodeType::kIdentExpr;
+  expr.type = NodeType::kIdentifier;
   expr.token = Token{TokenType::kIdent, "abc"};
   expr.value = "abc";
 

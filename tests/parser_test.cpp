@@ -7,6 +7,51 @@
 namespace monkey {
 namespace {
 
+void CheckIdentifier(const Expression& expr, const std::string& value) {
+  ASSERT_EQ(expr.Type(), NodeType::kIdentifier);
+  const auto* ptr = dynamic_cast<Identifier*>(expr.Ptr());
+  ASSERT_NE(ptr, nullptr);
+  EXPECT_EQ(ptr->TokenLiteral(), value);
+  EXPECT_EQ(ptr->value, value);
+}
+
+void CheckIntegerLiteral(const Expression& expr, int64_t value) {
+  ASSERT_EQ(expr.Type(), NodeType::kIntLiteral);
+  const auto* ptr = dynamic_cast<IntegerLiteral*>(expr.Ptr());
+  ASSERT_NE(ptr, nullptr);
+  EXPECT_EQ(ptr->value, value);
+  EXPECT_EQ(ptr->TokenLiteral(), std::to_string(value));
+}
+
+void CheckLiteralExpression(const Expression& expr, int64_t v) {
+  CheckIntegerLiteral(expr, v);
+}
+
+void CheckLiteralExpression(const Expression& expr, const std::string& v) {
+  CheckIdentifier(expr, v);
+}
+
+template <typename T>
+void CheckInfixExpression(const Expression& expr, const T& lhs,
+                          const std::string& op, const T& rhs) {
+  ASSERT_EQ(expr.Type(), NodeType::kInfixExpr);
+  const auto* ptr = dynamic_cast<InfixExpression*>(expr.Ptr());
+  ASSERT_NE(ptr, nullptr);
+  CheckLiteralExpression(ptr->lhs, lhs);
+  EXPECT_EQ(ptr->op, op);
+  CheckLiteralExpression(ptr->rhs, rhs);
+}
+
+template <typename T>
+void CheckPrefixExpression(const Expression& expr, const std::string& op,
+                           const T& rhs) {
+  ASSERT_EQ(expr.Type(), NodeType::kPrefixExpr);
+  const auto* ptr = dynamic_cast<PrefixExpression*>(expr.Ptr());
+  ASSERT_NE(ptr, nullptr);
+  EXPECT_EQ(ptr->op, op);
+  CheckLiteralExpression(ptr->rhs, rhs);
+}
+
 TEST(ParserTest, TestParseLetStatement) {
   const std::string input = R"raw(
     let x = 5;
@@ -85,18 +130,7 @@ TEST(ParserTest, TestIntLiteralExpression) {
   EXPECT_EQ(stmt.Type(), NodeType::kExprStmt);
 
   const auto expr = stmt.Expr();
-  EXPECT_EQ(expr.Type(), NodeType::kIntLiteral);
-  EXPECT_EQ(expr.TokenLiteral(), "5");
-  auto* intl_ptr = dynamic_cast<IntegerLiteral*>(expr.Ptr());
-  ASSERT_TRUE(intl_ptr != nullptr);
-  EXPECT_EQ(intl_ptr->value, 5);
-}
-
-void CheckIntegerLiteral(const Expression& expr, int64_t value) {
-  const auto* ptr = dynamic_cast<IntegerLiteral*>(expr.Ptr());
-  ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(ptr->value, value);
-  EXPECT_EQ(ptr->TokenLiteral(), std::to_string(value));
+  CheckIntegerLiteral(expr, 5);
 }
 
 TEST(ParserTest, TestPrefixOperator) {
@@ -114,11 +148,7 @@ TEST(ParserTest, TestPrefixOperator) {
     const auto stmt = program.statements.front();
     ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
     const auto expr = stmt.Expr();
-    ASSERT_EQ(expr.Type(), NodeType::kPrefixExpr);
-    const auto* ptr = dynamic_cast<PrefixExpression*>(expr.Ptr());
-    ASSERT_NE(ptr, nullptr);
-    EXPECT_EQ(ptr->op, prefix.op);
-    CheckIntegerLiteral(ptr->rhs, prefix.value);
+    CheckPrefixExpression(expr, prefix.op, prefix.value);
   }
 }
 
@@ -143,12 +173,7 @@ TEST(ParserTest, TestInfixOperator) {
     const auto stmt = program.statements.front();
     ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
     const auto expr = stmt.Expr();
-    ASSERT_EQ(expr.Type(), NodeType::kInfixExpr);
-    const auto* ptr = dynamic_cast<InfixExpression*>(expr.Ptr());
-    ASSERT_NE(ptr, nullptr);
-    CheckIntegerLiteral(ptr->lhs, infix.lhs);
-    EXPECT_EQ(ptr->op, infix.op);
-    CheckIntegerLiteral(ptr->rhs, infix.rhs);
+    CheckInfixExpression(expr, infix.lhs, infix.op, infix.rhs);
   }
 }
 

@@ -13,7 +13,7 @@ enum class NodeType {
   kInvalid,
   kProgram,
   // Expression
-  kIdentExpr,
+  kIdentifier,
   kIntLiteral,
   kPrefixExpr,
   kInfixExpr,
@@ -111,7 +111,7 @@ struct ExpressionBase : public NodeBase {
 };
 
 struct Identifier final : public ExpressionBase {
-  Identifier() : ExpressionBase{NodeType::kIdentExpr} {}
+  Identifier() : ExpressionBase{NodeType::kIdentifier} {}
 
   std::string value;
 };
@@ -132,8 +132,8 @@ struct PrefixExpression final : public ExpressionBase {
 
 struct InfixExpression final : public ExpressionBase {
   InfixExpression() : ExpressionBase{NodeType::kInfixExpr} {}
-
   std::string StringImpl() const override;
+
   Expression lhs{ExpressionBase{}};
   std::string op;
   Expression rhs{ExpressionBase{}};
