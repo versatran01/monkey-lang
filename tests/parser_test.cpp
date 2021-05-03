@@ -7,6 +7,7 @@
 namespace monkey {
 namespace {
 
+/// Helper functions
 void CheckIdentifier(const Expression& expr, const std::string& value) {
   ASSERT_EQ(expr.Type(), NodeType::kIdentifier);
   const auto* ptr = dynamic_cast<Identifier*>(expr.Ptr());
@@ -23,12 +24,23 @@ void CheckIntegerLiteral(const Expression& expr, int64_t value) {
   EXPECT_EQ(ptr->TokenLiteral(), std::to_string(value));
 }
 
-void CheckLiteralExpression(const Expression& expr, int64_t v) {
-  CheckIntegerLiteral(expr, v);
+void CheckBooleanLiteral(const Expression& expr, bool value) {
+  ASSERT_EQ(expr.Type(), NodeType::kBoolLiteral);
+  const auto* ptr = dynamic_cast<BooleanLiteral*>(expr.Ptr());
+  ASSERT_NE(ptr, nullptr);
+  EXPECT_EQ(ptr->value, value);
+  EXPECT_EQ(ptr->TokenLiteral(), value ? "true" : "false");
 }
 
-void CheckLiteralExpression(const Expression& expr, const std::string& v) {
-  CheckIdentifier(expr, v);
+template <typename T>
+void CheckLiteralExpression(const Expression& expr, const T& v) {
+  if constexpr (std::is_integral_v<T>) {
+    CheckIntegerLiteral(expr, v);
+  } else if (std::is_same_v<bool, T>) {
+    CheckBooleanLiteral(expr, v);
+  } else if (std::is_convertible_v<std::string, T>) {
+    CheckIdentifier(expr, v);
+  }
 }
 
 template <typename T>
@@ -52,6 +64,7 @@ void CheckPrefixExpression(const Expression& expr, const std::string& op,
   CheckLiteralExpression(ptr->rhs, rhs);
 }
 
+/// Tests
 TEST(ParserTest, TestParseLetStatement) {
   const std::string input = R"raw(
     let x = 5;
@@ -131,6 +144,19 @@ TEST(ParserTest, TestIntLiteralExpression) {
 
   const auto expr = stmt.Expr();
   CheckIntegerLiteral(expr, 5);
+}
+
+TEST(ParserTest, TestBooleanExpression) {
+  const std::string input = "true";
+  Parser parser{input};
+  const auto program = parser.ParseProgram();
+
+  ASSERT_EQ(program.NumStatments(), 1);
+  const auto stmt = program.statements.front();
+  EXPECT_EQ(stmt.Type(), NodeType::kExprStmt);
+
+  const auto expr = stmt.Expr();
+  CheckBooleanLiteral(expr, true);
 }
 
 TEST(ParserTest, TestPrefixOperator) {

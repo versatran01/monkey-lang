@@ -38,6 +38,7 @@ class Parser {
   Expression ParseExpression(Precedence precedence);
   Expression ParseIdentifier();
   Expression ParseIntegerLiteral();
+  Expression ParseBooleanLiteral();
   Expression ParsePrefixExpression();
   Expression ParseInfixExpression(const Expression& expr);
 

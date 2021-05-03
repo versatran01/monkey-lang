@@ -36,6 +36,8 @@ Parser::Parser(Lexer lexer) : lexer_(std::move(lexer)) {
 void Parser::RegisterParseFns() {
   RegisterPrefix(TokenType::kIdent, [this]() { return ParseIdentifier(); });
   RegisterPrefix(TokenType::kInt, [this]() { return ParseIntegerLiteral(); });
+  RegisterPrefix(TokenType::kTrue, [this]() { return ParseBooleanLiteral(); });
+  RegisterPrefix(TokenType::kFalse, [this]() { return ParseBooleanLiteral(); });
 
   auto parse_prefix = [this]() { return ParsePrefixExpression(); };
   RegisterPrefix(TokenType::kBang, parse_prefix);
@@ -169,10 +171,10 @@ Expression Parser::ParseIdentifier() {
 }
 
 Expression Parser::ParseIntegerLiteral() {
-  IntegerLiteral lit;
-  lit.token = curr_token_;
+  IntegerLiteral expr;
+  expr.token = curr_token_;
 
-  bool ok = absl::SimpleAtoi(lit.token.literal, &lit.value);
+  bool ok = absl::SimpleAtoi(expr.token.literal, &expr.value);
   if (!ok) {
     const auto msg =
         fmt::format("could not parse {} as integer", curr_token_.literal);
@@ -181,7 +183,14 @@ Expression Parser::ParseIntegerLiteral() {
     return ExpressionBase{};
   }
 
-  return lit;
+  return expr;
+}
+
+Expression Parser::ParseBooleanLiteral() {
+  BooleanLiteral expr;
+  expr.token = curr_token_;
+  expr.value = IsCurrToken(TokenType::kTrue);
+  return expr;
 }
 
 Expression Parser::ParseInfixExpression(const Expression& lhs) {

@@ -15,6 +15,7 @@ enum class NodeType {
   // Expression
   kIdentifier,
   kIntLiteral,
+  kBoolLiteral,
   kPrefixExpr,
   kInfixExpr,
   // Statement
@@ -23,7 +24,7 @@ enum class NodeType {
   kReturnStmt
 };
 
-// std::ostream &operator<<(std::ostream &os, NodeType node_type);
+std::ostream &operator<<(std::ostream &os, NodeType type);
 
 /// Interface of Node
 struct NodeInterface {
@@ -120,6 +121,12 @@ struct IntegerLiteral final : public ExpressionBase {
   IntegerLiteral() : ExpressionBase{NodeType::kIntLiteral} {}
 
   int64_t value{};  // use 64 bits
+};
+
+struct BooleanLiteral final : public ExpressionBase {
+  BooleanLiteral() : ExpressionBase{NodeType::kBoolLiteral} {}
+
+  bool value{};
 };
 
 struct PrefixExpression final : public ExpressionBase {

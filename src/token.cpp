@@ -58,10 +58,8 @@ TokenType LookupIdentifier(const std::string& ident) {
   return TokenType::kIdent;
 }
 
-std::ostream& operator<<(std::ostream& os, TokenType token_type) {
-  CHECK(gTokenTypeStrings.find(token_type) != gTokenTypeStrings.end())
-      << token_type;
-  return os << gTokenTypeStrings.at(token_type);
+std::ostream& operator<<(std::ostream& os, TokenType type) {
+  return os << gTokenTypeStrings.at(type);
 }
 
 std::ostream& operator<<(std::ostream& os, Token token) {

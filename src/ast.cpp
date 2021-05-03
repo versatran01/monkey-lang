@@ -1,8 +1,29 @@
 #include "monkey/ast.h"
 
+#include <absl/container/flat_hash_map.h>
 #include <fmt/core.h>
 
 namespace monkey {
+
+namespace {
+
+const auto gNodeTypeStrings = absl::flat_hash_map<NodeType, std::string>{
+    {NodeType::kInvalid, "Invalid"},
+    {NodeType::kProgram, "Program"},
+    {NodeType::kIdentifier, "Identifier"},
+    {NodeType::kIntLiteral, "Integer"},
+    {NodeType::kBoolLiteral, "Bool"},
+    {NodeType::kPrefixExpr, "Prefix"},
+    {NodeType::kInfixExpr, "Infix"},
+    {NodeType::kExprStmt, "ExprStmt"},
+    {NodeType::kLetStmt, "LetStmt"},
+    {NodeType::kReturnStmt, "ReturnStmt"},
+};
+}
+
+std::ostream& operator<<(std::ostream& os, NodeType type) {
+  return os << gNodeTypeStrings.at(type);
+}
 
 std::string Program::TokenLiteralImpl() const {
   return statements.empty() ? "" : statements.front().TokenLiteral();

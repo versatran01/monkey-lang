@@ -37,7 +37,7 @@ enum class TokenType {
   kReturn
 };
 
-std::ostream& operator<<(std::ostream& os, TokenType token_type);
+std::ostream& operator<<(std::ostream& os, TokenType type);
 
 class Token {
  public:
