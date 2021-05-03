@@ -7,6 +7,21 @@
 namespace monkey {
 namespace {
 
+template <typename T>
+struct Infix {
+  std::string input;
+  T lhs;
+  std::string op;
+  T rhs;
+};
+
+template <typename T>
+struct Prefix {
+  std::string input;
+  std::string op;
+  T rhs;
+};
+
 /// Helper functions
 void CheckIdentifier(const Expression& expr, const std::string& value) {
   ASSERT_EQ(expr.Type(), NodeType::kIdentifier);
@@ -34,13 +49,15 @@ void CheckBooleanLiteral(const Expression& expr, bool value) {
 
 template <typename T>
 void CheckLiteralExpression(const Expression& expr, const T& v) {
-  if constexpr (std::is_integral_v<T>) {
-    CheckIntegerLiteral(expr, v);
-  } else if (std::is_same_v<bool, T>) {
+  if constexpr (std::is_same_v<bool, T>) {
     CheckBooleanLiteral(expr, v);
-  } else if (std::is_convertible_v<std::string, T>) {
-    CheckIdentifier(expr, v);
+  } else if (std::is_integral_v<T>) {
+    CheckIntegerLiteral(expr, v);
   }
+}
+
+void CheckLiteralExpression(const Expression& expr, const std::string& v) {
+  CheckIdentifier(expr, v);
 }
 
 template <typename T>
@@ -65,7 +82,7 @@ void CheckPrefixExpression(const Expression& expr, const std::string& op,
 }
 
 /// Tests
-TEST(ParserTest, TestParseLetStatement) {
+TEST(ParserTest, TestParsingLetStatement) {
   const std::string input = R"raw(
     let x = 5;
     let y = 10;
@@ -83,7 +100,7 @@ TEST(ParserTest, TestParseLetStatement) {
   }
 }
 
-TEST(ParserTest, TestParseLetStatementWithError) {
+TEST(ParserTest, TestParsingLetStatementWithError) {
   const std::string input = R"raw(
     let x = 5;
     let y = 10;
@@ -102,7 +119,7 @@ TEST(ParserTest, TestParseLetStatementWithError) {
   LOG(INFO) << fmt::format("{}", parser.ErrorMsg());
 }
 
-TEST(ParserTest, TestParseReturnStatement) {
+TEST(ParserTest, TestParsingReturnStatement) {
   const std::string input = R"raw(
     return 5;
     return 10;
@@ -119,7 +136,7 @@ TEST(ParserTest, TestParseReturnStatement) {
   }
 }
 
-TEST(ParserTest, TestIdentExpression) {
+TEST(ParserTest, TestParsingIdentExpression) {
   const std::string input = "foobar";
   Parser parser{input};
   const auto program = parser.ParseProgram();
@@ -141,12 +158,10 @@ TEST(ParserTest, TestIntLiteralExpression) {
   ASSERT_EQ(program.NumStatments(), 1);
   const auto stmt = program.statements.front();
   EXPECT_EQ(stmt.Type(), NodeType::kExprStmt);
-
-  const auto expr = stmt.Expr();
-  CheckIntegerLiteral(expr, 5);
+  CheckIntegerLiteral(stmt.Expr(), 5);
 }
 
-TEST(ParserTest, TestBooleanExpression) {
+TEST(ParserTest, TestParsingBooleanExpression) {
   const std::string input = "true";
   Parser parser{input};
   const auto program = parser.ParseProgram();
@@ -154,43 +169,41 @@ TEST(ParserTest, TestBooleanExpression) {
   ASSERT_EQ(program.NumStatments(), 1);
   const auto stmt = program.statements.front();
   EXPECT_EQ(stmt.Type(), NodeType::kExprStmt);
-
-  const auto expr = stmt.Expr();
-  CheckBooleanLiteral(expr, true);
+  CheckBooleanLiteral(stmt.Expr(), true);
 }
 
-TEST(ParserTest, TestPrefixOperator) {
-  struct Prefix {
-    std::string input;
-    std::string op;
-    int64_t value;
-  };
-
-  std::vector<Prefix> prefixes = {{"!5", "!", 5}, {"-15", "-", 15}};
+TEST(ParserTest, TestParsingPrefixExpressionInt) {
+  const std::vector<Prefix<int64_t>> prefixes = {{"!5", "!", 5},
+                                                 {"-15", "-", 15}};
   for (const auto& prefix : prefixes) {
     Parser parser{prefix.input};
     const auto program = parser.ParseProgram();
     ASSERT_EQ(program.NumStatments(), 1) << parser.ErrorMsg();
     const auto stmt = program.statements.front();
     ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
-    const auto expr = stmt.Expr();
-    CheckPrefixExpression(expr, prefix.op, prefix.value);
+    CheckPrefixExpression(stmt.Expr(), prefix.op, prefix.rhs);
   }
 }
 
-TEST(ParserTest, TestInfixOperator) {
-  struct Infix {
-    std::string input;
-    int64_t lhs;
-    std::string op;
-    int64_t rhs;
-  };
+TEST(ParserTest, TestParsingPrefixExpressionBool) {
+  const std::vector<Prefix<bool>> prefixes = {{"!true", "!", true},
+                                              {"!false", "!", false}};
+  for (const auto& prefix : prefixes) {
+    Parser parser{prefix.input};
+    const auto program = parser.ParseProgram();
+    ASSERT_EQ(program.NumStatments(), 1) << parser.ErrorMsg();
+    const auto stmt = program.statements.front();
+    ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
+    CheckPrefixExpression(stmt.Expr(), prefix.op, prefix.rhs);
+  }
+}
 
-  std::vector<Infix> infixes = {{"5+5;", 5, "+", 5},   {"5-5;", 5, "-", 5},
-                                {"5*5;", 5, "*", 5},   {"5/5;", 5, "/", 5},
-                                {"5>5;", 5, ">", 5},   {"5<5;", 5, "<", 5},
-                                {"5>=5;", 5, ">=", 5}, {"5<=5;", 5, "<=", 5},
-                                {"5==5;", 5, "==", 5}, {"5!=5;", 5, "!=", 5}};
+TEST(ParserTest, TestParsingInfixExpressionInt) {
+  const std::vector<Infix<int64_t>> infixes = {
+      {"5+5;", 5, "+", 5},   {"5-5;", 5, "-", 5},   {"5*5;", 5, "*", 5},
+      {"5/5;", 5, "/", 5},   {"5>5;", 5, ">", 5},   {"5<5;", 5, "<", 5},
+      {"5>=5;", 5, ">=", 5}, {"5<=5;", 5, "<=", 5}, {"5==5;", 5, "==", 5},
+      {"5!=5;", 5, "!=", 5}};
 
   for (const auto& infix : infixes) {
     Parser parser{infix.input};
@@ -198,9 +211,46 @@ TEST(ParserTest, TestInfixOperator) {
     ASSERT_EQ(program.NumStatments(), 1);
     const auto stmt = program.statements.front();
     ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
-    const auto expr = stmt.Expr();
-    CheckInfixExpression(expr, infix.lhs, infix.op, infix.rhs);
+    CheckInfixExpression(stmt.Expr(), infix.lhs, infix.op, infix.rhs);
   }
+}
+
+TEST(ParserTest, TestParsingInfixExpressionBool) {
+  const std::vector<Infix<bool>> infixes = {
+      {"true==true;", true, "==", true},
+      {"true!=false;", true, "!=", false},
+      {"false==false;", false, "==", false}};
+
+  for (const auto& infix : infixes) {
+    Parser parser{infix.input};
+    const auto program = parser.ParseProgram();
+    ASSERT_EQ(program.NumStatments(), 1);
+    const auto stmt = program.statements.front();
+    ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
+    CheckInfixExpression(stmt.Expr(), infix.lhs, infix.op, infix.rhs);
+  }
+}
+
+TEST(ParserTest, TestParsingOperatorPrecedence) {
+  const std::vector<std::pair<std::string, std::string>> tests = {
+      {"true", "true"},
+      {"false", "false"},
+      {"3 > 5 == false", "((3 > 5) == false)"},
+      {"3 < 5 == true", "((3 < 5) == true)"},
+      {"1+ (2+3) + 4", "((1 + (2 + 3)) + 4)"}};
+
+  for (const auto& test : tests) {
+    Parser parser{test.first};
+    const auto program = parser.ParseProgram();
+    ASSERT_EQ(program.NumStatments(), 1);
+    const auto stmt = program.statements.front();
+    ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
+    EXPECT_EQ(stmt.Expr().String(), test.second);
+  }
+}
+
+TEST(ParserTest, TestParsingIfExpression) {
+
 }
 
 }  // namespace

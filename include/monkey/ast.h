@@ -18,10 +18,12 @@ enum class NodeType {
   kBoolLiteral,
   kPrefixExpr,
   kInfixExpr,
+  kIfExpr,
   // Statement
   kExprStmt,
   kLetStmt,
-  kReturnStmt
+  kReturnStmt,
+  kBlockStmt
 };
 
 std::ostream &operator<<(std::ostream &os, NodeType type);
@@ -112,6 +114,14 @@ struct ExpressionBase : public NodeBase {
   const ExpressionBase *Ptr() const noexcept { return this; }
 };
 
+/// Base statement
+struct StatementBase : public NodeBase {
+  using NodeBase::NodeBase;
+
+  Expression expr{ExpressionBase{}};
+};
+
+/// Expressions
 struct Identifier final : public ExpressionBase {
   Identifier() : ExpressionBase{NodeType::kIdentifier} {}
 
@@ -147,13 +157,16 @@ struct InfixExpression final : public ExpressionBase {
   Expression rhs{ExpressionBase{}};
 };
 
-/// Base statement
-struct StatementBase : public NodeBase {
-  using NodeBase::NodeBase;
+struct IfExpression final : public ExpressionBase {
+  IfExpression() : ExpressionBase{NodeType::kIfExpr} {}
+  std::string StringImpl() const override;
 
-  Expression expr{ExpressionBase{}};
+  Expression cond{ExpressionBase{}};
+  Statement true_stmt{StatementBase{}};
+  Statement false_stmt{StatementBase{}};
 };
 
+/// Statements
 struct LetStatement final : public StatementBase {
   LetStatement() : StatementBase{NodeType::kLetStmt} {}
   std::string StringImpl() const override;
@@ -170,6 +183,13 @@ struct ExpressionStatement final : public StatementBase {
   ExpressionStatement() : StatementBase{NodeType::kExprStmt} {}
   std::string TokenLiteralImpl() const override { return expr.TokenLiteral(); }
   std::string StringImpl() const override;
+};
+
+struct BlockStatement final : public StatementBase {
+  BlockStatement() : StatementBase{NodeType::kBlockStmt} {}
+  std::string StringImpl() const override;
+
+  std::vector<Statement> statements;
 };
 
 }  // namespace monkey

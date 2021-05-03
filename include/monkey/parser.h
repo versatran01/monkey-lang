@@ -41,6 +41,7 @@ class Parser {
   Expression ParseBooleanLiteral();
   Expression ParsePrefixExpression();
   Expression ParseInfixExpression(const Expression& expr);
+  Expression ParseGroupedExpression();
 
   // Token functions
   void NextToken();

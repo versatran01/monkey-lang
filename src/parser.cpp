@@ -38,6 +38,8 @@ void Parser::RegisterParseFns() {
   RegisterPrefix(TokenType::kInt, [this]() { return ParseIntegerLiteral(); });
   RegisterPrefix(TokenType::kTrue, [this]() { return ParseBooleanLiteral(); });
   RegisterPrefix(TokenType::kFalse, [this]() { return ParseBooleanLiteral(); });
+  RegisterPrefix(TokenType::kLParen,
+                 [this]() { return ParseGroupedExpression(); });
 
   auto parse_prefix = [this]() { return ParsePrefixExpression(); };
   RegisterPrefix(TokenType::kBang, parse_prefix);
@@ -202,6 +204,15 @@ Expression Parser::ParseInfixExpression(const Expression& lhs) {
   const auto precedence = CurrPrecedence();
   NextToken();
   expr.rhs = ParseExpression(precedence);
+  return expr;
+}
+
+Expression Parser::ParseGroupedExpression() {
+  NextToken();
+  auto expr = ParseExpression(Precedence::kLowest);
+  if (!ExpectPeek(TokenType::kRParen)) {
+    return ExpressionBase{};
+  }
   return expr;
 }
 

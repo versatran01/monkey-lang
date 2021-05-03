@@ -93,5 +93,7 @@ TEST(AstTest, TestProgramString) {
   EXPECT_EQ(program.String(), "let v1 = v2;\n");
 }
 
+// TODO: test String() method for IfExpression and BlockStatement
+
 }  // namespace
 }  // namespace monkey
