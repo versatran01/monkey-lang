@@ -250,7 +250,27 @@ TEST(ParserTest, TestParsingOperatorPrecedence) {
 }
 
 TEST(ParserTest, TestParsingIfExpression) {
+  const std::string input = "if (x < y) { x }";
 
+  Parser parser{input};
+  const auto program = parser.ParseProgram();
+  ASSERT_EQ(program.NumStatments(), 1);
+  const auto stmt = program.statements.front();
+  ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
+  const auto expr = stmt.Expr();
+  ASSERT_EQ(expr.Type(), NodeType::kIfExpr);
+  const auto* ptr = dynamic_cast<IfExpression*>(expr.Ptr());
+  ASSERT_NE(ptr, nullptr);
+  CheckInfixExpression(ptr->cond, std::string{"x"}, std::string{"<"},
+                       std::string{"y"});
+  ASSERT_EQ(ptr->true_stmt.Size(), 1);
+  ASSERT_EQ(ptr->true_stmt.Type(), NodeType::kBlockStmt);
+  const auto* true_block_ptr =
+      dynamic_cast<BlockStatement*>(ptr->true_stmt.Ptr());
+  ASSERT_NE(true_block_ptr, nullptr);
+  const auto true_expr = true_block_ptr->statements.front();
+  ASSERT_EQ(true_expr.Type(), NodeType::kExprStmt);
+  CheckIdentifier(true_expr.Expr(), "x");
 }
 
 }  // namespace

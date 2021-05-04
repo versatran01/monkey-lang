@@ -53,6 +53,7 @@ struct NodeInterface {
 
 // fwd
 struct ExpressionBase;
+struct StatementBase;
 
 /// Interface of expression, extends NodeInterface and also returns a ptr to the
 /// underlying node that can be used to recover its original type
@@ -73,6 +74,16 @@ struct StmtInterface : public NodeInterface {
   auto Expr() const {
     return boost::te::call<Expression>(
         [](const auto &self) { return self.expr; }, *this);
+  }
+
+  auto *Ptr() const noexcept {
+    return boost::te::call<StatementBase *>(
+        [](const auto &self) { return self.Ptr(); }, *this);
+  }
+
+  auto Size() const noexcept {
+    return boost::te::call<std::size_t>(
+        [](const auto &self) { return self.Size(); }, *this);
   }
 };
 
@@ -110,13 +121,15 @@ struct Program final : public NodeBase {
 /// Base expression
 struct ExpressionBase : public NodeBase {
   using NodeBase::NodeBase;
-
   const ExpressionBase *Ptr() const noexcept { return this; }
 };
 
 /// Base statement
 struct StatementBase : public NodeBase {
   using NodeBase::NodeBase;
+  const StatementBase *Ptr() const noexcept { return this; }
+  std::size_t Size() const noexcept { return SizeImpl(); }
+  virtual std::size_t SizeImpl() const { return 1; }
 
   Expression expr{ExpressionBase{}};
 };
@@ -157,15 +170,6 @@ struct InfixExpression final : public ExpressionBase {
   Expression rhs{ExpressionBase{}};
 };
 
-struct IfExpression final : public ExpressionBase {
-  IfExpression() : ExpressionBase{NodeType::kIfExpr} {}
-  std::string StringImpl() const override;
-
-  Expression cond{ExpressionBase{}};
-  Statement true_stmt{StatementBase{}};
-  Statement false_stmt{StatementBase{}};
-};
-
 /// Statements
 struct LetStatement final : public StatementBase {
   LetStatement() : StatementBase{NodeType::kLetStmt} {}
@@ -188,8 +192,18 @@ struct ExpressionStatement final : public StatementBase {
 struct BlockStatement final : public StatementBase {
   BlockStatement() : StatementBase{NodeType::kBlockStmt} {}
   std::string StringImpl() const override;
+  std::size_t SizeImpl() const override { return statements.size(); }
 
   std::vector<Statement> statements;
+};
+
+struct IfExpression final : public ExpressionBase {
+  IfExpression() : ExpressionBase{NodeType::kIfExpr} {}
+  std::string StringImpl() const override;
+
+  Expression cond{ExpressionBase{}};
+  Statement true_stmt{StatementBase{}};
+  Statement false_stmt{StatementBase{}};
 };
 
 }  // namespace monkey

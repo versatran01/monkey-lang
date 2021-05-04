@@ -34,6 +34,7 @@ Parser::Parser(Lexer lexer) : lexer_(std::move(lexer)) {
 }
 
 void Parser::RegisterParseFns() {
+  RegisterPrefix(TokenType::kIf, [this]() { return ParseIfExpression(); });
   RegisterPrefix(TokenType::kIdent, [this]() { return ParseIdentifier(); });
   RegisterPrefix(TokenType::kInt, [this]() { return ParseIntegerLiteral(); });
   RegisterPrefix(TokenType::kTrue, [this]() { return ParseBooleanLiteral(); });
@@ -141,6 +142,23 @@ Statement Parser::ParseExpressionStatement() {
   return stmt;
 }
 
+Statement Parser::ParseBlockStatement() {
+  BlockStatement block;
+  block.token = curr_token_;
+
+  NextToken();
+
+  while (!IsCurrToken(TokenType::kRBrace) && !IsCurrToken(TokenType::kEof)) {
+    auto stmt = ParseStatement();
+    if (stmt.Ok()) {
+      block.statements.push_back(std::move(stmt));
+    }
+    NextToken();
+  }
+
+  return block;
+}
+
 Expression Parser::ParseExpression(Precedence precedence) {
   const auto prefix_it = prefix_parse_fn_.find(curr_token_.type);
   if (prefix_it == prefix_parse_fn_.end()) {
@@ -213,6 +231,27 @@ Expression Parser::ParseGroupedExpression() {
   if (!ExpectPeek(TokenType::kRParen)) {
     return ExpressionBase{};
   }
+  return expr;
+}
+
+Expression Parser::ParseIfExpression() {
+  IfExpression expr;
+  expr.token = curr_token_;
+
+  if (!ExpectPeek(TokenType::kLParen)) {
+    return ExpressionBase{};
+  }
+
+  NextToken();
+  expr.cond = ParseExpression(Precedence::kLowest);
+
+  if (!ExpectPeek(TokenType::kRParen)) {
+    return ExpressionBase{};
+  }
+  if (!ExpectPeek(TokenType::kLBrace)) {
+    return ExpressionBase{};
+  }
+  expr.true_stmt = ParseBlockStatement();
   return expr;
 }
 

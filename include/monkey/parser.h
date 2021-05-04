@@ -34,6 +34,7 @@ class Parser {
   Statement ParseLetStatement();
   Statement ParseReturnStatement();
   Statement ParseExpressionStatement();
+  Statement ParseBlockStatement();
 
   Expression ParseExpression(Precedence precedence);
   Expression ParseIdentifier();
@@ -42,6 +43,7 @@ class Parser {
   Expression ParsePrefixExpression();
   Expression ParseInfixExpression(const Expression& expr);
   Expression ParseGroupedExpression();
+  Expression ParseIfExpression();
 
   // Token functions
   void NextToken();
