@@ -40,6 +40,7 @@ class Parser {
   Expression ParseIdentifier();
   Expression ParseIntegerLiteral();
   Expression ParseBooleanLiteral();
+  Expression ParseFunctionLiteral();
   Expression ParsePrefixExpression();
   Expression ParseInfixExpression(const Expression& expr);
   Expression ParseGroupedExpression();

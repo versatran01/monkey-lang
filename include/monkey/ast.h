@@ -199,6 +199,7 @@ struct IfExpression final : public ExpressionBase {
 struct FunctionLiteral final : public ExpressionBase {
   FunctionLiteral() : ExpressionBase{NodeType::kFnLiteral} {}
   std::string StringImpl() const override;
+  auto NumParams() const noexcept { return params.size(); }
 
   std::vector<Identifier> params;
   BlockStatement body;

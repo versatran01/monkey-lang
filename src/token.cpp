@@ -12,7 +12,7 @@ namespace monkey {
 namespace {
 
 const auto gKeywords = absl::flat_hash_map<std::string, TokenType>{
-    {"let", TokenType::kLet},      {"fn", TokenType::kFunction},
+    {"let", TokenType::kLet},      {"fn", TokenType::kFunc},
     {"if", TokenType::kIf},        {"else", TokenType::kElse},
     {"true", TokenType::kTrue},    {"false", TokenType::kFalse},
     {"return", TokenType::kReturn}};
@@ -40,7 +40,7 @@ const auto gTokenTypeStrings = absl::flat_hash_map<TokenType, std::string>{
     {TokenType::kRParen, ")"},
     {TokenType::kLBrace, "{"},
     {TokenType::kRBrace, "}"},
-    {TokenType::kFunction, "FN"},
+    {TokenType::kFunc, "FN"},
     {TokenType::kLet, "LET"},
     {TokenType::kTrue, "TRUE"},
     {TokenType::kFalse, "FALSE"},

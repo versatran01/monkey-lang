@@ -88,13 +88,6 @@ std::string BlockStatement::StringImpl() const {
 }
 
 std::string FunctionLiteral::StringImpl() const {
-  //  std::string str = TokenLiteral() + " (";
-  //  for (const auto& param : params) {
-  //    str += param.String() + ", ";
-  //  }
-  //  str += ")";
-  //  str += body.String();
-  //  return str;
   return fmt::format("{}({}) {}", TokenLiteral(),
                      absl::StrJoin(params, ", ", ExpressionFormatter()),
                      body.String());

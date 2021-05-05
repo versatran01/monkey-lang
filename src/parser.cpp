@@ -39,6 +39,7 @@ void Parser::RegisterParseFns() {
   RegisterPrefix(TokenType::kInt, [this]() { return ParseIntegerLiteral(); });
   RegisterPrefix(TokenType::kTrue, [this]() { return ParseBooleanLiteral(); });
   RegisterPrefix(TokenType::kFalse, [this]() { return ParseBooleanLiteral(); });
+  RegisterPrefix(TokenType::kFunc, [this]() { return ParseFunctionLiteral(); });
   RegisterPrefix(TokenType::kLParen,
                  [this]() { return ParseGroupedExpression(); });
 
@@ -211,6 +212,10 @@ Expression Parser::ParseBooleanLiteral() {
   expr.token = curr_token_;
   expr.value = IsCurrToken(TokenType::kTrue);
   return expr;
+}
+
+Expression Parser::ParseFunctionLiteral() {
+  return ExpressionBase{};
 }
 
 Expression Parser::ParseInfixExpression(const Expression& lhs) {

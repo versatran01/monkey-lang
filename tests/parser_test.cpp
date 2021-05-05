@@ -4,6 +4,8 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
+#include <type_traits>
+
 namespace monkey {
 namespace {
 
@@ -49,7 +51,7 @@ void CheckBooleanLiteral(const Expression& expr, bool value) {
 
 template <typename T>
 void CheckLiteralExpression(const Expression& expr, const T& v) {
-  if constexpr (std::is_same_v<bool, T>) {
+  if constexpr (std::is_same_v<T, bool>) {
     CheckBooleanLiteral(expr, v);
   } else if (std::is_integral_v<T>) {
     CheckIntegerLiteral(expr, v);
@@ -268,6 +270,26 @@ TEST(ParserTest, TestParsingIfExpression) {
   const auto true_expr = ptr->true_block.statements.front();
   ASSERT_EQ(true_expr.Type(), NodeType::kExprStmt);
   CheckIdentifier(true_expr.Expr(), "x");
+}
+
+TEST(ParserTest, TestParsingFunctionLiteral) {
+  const std::string input = "fn(x, y) { x + y; }";
+
+  Parser parser{input};
+  const auto program = parser.ParseProgram();
+  ASSERT_EQ(program.NumStatments(), 1);
+  const auto stmt = program.statements.front();
+  ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
+  const auto expr = stmt.Expr();
+  ASSERT_EQ(expr.Type(), NodeType::kFnLiteral);
+  const auto* ptr = dynamic_cast<FunctionLiteral*>(expr.Ptr());
+  ASSERT_EQ(ptr->NumParams(), 2);
+  CheckLiteralExpression(ptr->params[0], std::string("x"));
+  CheckLiteralExpression(ptr->params[1], std::string("y"));
+  ASSERT_EQ(ptr->body.NumStatements(), 1);
+  const auto body_stmt = ptr->body.statements.front();
+  CheckInfixExpression(body_stmt.Expr(), std::string("x"), std::string("+"),
+                       std::string("y"));
 }
 
 }  // namespace

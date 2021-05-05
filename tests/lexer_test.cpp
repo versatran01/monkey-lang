@@ -58,7 +58,7 @@ TEST(LexerTest, TestSimpleCode) {
       {TokenType::kIdent, "ten"},     {TokenType::kAssign, "="},
       {TokenType::kInt, "10"},        {TokenType::kSemicolon, ";"},
       {TokenType::kLet, "let"},       {TokenType::kIdent, "add"},
-      {TokenType::kAssign, "="},      {TokenType::kFunction, "fn"},
+      {TokenType::kAssign, "="},      {TokenType::kFunc, "fn"},
       {TokenType::kLParen, "("},      {TokenType::kIdent, "x"},
       {TokenType::kComma, ","},       {TokenType::kIdent, "y"},
       {TokenType::kRParen, ")"},      {TokenType::kLBrace, "{"},
