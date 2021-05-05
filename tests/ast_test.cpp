@@ -90,7 +90,7 @@ TEST(AstTest, TestProgramString) {
 
   program.AddStatement(let);
   EXPECT_EQ(program.NumStatments(), 1);
-  EXPECT_EQ(program.String(), "let v1 = v2;\n");
+  EXPECT_EQ(program.String(), "let v1 = v2;");
 }
 
 }  // namespace
