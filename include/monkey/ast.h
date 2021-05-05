@@ -19,6 +19,7 @@ enum class NodeType {
   kPrefixExpr,
   kInfixExpr,
   kIfExpr,
+  kFnLiteral,
   // Statement
   kExprStmt,
   kLetStmt,
@@ -51,6 +52,8 @@ struct NodeInterface {
   }
 };
 
+using AstNode = boost::te::poly<NodeInterface>;
+
 // fwd
 struct ExpressionBase;
 struct StatementBase;
@@ -74,16 +77,6 @@ struct StmtInterface : public NodeInterface {
   auto Expr() const {
     return boost::te::call<Expression>(
         [](const auto &self) { return self.expr; }, *this);
-  }
-
-  auto *Ptr() const noexcept {
-    return boost::te::call<StatementBase *>(
-        [](const auto &self) { return self.Ptr(); }, *this);
-  }
-
-  auto Size() const noexcept {
-    return boost::te::call<std::size_t>(
-        [](const auto &self) { return self.Size(); }, *this);
   }
 };
 
@@ -127,9 +120,6 @@ struct ExpressionBase : public NodeBase {
 /// Base statement
 struct StatementBase : public NodeBase {
   using NodeBase::NodeBase;
-  const StatementBase *Ptr() const noexcept { return this; }
-  std::size_t Size() const noexcept { return SizeImpl(); }
-  virtual std::size_t SizeImpl() const { return 1; }
 
   Expression expr{ExpressionBase{}};
 };
@@ -192,7 +182,7 @@ struct ExpressionStatement final : public StatementBase {
 struct BlockStatement final : public StatementBase {
   BlockStatement() : StatementBase{NodeType::kBlockStmt} {}
   std::string StringImpl() const override;
-  std::size_t SizeImpl() const override { return statements.size(); }
+  auto NumStatements() const noexcept { return statements.size(); }
 
   std::vector<Statement> statements;
 };
@@ -202,8 +192,16 @@ struct IfExpression final : public ExpressionBase {
   std::string StringImpl() const override;
 
   Expression cond{ExpressionBase{}};
-  Statement true_stmt{StatementBase{}};
-  Statement false_stmt{StatementBase{}};
+  BlockStatement true_block;
+  BlockStatement false_block;
+};
+
+struct FunctionLiteral final : public ExpressionBase {
+  FunctionLiteral() : ExpressionBase{NodeType::kFnLiteral} {}
+  std::string StringImpl() const override;
+
+  std::vector<Identifier> params;
+  BlockStatement body;
 };
 
 }  // namespace monkey

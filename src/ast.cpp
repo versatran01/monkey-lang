@@ -1,11 +1,24 @@
 #include "monkey/ast.h"
 
 #include <absl/container/flat_hash_map.h>
+#include <absl/strings/str_join.h>
 #include <fmt/core.h>
 
 namespace monkey {
 
 namespace {
+
+struct StatementFormatter {
+  void operator()(std::string* out, const Statement& stmt) const {
+    out->append(stmt.String());
+  }
+};
+
+struct ExpressionFormatter {
+  void operator()(std::string* out, const Expression& expr) const {
+    out->append(expr.String());
+  }
+};
 
 const auto gNodeTypeStrings = absl::flat_hash_map<NodeType, std::string>{
     {NodeType::kInvalid, "Invalid"},
@@ -20,7 +33,7 @@ const auto gNodeTypeStrings = absl::flat_hash_map<NodeType, std::string>{
     {NodeType::kLetStmt, "LetStmt"},
     {NodeType::kReturnStmt, "ReturnStmt"},
     {NodeType::kBlockStmt, "BlockStmt"}};
-}
+}  // namespace
 
 std::ostream& operator<<(std::ostream& os, NodeType type) {
   return os << gNodeTypeStrings.at(type);
@@ -44,7 +57,12 @@ std::string LetStatement::StringImpl() const {
 }
 
 std::string ReturnStatement::StringImpl() const {
-  return fmt::format("{} {};", TokenLiteral(), expr.String());
+  std::string str = TokenLiteral();
+  if (expr.Ok()) {
+    str += " " + expr.String();
+  }
+  str += ";";
+  return str;
 }
 
 std::string PrefixExpression::StringImpl() const {
@@ -56,27 +74,34 @@ std::string InfixExpression::StringImpl() const {
 }
 
 std::string ExpressionStatement::StringImpl() const {
-  return fmt::format("{};", expr.String());
+  return fmt::format("{}", expr.String());
 }
 
 std::string IfExpression::StringImpl() const {
   std::string str;
-  str += fmt::format("if {} {}", cond.String(), true_stmt.String());
-  if (false_stmt.Ok()) {
-    str += "else " + false_stmt.String();
+  str += fmt::format("if {} {}", cond.String(), true_block.String());
+  if (false_block.Ok()) {
+    str += " else " + false_block.String();
   }
   return str;
 }
 
 std::string BlockStatement::StringImpl() const {
-  std::string str = "{";
-  const auto n = statements.size();
-  for (size_t i = 0; i < n; ++i) {
-    str += statements[i].String();
-    if (i < n - 1) str += " ";
-  }
-  str += "}";
-  return str;
+  return fmt::format("{{ {} }}",
+                     absl::StrJoin(statements, " ", StatementFormatter()));
+}
+
+std::string FunctionLiteral::StringImpl() const {
+  //  std::string str = TokenLiteral() + " (";
+  //  for (const auto& param : params) {
+  //    str += param.String() + ", ";
+  //  }
+  //  str += ")";
+  //  str += body.String();
+  //  return str;
+  return fmt::format("{}({}) {}", TokenLiteral(),
+                     absl::StrJoin(params, ", ", ExpressionFormatter()),
+                     body.String());
 }
 
 }  // namespace monkey

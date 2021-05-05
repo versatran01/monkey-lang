@@ -34,7 +34,7 @@ class Parser {
   Statement ParseLetStatement();
   Statement ParseReturnStatement();
   Statement ParseExpressionStatement();
-  Statement ParseBlockStatement();
+  BlockStatement ParseBlockStatement();
 
   Expression ParseExpression(Precedence precedence);
   Expression ParseIdentifier();

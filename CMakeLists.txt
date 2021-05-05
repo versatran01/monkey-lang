@@ -29,5 +29,8 @@ target_link_libraries(
 add_executable(monkey_repl src/repl.cpp src/repl_main.cpp)
 target_link_libraries(monkey_repl PUBLIC monkey_lexer)
 
+add_executable(monkey_play src/play.cpp)
+target_link_libraries(monkey_play PUBLIC monkey_parser)
+
 enable_testing()
 add_subdirectory(tests)

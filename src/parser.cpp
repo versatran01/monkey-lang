@@ -142,7 +142,7 @@ Statement Parser::ParseExpressionStatement() {
   return stmt;
 }
 
-Statement Parser::ParseBlockStatement() {
+BlockStatement Parser::ParseBlockStatement() {
   BlockStatement block;
   block.token = curr_token_;
 
@@ -251,7 +251,17 @@ Expression Parser::ParseIfExpression() {
   if (!ExpectPeek(TokenType::kLBrace)) {
     return ExpressionBase{};
   }
-  expr.true_stmt = ParseBlockStatement();
+  expr.true_block = ParseBlockStatement();
+
+  // else
+  if (IsPeekToken(TokenType::kElse)) {
+    NextToken();
+    if (!ExpectPeek(TokenType::kLBrace)) {
+      return ExpressionBase{};
+    }
+    expr.false_block = ParseBlockStatement();
+  }
+
   return expr;
 }
 

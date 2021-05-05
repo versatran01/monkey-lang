@@ -263,12 +263,9 @@ TEST(ParserTest, TestParsingIfExpression) {
   ASSERT_NE(ptr, nullptr);
   CheckInfixExpression(ptr->cond, std::string{"x"}, std::string{"<"},
                        std::string{"y"});
-  ASSERT_EQ(ptr->true_stmt.Size(), 1);
-  ASSERT_EQ(ptr->true_stmt.Type(), NodeType::kBlockStmt);
-  const auto* true_block_ptr =
-      dynamic_cast<BlockStatement*>(ptr->true_stmt.Ptr());
-  ASSERT_NE(true_block_ptr, nullptr);
-  const auto true_expr = true_block_ptr->statements.front();
+  ASSERT_EQ(ptr->true_block.NumStatements(), 1);
+  ASSERT_EQ(ptr->true_block.Type(), NodeType::kBlockStmt);
+  const auto true_expr = ptr->true_block.statements.front();
   ASSERT_EQ(true_expr.Type(), NodeType::kExprStmt);
   CheckIdentifier(true_expr.Expr(), "x");
 }

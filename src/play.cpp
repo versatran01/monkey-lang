@@ -7,7 +7,13 @@ using namespace monkey;
 
 int main() {
   const std::string input = R"raw(
-    5 == 5;
+    if (1 == 1) {
+      let x = 2;
+      return x;
+    } else {
+      let x = 3;
+      return x;
+    }
    )raw";
 
   Parser parser{input};
