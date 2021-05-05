@@ -29,6 +29,8 @@ const auto gNodeTypeStrings = absl::flat_hash_map<NodeType, std::string>{
     {NodeType::kPrefixExpr, "PrefixExpr"},
     {NodeType::kInfixExpr, "InfixExpr"},
     {NodeType::kIfExpr, "IfExpr"},
+    {NodeType::kFnLiteral, "FunctionLiteral"},
+    {NodeType::kCallExpr, "CallExpr"},
     {NodeType::kExprStmt, "ExprStmt"},
     {NodeType::kLetStmt, "LetStmt"},
     {NodeType::kReturnStmt, "ReturnStmt"},
@@ -91,6 +93,11 @@ std::string FunctionLiteral::StringImpl() const {
   return fmt::format("{}({}) {}", TokenLiteral(),
                      absl::StrJoin(params, ", ", ExpressionFormatter()),
                      body.String());
+}
+
+std::string CallExpression::StringImpl() const {
+  return fmt::format("{}({})", func.String(),
+                     absl::StrJoin(args, ", ", ExpressionFormatter()));
 }
 
 }  // namespace monkey

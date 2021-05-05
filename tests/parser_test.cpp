@@ -175,45 +175,44 @@ TEST(ParserTest, TestParsingBooleanExpression) {
 }
 
 TEST(ParserTest, TestParsingPrefixExpressionInt) {
-  const std::vector<Prefix<int64_t>> prefixes = {{"!5", "!", 5},
-                                                 {"-15", "-", 15}};
-  for (const auto& prefix : prefixes) {
-    Parser parser{prefix.input};
+  const std::vector<Prefix<int64_t>> tests = {{"!5", "!", 5}, {"-15", "-", 15}};
+  for (const auto& test : tests) {
+    Parser parser{test.input};
     const auto program = parser.ParseProgram();
     ASSERT_EQ(program.NumStatments(), 1) << parser.ErrorMsg();
     const auto stmt = program.statements.front();
     ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
-    CheckPrefixExpression(stmt.Expr(), prefix.op, prefix.rhs);
+    CheckPrefixExpression(stmt.Expr(), test.op, test.rhs);
   }
 }
 
 TEST(ParserTest, TestParsingPrefixExpressionBool) {
-  const std::vector<Prefix<bool>> prefixes = {{"!true", "!", true},
-                                              {"!false", "!", false}};
-  for (const auto& prefix : prefixes) {
-    Parser parser{prefix.input};
+  const std::vector<Prefix<bool>> tests = {{"!true", "!", true},
+                                           {"!false", "!", false}};
+  for (const auto& test : tests) {
+    Parser parser{test.input};
     const auto program = parser.ParseProgram();
     ASSERT_EQ(program.NumStatments(), 1) << parser.ErrorMsg();
     const auto stmt = program.statements.front();
     ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
-    CheckPrefixExpression(stmt.Expr(), prefix.op, prefix.rhs);
+    CheckPrefixExpression(stmt.Expr(), test.op, test.rhs);
   }
 }
 
 TEST(ParserTest, TestParsingInfixExpressionInt) {
-  const std::vector<Infix<int64_t>> infixes = {
+  const std::vector<Infix<int64_t>> tests = {
       {"5+5;", 5, "+", 5},   {"5-5;", 5, "-", 5},   {"5*5;", 5, "*", 5},
       {"5/5;", 5, "/", 5},   {"5>5;", 5, ">", 5},   {"5<5;", 5, "<", 5},
       {"5>=5;", 5, ">=", 5}, {"5<=5;", 5, "<=", 5}, {"5==5;", 5, "==", 5},
       {"5!=5;", 5, "!=", 5}};
 
-  for (const auto& infix : infixes) {
-    Parser parser{infix.input};
+  for (const auto& test : tests) {
+    Parser parser{test.input};
     const auto program = parser.ParseProgram();
     ASSERT_EQ(program.NumStatments(), 1);
     const auto stmt = program.statements.front();
     ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
-    CheckInfixExpression(stmt.Expr(), infix.lhs, infix.op, infix.rhs);
+    CheckInfixExpression(stmt.Expr(), test.lhs, test.op, test.rhs);
   }
 }
 
@@ -298,9 +297,41 @@ TEST(ParserTest, TestParsingFunctionLiteral2) {
     std::vector<std::string> params;
   };
 
-  const std::vector<Func> funcs = {{"fn() {};", {}},
+  const std::vector<Func> tests = {{"fn() {};", {}},
                                    {"fn(x) {};", {"x"}},
                                    {"fn(x, y, z) {};", {"x", "y", "z"}}};
+
+  for (const auto& test : tests) {
+    Parser parser{test.input};
+    const auto program = parser.ParseProgram();
+    ASSERT_EQ(program.NumStatments(), 1);
+    const auto stmt = program.statements.front();
+    ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
+    const auto expr = stmt.Expr();
+    ASSERT_EQ(expr.Type(), NodeType::kFnLiteral);
+    const auto* ptr = dynamic_cast<FunctionLiteral*>(expr.Ptr());
+    ASSERT_EQ(ptr->NumParams(), test.params.size());
+    for (size_t i = 0; i < test.params.size(); ++i) {
+      CheckLiteralExpression(ptr->params[i], test.params[i]);
+    }
+  }
+}
+
+TEST(ParserTest, TestParsingCallExpression) {
+  const std::string input = "add(1, 2 * 3, 4 + 5);";
+  Parser parser{input};
+  const auto program = parser.ParseProgram();
+  ASSERT_EQ(program.NumStatments(), 1);
+  const auto stmt = program.statements.front();
+  ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
+  const auto expr = stmt.Expr();
+  ASSERT_EQ(expr.Type(), NodeType::kCallExpr);
+  const auto* ptr = dynamic_cast<CallExpression*>(expr.Ptr());
+  CheckIdentifier(ptr->func, "add");
+  ASSERT_EQ(ptr->NumArgs(), 3);
+  CheckLiteralExpression(ptr->args[0], 1);
+  CheckInfixExpression(ptr->args[1], 2, "*", 3);
+  CheckInfixExpression(ptr->args[2], 4, "+", 5);
 }
 
 }  // namespace

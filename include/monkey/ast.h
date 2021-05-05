@@ -20,6 +20,7 @@ enum class NodeType {
   kInfixExpr,
   kIfExpr,
   kFnLiteral,
+  kCallExpr,
   // Statement
   kExprStmt,
   kLetStmt,
@@ -203,6 +204,15 @@ struct FunctionLiteral final : public ExpressionBase {
 
   std::vector<Identifier> params;
   BlockStatement body;
+};
+
+struct CallExpression final : public ExpressionBase {
+  CallExpression() : ExpressionBase{NodeType::kCallExpr} {}
+  std::string StringImpl() const override;
+  auto NumArgs() const noexcept { return args.size(); }
+
+  Expression func{ExpressionBase{}};
+  std::vector<Expression> args;
 };
 
 }  // namespace monkey

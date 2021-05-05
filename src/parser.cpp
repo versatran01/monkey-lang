@@ -22,9 +22,9 @@ absl::flat_hash_map<TokenType, Precedence> gTokenPrecedence = {
     {TokenType::kMinus, Precedence::kSum},
     {TokenType::kSlash, Precedence::kProduct},
     {TokenType::kAsterisk, Precedence::kProduct},
-};
+    {TokenType::kLParen, Precedence::kCall}};
 
-}
+}  // namespace
 
 Parser::Parser(Lexer lexer) : lexer_(std::move(lexer)) {
   // Read two tokens, so curToken and peekToken are both set
@@ -60,6 +60,8 @@ void Parser::RegisterParseFns() {
   RegisterInfix(TokenType::kGt, parse_infix);
   RegisterInfix(TokenType::kLe, parse_infix);
   RegisterInfix(TokenType::kGe, parse_infix);
+  RegisterInfix(TokenType::kLParen,
+                [this](const auto& expr) { return ParseCallExpression(expr); });
 }
 
 void Parser::NextToken() {
@@ -284,6 +286,14 @@ Expression Parser::ParseIfExpression() {
   return expr;
 }
 
+Expression Parser::ParseCallExpression(const Expression& expr) {
+  CallExpression call;
+  call.token = curr_token_;
+  call.func = expr;
+  call.args = ParseCallArguments();
+  return call;
+}
+
 std::vector<Identifier> Parser::ParseFunctionParameters() {
   std::vector<Identifier> params;
 
@@ -313,6 +323,30 @@ std::vector<Identifier> Parser::ParseFunctionParameters() {
   }
 
   return params;
+}
+
+std::vector<Expression> Parser::ParseCallArguments() {
+  std::vector<Expression> args;
+
+  if (IsPeekToken(TokenType::kRParen)) {
+    NextToken();
+    return args;
+  }
+
+  NextToken();
+  args.push_back(ParseExpression(Precedence::kLowest));
+
+  while (IsPeekToken(TokenType::kComma)) {
+    NextToken();
+    NextToken();
+    args.push_back(ParseExpression(Precedence::kLowest));
+  }
+
+  if (!ExpectPeek(TokenType::kRParen)) {
+    return {};
+  }
+
+  return args;
 }
 
 Expression Parser::ParsePrefixExpression() {
