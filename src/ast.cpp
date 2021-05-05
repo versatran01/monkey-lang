@@ -44,11 +44,7 @@ std::string Program::TokenLiteralImpl() const {
 }
 
 std::string Program::StringImpl() const {
-  std::string res;
-  for (const auto& stmt : statements) {
-    res += stmt.String() + "\n";
-  }
-  return res;
+  return absl::StrJoin(statements, "\n", StatementFormatter());
 }
 
 std::string LetStatement::StringImpl() const {
