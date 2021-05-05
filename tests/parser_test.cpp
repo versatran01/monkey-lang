@@ -292,5 +292,16 @@ TEST(ParserTest, TestParsingFunctionLiteral) {
                        std::string("y"));
 }
 
+TEST(ParserTest, TestParsingFunctionLiteral2) {
+  struct Func {
+    std::string input;
+    std::vector<std::string> params;
+  };
+
+  const std::vector<Func> funcs = {{"fn() {};", {}},
+                                   {"fn(x) {};", {"x"}},
+                                   {"fn(x, y, z) {};", {"x", "y", "z"}}};
+}
+
 }  // namespace
 }  // namespace monkey

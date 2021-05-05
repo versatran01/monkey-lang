@@ -215,7 +215,21 @@ Expression Parser::ParseBooleanLiteral() {
 }
 
 Expression Parser::ParseFunctionLiteral() {
-  return ExpressionBase{};
+  FunctionLiteral fn;
+  fn.token = curr_token_;
+
+  if (!ExpectPeek(TokenType::kLParen)) {
+    return ExpressionBase{};
+  }
+
+  fn.params = ParseFunctionParameters();
+
+  if (!ExpectPeek(TokenType::kLBrace)) {
+    return ExpressionBase{};
+  }
+
+  fn.body = ParseBlockStatement();
+  return fn;
 }
 
 Expression Parser::ParseInfixExpression(const Expression& lhs) {
@@ -268,6 +282,37 @@ Expression Parser::ParseIfExpression() {
   }
 
   return expr;
+}
+
+std::vector<Identifier> Parser::ParseFunctionParameters() {
+  std::vector<Identifier> params;
+
+  if (IsPeekToken(TokenType::kRParen)) {
+    NextToken();
+    return params;
+  }
+
+  NextToken();
+
+  Identifier param;
+  param.token = curr_token_;
+  param.value = curr_token_.literal;
+  params.push_back(param);
+
+  while (IsPeekToken(TokenType::kComma)) {
+    NextToken();
+    NextToken();
+
+    param.token = curr_token_;
+    param.value = curr_token_.literal;
+    params.push_back(param);
+  }
+
+  if (!ExpectPeek(TokenType::kRParen)) {
+    return {};
+  }
+
+  return params;
 }
 
 Expression Parser::ParsePrefixExpression() {

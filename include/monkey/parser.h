@@ -45,6 +45,7 @@ class Parser {
   Expression ParseInfixExpression(const Expression& expr);
   Expression ParseGroupedExpression();
   Expression ParseIfExpression();
+  std::vector<Identifier> ParseFunctionParameters();
 
   // Token functions
   void NextToken();
