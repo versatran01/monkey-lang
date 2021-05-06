@@ -12,6 +12,11 @@ namespace {
 
 using LiteralType = absl::variant<bool, int, std::string>;
 
+struct FuncTest {
+  std::string input;
+  std::vector<std::string> params;
+};
+
 struct LetTest {
   std::string input;
   std::string ident;
@@ -58,52 +63,18 @@ void CheckIdentifier(const Expression& expr, const std::string& value) {
 
 void CheckIntegerLiteral(const Expression& expr, int64_t value) {
   ASSERT_EQ(expr.Type(), NodeType::kIntLiteral);
+  EXPECT_EQ(expr.TokenLiteral(), std::to_string(value));
   const auto* ptr = dynamic_cast<IntegerLiteral*>(expr.Ptr());
   ASSERT_NE(ptr, nullptr);
   EXPECT_EQ(ptr->value, value);
-  EXPECT_EQ(ptr->TokenLiteral(), std::to_string(value));
 }
 
 void CheckBooleanLiteral(const Expression& expr, bool value) {
   ASSERT_EQ(expr.Type(), NodeType::kBoolLiteral);
+  EXPECT_EQ(expr.TokenLiteral(), value ? "true" : "false");
   const auto* ptr = dynamic_cast<BooleanLiteral*>(expr.Ptr());
   ASSERT_NE(ptr, nullptr);
   EXPECT_EQ(ptr->value, value);
-  EXPECT_EQ(ptr->TokenLiteral(), value ? "true" : "false");
-}
-
-template <typename T>
-void CheckLiteralExpression(const Expression& expr, const T& v) {
-  if constexpr (std::is_same_v<T, bool>) {
-    CheckBooleanLiteral(expr, v);
-  } else if (std::is_integral_v<T>) {
-    CheckIntegerLiteral(expr, v);
-  }
-}
-
-void CheckLiteralExpression(const Expression& expr, const std::string& v) {
-  CheckIdentifier(expr, v);
-}
-
-template <typename T>
-void CheckInfixExpression(const Expression& expr, const T& lhs,
-                          const std::string& op, const T& rhs) {
-  ASSERT_EQ(expr.Type(), NodeType::kInfixExpr);
-  const auto* ptr = dynamic_cast<InfixExpression*>(expr.Ptr());
-  ASSERT_NE(ptr, nullptr);
-  CheckLiteralExpression(ptr->lhs, lhs);
-  EXPECT_EQ(ptr->op, op);
-  CheckLiteralExpression(ptr->rhs, rhs);
-}
-
-template <typename T>
-void CheckPrefixExpression(const Expression& expr, const std::string& op,
-                           const T& rhs) {
-  ASSERT_EQ(expr.Type(), NodeType::kPrefixExpr);
-  const auto* ptr = dynamic_cast<PrefixExpression*>(expr.Ptr());
-  ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(ptr->op, op);
-  CheckLiteralExpression(ptr->rhs, rhs);
 }
 
 void CheckLetStatement(const Statement& stmt, const std::string& name) {
@@ -114,7 +85,7 @@ void CheckLetStatement(const Statement& stmt, const std::string& name) {
   CheckIdentifier(ptr->name, name);
 }
 
-void CheckLiteralExpression2(const Expression& expr, const LiteralType& value) {
+void CheckLiteralExpression(const Expression& expr, const LiteralType& value) {
   switch (value.index()) {
     case 0:
       CheckBooleanLiteral(expr, std::get<0>(value));
@@ -130,6 +101,25 @@ void CheckLiteralExpression2(const Expression& expr, const LiteralType& value) {
   }
 }
 
+void CheckPrefixExpression(const Expression& expr, const std::string& op,
+                           const LiteralType& rhs) {
+  ASSERT_EQ(expr.Type(), NodeType::kPrefixExpr);
+  const auto* ptr = dynamic_cast<PrefixExpression*>(expr.Ptr());
+  ASSERT_NE(ptr, nullptr);
+  EXPECT_EQ(ptr->op, op);
+  CheckLiteralExpression(ptr->rhs, rhs);
+}
+
+void CheckInfixExpression(const Expression& expr, const LiteralType& lhs,
+                          const std::string& op, const LiteralType& rhs) {
+  ASSERT_EQ(expr.Type(), NodeType::kInfixExpr);
+  const auto* ptr = dynamic_cast<InfixExpression*>(expr.Ptr());
+  ASSERT_NE(ptr, nullptr);
+  CheckLiteralExpression(ptr->lhs, lhs);
+  EXPECT_EQ(ptr->op, op);
+  CheckLiteralExpression(ptr->rhs, rhs);
+}
+
 /// Tests
 TEST(ParserTest, TestParsingLetStatement) {
   const std::vector<LetTest> tests = {{"let x = 5;", "x", 5},
@@ -143,7 +133,7 @@ TEST(ParserTest, TestParsingLetStatement) {
     const auto stmt = program.statements.front();
     ASSERT_EQ(stmt.Type(), NodeType::kLetStmt);
     CheckLetStatement(stmt, test.ident);
-    CheckLiteralExpression2(stmt.Expr(), test.value);
+    CheckLiteralExpression(stmt.Expr(), test.value);
   }
 }
 
@@ -201,20 +191,11 @@ TEST(ParserTest, TestParsingBooleanExpression) {
 }
 
 TEST(ParserTest, TestParsingPrefixExpressionInt) {
-  const std::vector<Prefix<int64_t>> tests = {{"!5", "!", 5}, {"-15", "-", 15}};
-  for (const auto& test : tests) {
-    Parser parser{test.input};
-    const auto program = parser.ParseProgram();
-    ASSERT_EQ(program.NumStatments(), 1) << parser.ErrorMsg();
-    const auto stmt = program.statements.front();
-    ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
-    CheckPrefixExpression(stmt.Expr(), test.op, test.rhs);
-  }
-}
+  const std::vector<PrefixTest> tests = {{"!5", "!", 5},
+                                         {"-15", "-", 15},
+                                         {"!true", "!", true},
+                                         {"!false", "!", false}};
 
-TEST(ParserTest, TestParsingPrefixExpressionBool) {
-  const std::vector<Prefix<bool>> tests = {{"!true", "!", true},
-                                           {"!false", "!", false}};
   for (const auto& test : tests) {
     Parser parser{test.input};
     const auto program = parser.ParseProgram();
@@ -226,11 +207,19 @@ TEST(ParserTest, TestParsingPrefixExpressionBool) {
 }
 
 TEST(ParserTest, TestParsingInfixExpressionInt) {
-  const std::vector<Infix<int64_t>> tests = {
-      {"5+5;", 5, "+", 5},   {"5-5;", 5, "-", 5},   {"5*5;", 5, "*", 5},
-      {"5/5;", 5, "/", 5},   {"5>5;", 5, ">", 5},   {"5<5;", 5, "<", 5},
-      {"5>=5;", 5, ">=", 5}, {"5<=5;", 5, "<=", 5}, {"5==5;", 5, "==", 5},
-      {"5!=5;", 5, "!=", 5}};
+  const std::vector<InfixTest> tests = {{"5+5;", 5, "+", 5},
+                                        {"5-5;", 5, "-", 5},
+                                        {"5*5;", 5, "*", 5},
+                                        {"5/5;", 5, "/", 5},
+                                        {"5>5;", 5, ">", 5},
+                                        {"5<5;", 5, "<", 5},
+                                        {"5>=5;", 5, ">=", 5},
+                                        {"5<=5;", 5, "<=", 5},
+                                        {"5==5;", 5, "==", 5},
+                                        {"5!=5;", 5, "!=", 5},
+                                        {"true==true;", true, "==", true},
+                                        {"true!=false;", true, "!=", false},
+                                        {"false==false;", false, "==", false}};
 
   for (const auto& test : tests) {
     Parser parser{test.input};
@@ -239,22 +228,6 @@ TEST(ParserTest, TestParsingInfixExpressionInt) {
     const auto stmt = program.statements.front();
     ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
     CheckInfixExpression(stmt.Expr(), test.lhs, test.op, test.rhs);
-  }
-}
-
-TEST(ParserTest, TestParsingInfixExpressionBool) {
-  const std::vector<Infix<bool>> infixes = {
-      {"true==true;", true, "==", true},
-      {"true!=false;", true, "!=", false},
-      {"false==false;", false, "==", false}};
-
-  for (const auto& infix : infixes) {
-    Parser parser{infix.input};
-    const auto program = parser.ParseProgram();
-    ASSERT_EQ(program.NumStatments(), 1);
-    const auto stmt = program.statements.front();
-    ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
-    CheckInfixExpression(stmt.Expr(), infix.lhs, infix.op, infix.rhs);
   }
 }
 
@@ -322,14 +295,9 @@ TEST(ParserTest, TestParsingFunctionLiteral) {
 }
 
 TEST(ParserTest, TestParsingFunctionLiteral2) {
-  struct Func {
-    std::string input;
-    std::vector<std::string> params;
-  };
-
-  const std::vector<Func> tests = {{"fn() {};", {}},
-                                   {"fn(x) {};", {"x"}},
-                                   {"fn(x, y, z) {};", {"x", "y", "z"}}};
+  const std::vector<FuncTest> tests = {{"fn() {};", {}},
+                                       {"fn(x) {};", {"x"}},
+                                       {"fn(x, y, z) {};", {"x", "y", "z"}}};
 
   for (const auto& test : tests) {
     Parser parser{test.input};
@@ -342,7 +310,7 @@ TEST(ParserTest, TestParsingFunctionLiteral2) {
     const auto* ptr = dynamic_cast<FunctionLiteral*>(expr.Ptr());
     ASSERT_EQ(ptr->NumParams(), test.params.size());
     for (size_t i = 0; i < test.params.size(); ++i) {
-      CheckLiteralExpression(ptr->params[i], test.params[i]);
+      CheckIdentifier(ptr->params[i], test.params[i]);
     }
   }
 }
