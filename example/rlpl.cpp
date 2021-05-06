@@ -9,7 +9,7 @@ namespace monkey {
 
 const std::string kPrompt = ">> ";
 
-void StartRepl() {
+void StartRlpl() {
   std::string line;
 
   while (true) {
@@ -26,3 +26,8 @@ void StartRepl() {
 }
 
 }  // namespace monkey
+
+int main() {
+  fmt::print("Hello!, This is the Monkey programming language\n");
+  monkey::StartRlpl();
+}

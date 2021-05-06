@@ -1,1 +1,7 @@
 include
+example
+src
+cmake
+include/monkey
+.
+tests
