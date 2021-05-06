@@ -67,7 +67,7 @@ TEST(AstTest, TestExpressionPtr) {
   intl.value = 5;
 
   Expression expr = intl;
-  ExpressionBase* base_ptr = expr.Ptr();
+  auto* base_ptr = expr.Ptr();
   auto* intl_ptr = dynamic_cast<IntegerLiteral*>(base_ptr);
   ASSERT_NE(intl_ptr, nullptr);
   EXPECT_EQ(intl_ptr->value, intl.value);

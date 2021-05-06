@@ -7,6 +7,7 @@ namespace monkey {
 namespace {
 
 const auto gObjectTypeStrings = absl::flat_hash_map<ObjectType, std::string>{
+    {ObjectType::kInvalid, "InvalidObj"},
     {ObjectType::kNull, "NullObj"},
     {ObjectType::kInt, "IntObj"},
     {ObjectType::kBool, "BoolObj"}};

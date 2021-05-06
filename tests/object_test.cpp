@@ -5,7 +5,7 @@
 namespace monkey {
 namespace {
 
-TEST(ObjecTest, TestDummy) { EXPECT_TRUE(false); }
+//TEST(ObjecTest, TestDummy) { EXPECT_TRUE(false); }
 
 }  // namespace
 }  // namespace monkey

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glog/logging.h>
+
 #include <iosfwd>
 #include <string>
 #include <vector>
@@ -30,6 +32,8 @@ enum class NodeType {
 
 std::ostream &operator<<(std::ostream &os, NodeType type);
 
+struct NodeBase;
+
 /// Interface of Node
 struct NodeInterface {
   auto TokenLiteral() const {
@@ -51,6 +55,11 @@ struct NodeInterface {
     return boost::te::call<bool>([](const auto &self) { return self.Ok(); },
                                  *this);
   }
+
+  auto *Ptr() const noexcept {
+    return boost::te::call<NodeBase *>(
+        [](const auto &self) { return self.Ptr(); }, *this);
+  }
 };
 
 using AstNode = boost::te::poly<NodeInterface>;
@@ -63,11 +72,6 @@ struct StatementBase;
 /// underlying node that can be used to recover its original type
 struct ExprInterface : public NodeInterface {
   ExprInterface() { boost::te::extends<NodeInterface>(*this); }
-
-  auto *Ptr() const noexcept {
-    return boost::te::call<ExpressionBase *>(
-        [](const auto &self) { return self.Ptr(); }, *this);
-  }
 };
 
 using Expression = boost::te::poly<ExprInterface>;
@@ -76,13 +80,8 @@ struct StmtInterface : public NodeInterface {
   StmtInterface() { boost::te::extends<NodeInterface>(*this); }
 
   auto Expr() const {
-    return boost::te::call<Expression>([](const auto &self) { return self.expr; },
-                                     *this);
-  }
-
-  auto *Ptr() const noexcept {
-    return boost::te::call<StatementBase *>(
-        [](const auto &self) { return self.Ptr(); }, *this);
+    return boost::te::call<Expression>(
+        [](const auto &self) { return self.expr; }, *this);
   }
 };
 
@@ -94,13 +93,14 @@ struct NodeBase {
   explicit NodeBase(NodeType type) : type{type} {}
   virtual ~NodeBase() noexcept = default;
 
-  std::string TokenLiteral() const noexcept { return TokenLiteralImpl(); }
-  std::string String() const noexcept { return StringImpl(); }
   NodeType Type() const noexcept { return type; }
+  const NodeBase *Ptr() const noexcept { return this; }
   bool Ok() const noexcept { return type != NodeType::kInvalid; }
 
-  virtual std::string TokenLiteralImpl() const { return token.literal; }
+  std::string String() const noexcept { return StringImpl(); }
+  std::string TokenLiteral() const noexcept { return TokenLiteralImpl(); }
   virtual std::string StringImpl() const { return token.literal; }
+  virtual std::string TokenLiteralImpl() const { return token.literal; }
 
   NodeType type{NodeType::kInvalid};
   Token token;
@@ -120,13 +120,11 @@ struct Program final : public NodeBase {
 /// Base expression
 struct ExpressionBase : public NodeBase {
   using NodeBase::NodeBase;
-  const ExpressionBase *Ptr() const noexcept { return this; }
 };
 
 /// Base statement
 struct StatementBase : public NodeBase {
   using NodeBase::NodeBase;
-  const StatementBase *Ptr() const noexcept { return this; }
 
   Expression expr{ExpressionBase{}};
 };
@@ -221,5 +219,12 @@ struct CallExpression final : public ExpressionBase {
   Expression func{ExpressionBase{}};
   std::vector<Expression> args;
 };
+
+template <typename T>
+T *NodePtrCast(const NodeBase *base) {
+  const auto *derived = dynamic_cast<T *>(base);
+  CHECK(derived != nullptr) << "Unable to SafePtrCast from " << base->Type();
+  return derived;
+}
 
 }  // namespace monkey
