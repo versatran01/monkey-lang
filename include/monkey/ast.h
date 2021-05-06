@@ -62,10 +62,6 @@ struct NodeInterface {
 
 using AstNode = boost::te::poly<NodeInterface>;
 
-// fwd
-struct ExpressionBase;
-struct StatementBase;
-
 /// Interface of expression, extends NodeInterface and also returns a ptr to the
 /// underlying node that can be used to recover its original type
 struct ExprInterface : public NodeInterface {
