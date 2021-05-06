@@ -3,6 +3,7 @@ cmake/CompilerWarnings.cmake
 cmake/FindGMock.cmake
 example/CMakeLists.txt
 example/play.cpp
+example/repl.cpp
 example/rlpl.cpp
 example/rppl.cpp
 include/monkey/ast.h

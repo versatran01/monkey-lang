@@ -1,7 +1,5 @@
 #pragma once
 
-#include <glog/logging.h>
-
 #include <iosfwd>
 #include <string>
 #include <vector>
@@ -219,12 +217,5 @@ struct CallExpression final : public ExpressionBase {
   Expression func{ExpressionBase{}};
   std::vector<Expression> args;
 };
-
-template <typename T>
-T *NodePtrCast(const NodeBase *base) {
-  const auto *derived = dynamic_cast<T *>(base);
-  CHECK(derived != nullptr) << "Unable to SafePtrCast from " << base->Type();
-  return derived;
-}
 
 }  // namespace monkey

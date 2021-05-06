@@ -15,8 +15,7 @@ Object ParseAndEval(const std::string& input) {
 
 void CheckIntObject(const Object& obj, int64_t value) {
   ASSERT_EQ(obj.Type(), ObjectType::kInt);
-  const auto* ptr = dynamic_cast<IntObject*>(obj.Ptr());
-  ASSERT_NE(ptr, nullptr);
+  const auto* ptr = static_cast<IntObject*>(obj.Ptr());
   EXPECT_EQ(ptr->value, value);
 }
 
