@@ -79,6 +79,11 @@ struct StmtInterface : public NodeInterface {
     return boost::te::call<Expression>(
         [](const auto &self) { return self.expr; }, *this);
   }
+
+  auto *Ptr() const noexcept {
+    return boost::te::call<StatementBase *>(
+        [](const auto &self) { return self.Ptr(); }, *this);
+  }
 };
 
 using Statement = boost::te::poly<StmtInterface>;
@@ -121,6 +126,7 @@ struct ExpressionBase : public NodeBase {
 /// Base statement
 struct StatementBase : public NodeBase {
   using NodeBase::NodeBase;
+  const StatementBase *Ptr() const noexcept { return this; }
 
   Expression expr{ExpressionBase{}};
 };

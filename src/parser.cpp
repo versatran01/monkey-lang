@@ -111,7 +111,9 @@ Statement Parser::ParseLetStatement() {
     return StatementBase{};
   }
 
-  // TODO: we're skipping the expressions until we encounter a semicolon
+  NextToken();
+  stmt.expr = ParseExpression(Precedence::kLowest);
+
   while (!IsCurrToken(TokenType::kSemicolon)) {
     NextToken();
   }
@@ -124,8 +126,8 @@ Statement Parser::ParseReturnStatement() {
   stmt.token = curr_token_;
 
   NextToken();
+  stmt.expr = ParseExpression(Precedence::kLowest);
 
-  // TODO: we're skipping the expressions until we encounter a semicolon
   while (!IsCurrToken(TokenType::kSemicolon)) {
     NextToken();
   }
@@ -183,14 +185,14 @@ Expression Parser::ParseExpression(Precedence precedence) {
     lhs = infix_it->second(lhs);
   }
 
-  return lhs;  // call the function
+  return lhs;
 }
 
 Expression Parser::ParseIdentifier() {
-  Identifier ident;
-  ident.token = curr_token_;
-  ident.value = curr_token_.literal;
-  return ident;
+  Identifier expr;
+  expr.token = curr_token_;
+  expr.value = curr_token_.literal;
+  return expr;
 }
 
 Expression Parser::ParseIntegerLiteral() {

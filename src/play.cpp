@@ -6,17 +6,12 @@
 using namespace monkey;
 
 int main() {
-  //  const std::string input = R"raw(
-  //    if (1 == 1) {
-  //      let x = 2;
-  //      return x;
-  //    } else {
-  //      let x = 3;
-  //      return x;
-  //    }
-  //   )raw";
+    const std::string input = R"raw(
+      let x = 5;
+      let y = true;
+      let z = y;
+     )raw";
 
-  const std::string input = "add(1, 2 * 3, 4 + 5);";
 
   Parser parser{input};
 

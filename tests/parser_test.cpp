@@ -1,5 +1,6 @@
 #include "monkey/parser.h"
 
+#include <absl/types/variant.h>
 #include <fmt/ranges.h>
 #include <glog/logging.h>
 #include <gtest/gtest.h>
@@ -8,6 +9,27 @@
 
 namespace monkey {
 namespace {
+
+using LiteralType = absl::variant<bool, int, std::string>;
+
+struct LetTest {
+  std::string input;
+  std::string ident;
+  LiteralType value;
+};
+
+struct PrefixTest {
+  std::string input;
+  std::string op;
+  LiteralType rhs;
+};
+
+struct InfixTest {
+  std::string input;
+  LiteralType lhs;
+  std::string op;
+  LiteralType rhs;
+};
 
 template <typename T>
 struct Infix {
@@ -27,9 +49,10 @@ struct Prefix {
 /// Helper functions
 void CheckIdentifier(const Expression& expr, const std::string& value) {
   ASSERT_EQ(expr.Type(), NodeType::kIdentifier);
+  EXPECT_EQ(expr.TokenLiteral(), value);
+  EXPECT_EQ(expr.String(), value);
   const auto* ptr = dynamic_cast<Identifier*>(expr.Ptr());
   ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(ptr->TokenLiteral(), value);
   EXPECT_EQ(ptr->value, value);
 }
 
@@ -83,42 +106,45 @@ void CheckPrefixExpression(const Expression& expr, const std::string& op,
   CheckLiteralExpression(ptr->rhs, rhs);
 }
 
-/// Tests
-TEST(ParserTest, TestParsingLetStatement) {
-  const std::string input = R"raw(
-    let x = 5;
-    let y = 10;
-    let foobar =123;
-   )raw";
+void CheckLetStatement(const Statement& stmt, const std::string& name) {
+  ASSERT_EQ(stmt.TokenLiteral(), "let");
+  ASSERT_EQ(stmt.Type(), NodeType::kLetStmt);
+  const auto* ptr = dynamic_cast<LetStatement*>(stmt.Ptr());
+  ASSERT_NE(ptr, nullptr);
+  CheckIdentifier(ptr->name, name);
+}
 
-  Parser parser{input};
-
-  auto program = parser.ParseProgram();
-  const std::vector<std::string> expected_idents = {"x", "y", "foobar"};
-
-  ASSERT_EQ(program.NumStatments(), expected_idents.size());
-  for (const auto& stmt : program.statements) {
-    EXPECT_EQ(stmt.TokenLiteral(), "let");
+void CheckLiteralExpression2(const Expression& expr, const LiteralType& value) {
+  switch (value.index()) {
+    case 0:
+      CheckBooleanLiteral(expr, std::get<0>(value));
+      break;
+    case 1:
+      CheckIntegerLiteral(expr, std::get<1>(value));
+      break;
+    case 2:
+      CheckIdentifier(expr, std::get<2>(value));
+      break;
+    default:
+      ASSERT_FALSE(true) << "Should not reach here, index: " << value.index();
   }
 }
 
-TEST(ParserTest, TestParsingLetStatementWithError) {
-  const std::string input = R"raw(
-    let x = 5;
-    let y = 10;
-    let 123;
-   )raw";
+/// Tests
+TEST(ParserTest, TestParsingLetStatement) {
+  const std::vector<LetTest> tests = {{"let x = 5;", "x", 5},
+                                      {"let y = true;", "y", true},
+                                      {"let z = y;", "z", std::string{"y"}}};
 
-  Parser parser{input};
-
-  const auto program = parser.ParseProgram();
-  const std::vector<std::string> expected_idents = {"x", "y"};
-  ASSERT_EQ(program.NumStatments(), 3);
-
-  for (size_t i = 0; i < expected_idents.size(); ++i) {
-    EXPECT_EQ(program.statements[i].TokenLiteral(), "let");
+  for (const auto& test : tests) {
+    Parser parser{test.input};
+    const auto program = parser.ParseProgram();
+    ASSERT_EQ(program.NumStatments(), 1);
+    const auto stmt = program.statements.front();
+    ASSERT_EQ(stmt.Type(), NodeType::kLetStmt);
+    CheckLetStatement(stmt, test.ident);
+    CheckLiteralExpression2(stmt.Expr(), test.value);
   }
-  LOG(INFO) << fmt::format("{}", parser.ErrorMsg());
 }
 
 TEST(ParserTest, TestParsingReturnStatement) {
@@ -238,7 +264,11 @@ TEST(ParserTest, TestParsingOperatorPrecedence) {
       {"false", "false"},
       {"3 > 5 == false", "((3 > 5) == false)"},
       {"3 < 5 == true", "((3 < 5) == true)"},
-      {"1+ (2+3) + 4", "((1 + (2 + 3)) + 4)"}};
+      {"1+ (2+3) + 4", "((1 + (2 + 3)) + 4)"},
+      {"a + add(b * c) + d", "((a + add((b * c))) + d)"},
+      {"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+       "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))"},
+      {"add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))"}};
 
   for (const auto& test : tests) {
     Parser parser{test.first};
