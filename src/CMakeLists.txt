@@ -10,3 +10,6 @@ target_link_libraries(
   monkey_parser
   PUBLIC monkey_lexer absl::flat_hash_map
   PRIVATE absl::strings)
+
+add_library(monkey_eval object.cpp evaluator.cpp)
+target_link_libraries(monkey_eval PUBLIC monkey_parser)

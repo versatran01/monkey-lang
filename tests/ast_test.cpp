@@ -89,7 +89,7 @@ TEST(AstTest, TestProgramString) {
   let.expr = ident;
 
   program.AddStatement(let);
-  EXPECT_EQ(program.NumStatments(), 1);
+  EXPECT_EQ(program.NumStatements(), 1);
   EXPECT_EQ(program.String(), "let v1 = v2;");
 }
 

@@ -76,8 +76,8 @@ struct StmtInterface : public NodeInterface {
   StmtInterface() { boost::te::extends<NodeInterface>(*this); }
 
   auto Expr() const {
-    return boost::te::call<Expression>(
-        [](const auto &self) { return self.expr; }, *this);
+    return boost::te::call<Expression>([](const auto &self) { return self.expr; },
+                                     *this);
   }
 
   auto *Ptr() const noexcept {
@@ -112,7 +112,7 @@ struct Program final : public NodeBase {
   std::string StringImpl() const override;
 
   void AddStatement(const Statement &stmt) { statements.push_back(stmt); }
-  auto NumStatments() const noexcept { return statements.size(); }
+  auto NumStatements() const noexcept { return statements.size(); }
 
   std::vector<Statement> statements;
 };
@@ -189,7 +189,8 @@ struct ExpressionStatement final : public StatementBase {
 struct BlockStatement final : public StatementBase {
   BlockStatement() : StatementBase{NodeType::kBlockStmt} {}
   std::string StringImpl() const override;
-  auto NumStatements() const noexcept { return statements.size(); }
+  auto size() const noexcept { return statements.size(); }
+  bool empty() const noexcept { return statements.empty(); }
 
   std::vector<Statement> statements;
 };

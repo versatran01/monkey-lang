@@ -78,7 +78,7 @@ std::string ExpressionStatement::StringImpl() const {
 std::string IfExpression::StringImpl() const {
   std::string str;
   str += fmt::format("if {} {}", cond.String(), true_block.String());
-  if (false_block.Ok() && false_block.NumStatements() > 0) {
+  if (false_block.Ok() && false_block.size() > 0) {
     str += " else " + false_block.String();
   }
   return str;

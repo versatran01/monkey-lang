@@ -129,7 +129,7 @@ TEST(ParserTest, TestParsingLetStatement) {
   for (const auto& test : tests) {
     Parser parser{test.input};
     const auto program = parser.ParseProgram();
-    ASSERT_EQ(program.NumStatments(), 1);
+    ASSERT_EQ(program.NumStatements(), 1);
     const auto stmt = program.statements.front();
     ASSERT_EQ(stmt.Type(), NodeType::kLetStmt);
     CheckLetStatement(stmt, test.ident);
@@ -148,7 +148,7 @@ TEST(ParserTest, TestParsingReturnStatement) {
 
   auto program = parser.ParseProgram();
 
-  ASSERT_EQ(program.NumStatments(), 3);
+  ASSERT_EQ(program.NumStatements(), 3);
   for (const auto& stmt : program.statements) {
     EXPECT_EQ(stmt.TokenLiteral(), "return");
   }
@@ -158,7 +158,7 @@ TEST(ParserTest, TestParsingIdentExpression) {
   const std::string input = "foobar";
   Parser parser{input};
   const auto program = parser.ParseProgram();
-  ASSERT_EQ(program.NumStatments(), 1);
+  ASSERT_EQ(program.NumStatements(), 1);
 
   const auto stmt = program.statements.front();
   ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
@@ -173,7 +173,7 @@ TEST(ParserTest, TestIntLiteralExpression) {
   Parser parser{input};
   const auto program = parser.ParseProgram();
 
-  ASSERT_EQ(program.NumStatments(), 1);
+  ASSERT_EQ(program.NumStatements(), 1);
   const auto stmt = program.statements.front();
   EXPECT_EQ(stmt.Type(), NodeType::kExprStmt);
   CheckIntegerLiteral(stmt.Expr(), 5);
@@ -184,7 +184,7 @@ TEST(ParserTest, TestParsingBooleanExpression) {
   Parser parser{input};
   const auto program = parser.ParseProgram();
 
-  ASSERT_EQ(program.NumStatments(), 1);
+  ASSERT_EQ(program.NumStatements(), 1);
   const auto stmt = program.statements.front();
   EXPECT_EQ(stmt.Type(), NodeType::kExprStmt);
   CheckBooleanLiteral(stmt.Expr(), true);
@@ -199,7 +199,7 @@ TEST(ParserTest, TestParsingPrefixExpressionInt) {
   for (const auto& test : tests) {
     Parser parser{test.input};
     const auto program = parser.ParseProgram();
-    ASSERT_EQ(program.NumStatments(), 1) << parser.ErrorMsg();
+    ASSERT_EQ(program.NumStatements(), 1) << parser.ErrorMsg();
     const auto stmt = program.statements.front();
     ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
     CheckPrefixExpression(stmt.Expr(), test.op, test.rhs);
@@ -224,7 +224,7 @@ TEST(ParserTest, TestParsingInfixExpressionInt) {
   for (const auto& test : tests) {
     Parser parser{test.input};
     const auto program = parser.ParseProgram();
-    ASSERT_EQ(program.NumStatments(), 1);
+    ASSERT_EQ(program.NumStatements(), 1);
     const auto stmt = program.statements.front();
     ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
     CheckInfixExpression(stmt.Expr(), test.lhs, test.op, test.rhs);
@@ -246,7 +246,7 @@ TEST(ParserTest, TestParsingOperatorPrecedence) {
   for (const auto& test : tests) {
     Parser parser{test.first};
     const auto program = parser.ParseProgram();
-    ASSERT_EQ(program.NumStatments(), 1);
+    ASSERT_EQ(program.NumStatements(), 1);
     const auto stmt = program.statements.front();
     ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
     EXPECT_EQ(stmt.Expr().String(), test.second);
@@ -258,7 +258,7 @@ TEST(ParserTest, TestParsingIfExpression) {
 
   Parser parser{input};
   const auto program = parser.ParseProgram();
-  ASSERT_EQ(program.NumStatments(), 1);
+  ASSERT_EQ(program.NumStatements(), 1);
   const auto stmt = program.statements.front();
   ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
   const auto expr = stmt.Expr();
@@ -267,7 +267,7 @@ TEST(ParserTest, TestParsingIfExpression) {
   ASSERT_NE(ptr, nullptr);
   CheckInfixExpression(ptr->cond, std::string{"x"}, std::string{"<"},
                        std::string{"y"});
-  ASSERT_EQ(ptr->true_block.NumStatements(), 1);
+  ASSERT_EQ(ptr->true_block.size(), 1);
   ASSERT_EQ(ptr->true_block.Type(), NodeType::kBlockStmt);
   const auto true_expr = ptr->true_block.statements.front();
   ASSERT_EQ(true_expr.Type(), NodeType::kExprStmt);
@@ -279,7 +279,7 @@ TEST(ParserTest, TestParsingFunctionLiteral) {
 
   Parser parser{input};
   const auto program = parser.ParseProgram();
-  ASSERT_EQ(program.NumStatments(), 1);
+  ASSERT_EQ(program.NumStatements(), 1);
   const auto stmt = program.statements.front();
   ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
   const auto expr = stmt.Expr();
@@ -288,7 +288,7 @@ TEST(ParserTest, TestParsingFunctionLiteral) {
   ASSERT_EQ(ptr->NumParams(), 2);
   CheckLiteralExpression(ptr->params[0], std::string("x"));
   CheckLiteralExpression(ptr->params[1], std::string("y"));
-  ASSERT_EQ(ptr->body.NumStatements(), 1);
+  ASSERT_EQ(ptr->body.size(), 1);
   const auto body_stmt = ptr->body.statements.front();
   CheckInfixExpression(body_stmt.Expr(), std::string("x"), std::string("+"),
                        std::string("y"));
@@ -302,7 +302,7 @@ TEST(ParserTest, TestParsingFunctionLiteral2) {
   for (const auto& test : tests) {
     Parser parser{test.input};
     const auto program = parser.ParseProgram();
-    ASSERT_EQ(program.NumStatments(), 1);
+    ASSERT_EQ(program.NumStatements(), 1);
     const auto stmt = program.statements.front();
     ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
     const auto expr = stmt.Expr();
@@ -319,7 +319,7 @@ TEST(ParserTest, TestParsingCallExpression) {
   const std::string input = "add(1, 2 * 3, 4 + 5);";
   Parser parser{input};
   const auto program = parser.ParseProgram();
-  ASSERT_EQ(program.NumStatments(), 1);
+  ASSERT_EQ(program.NumStatements(), 1);
   const auto stmt = program.statements.front();
   ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
   const auto expr = stmt.Expr();

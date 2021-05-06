@@ -6,13 +6,17 @@ example/play.cpp
 example/rlpl.cpp
 example/rppl.cpp
 include/monkey/ast.h
+include/monkey/evaluator.h
 include/monkey/lexer.h
+include/monkey/object.h
 include/monkey/parser.h
 include/monkey/te.hpp
 include/monkey/token.h
 src/CMakeLists.txt
 src/ast.cpp
+src/evaluator.cpp
 src/lexer.cpp
+src/object.cpp
 src/parser.cpp
 src/play.cpp
 src/rlpl.cpp
