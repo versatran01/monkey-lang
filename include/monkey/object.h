@@ -2,15 +2,34 @@
 
 #include <string>
 
+#include "monkey/te.hpp"
+
 namespace monkey {
 
 enum class ObjectType { kNull, kInt, kBool };
+
+std::ostream &operator<<(std::ostream &os, ObjectType type);
+
+struct ObjectInterface {
+  auto Inspect() const {
+    return boost::te::call<std::string>(
+        [](const auto &self) { return self.Inspect(); }, *this);
+  }
+
+  auto Type() const {
+    return boost::te::call<ObjectType>(
+        [](const auto &self) { return self.Type(); }, *this);
+  }
+};
+
+using Object = boost::te::poly<ObjectInterface>;
 
 struct ObjectBase {
   explicit ObjectBase(ObjectType type) : type{type} {}
   virtual ~ObjectBase() noexcept = default;
 
   std::string Inspect() const { return InspectImpl(); }
+  ObjectType Type() const noexcept { return type; }
   virtual std::string InspectImpl() const = 0;
 
   ObjectType type;

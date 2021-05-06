@@ -23,5 +23,7 @@ src/rlpl.cpp
 src/token.cpp
 tests/CMakeLists.txt
 tests/ast_test.cpp
+tests/evaluator_test.cpp
 tests/lexer_test.cpp
+tests/object_test.cpp
 tests/parser_test.cpp

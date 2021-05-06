@@ -17,3 +17,16 @@ target_link_libraries(parser_test PRIVATE monkey_parser GTest::GTest
 add_test(NAME parser_test COMMAND $<TARGET_FILE:parser_test>)
 set_tests_properties(parser_test PROPERTIES FAIL_REGULAR_EXPRESSION
                                             ".*FAILED.*")
+
+add_executable(object_test object_test.cpp)
+target_link_libraries(object_test PRIVATE monkey_eval GTest::GTest GTest::Main)
+add_test(NAME object_test COMMAND $<TARGET_FILE:object_test>)
+set_tests_properties(object_test PROPERTIES FAIL_REGULAR_EXPRESSION
+                                            ".*FAILED.*")
+
+add_executable(evaluator_test evaluator_test.cpp)
+target_link_libraries(evaluator_test PRIVATE monkey_eval GTest::GTest
+                                             GTest::Main)
+add_test(NAME evaluator_test COMMAND $<TARGET_FILE:evaluator_test>)
+set_tests_properties(evaluator_test PROPERTIES FAIL_REGULAR_EXPRESSION
+                                               ".*FAILED.*")
