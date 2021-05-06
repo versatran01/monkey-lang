@@ -36,21 +36,6 @@ struct InfixTest {
   LiteralType rhs;
 };
 
-template <typename T>
-struct Infix {
-  std::string input;
-  T lhs;
-  std::string op;
-  T rhs;
-};
-
-template <typename T>
-struct Prefix {
-  std::string input;
-  std::string op;
-  T rhs;
-};
-
 /// Helper functions
 void CheckIdentifier(const Expression& expr, const std::string& value) {
   ASSERT_EQ(expr.Type(), NodeType::kIdentifier);
