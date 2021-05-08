@@ -27,6 +27,11 @@ struct ObjectInterface {
     return boost::te::call<ObjectBase *>(
         [](const auto &self) { return self.Ptr(); }, *this);
   }
+
+  auto Ok() const {
+    return boost::te::call<bool>([](const auto &self) { return self.Ok(); },
+                                 *this);
+  }
 };
 
 using Object = boost::te::poly<ObjectInterface>;
@@ -63,7 +68,8 @@ struct IntObject final : public ObjectBase {
 struct BoolObject final : public ObjectBase {
   using ValueType = bool;
 
-  BoolObject() : ObjectBase{ObjectType::kBool} {}
+  BoolObject(bool value = false)
+      : ObjectBase{ObjectType::kBool}, value{value} {}
   std::string InspectImpl() const override { return value ? "true" : "false"; }
 
   ValueType value{};

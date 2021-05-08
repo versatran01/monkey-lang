@@ -5,10 +5,18 @@
 
 namespace monkey {
 
-Object Evaluate(const Program& node);
-Object Evaluate(const Statement& stmt);
-Object Evaluate(const Expression& expr);
+class Evaluator {
+ public:
+  Object Evaluate(const Program& node);
+  Object Evaluate(const Statement& stmt);
+  Object Evaluate(const Expression& expr);
 
-Object EvalStatements(const std::vector<Statement>& stmts);
+  Object EvalStatements(const std::vector<Statement>& stmts);
+
+ private:
+  static BoolObject kTrueObject;
+  static BoolObject kFalseObject;
+  static NullObject kNullObject;
+};
 
 }  // namespace monkey
