@@ -78,15 +78,29 @@ Object Evaluator::EvalIntegerInfixExpression(const Object& lhs,
                                              const Object& rhs) const {
   const auto* lp = static_cast<IntObject*>(lhs.Ptr());
   const auto* rp = static_cast<IntObject*>(rhs.Ptr());
+  const auto lv = lp->value;
+  const auto rv = rp->value;
 
   if (op == "+") {
-    return IntObject{lp->value + rp->value};
+    return IntObject{lv + rv};
   } else if (op == "-") {
-    return IntObject{lp->value - rp->value};
+    return IntObject{lv - rv};
   } else if (op == "*") {
-    return IntObject{lp->value * rp->value};
+    return IntObject{lv * rv};
   } else if (op == "/") {
-    return IntObject{lp->value / rp->value};
+    return IntObject{lv / rv};
+  } else if (op == "==") {
+    return BoolObject{lv == rv};
+  } else if (op == "!=") {
+    return BoolObject{lv != rv};
+  } else if (op == ">") {
+    return BoolObject{lv > rv};
+  } else if (op == ">=") {
+    return BoolObject{lv >= rv};
+  } else if (op == "<") {
+    return BoolObject{lv < rv};
+  } else if (op == "<=") {
+    return BoolObject{lv <= rv};
   } else {
     return kNullObject;
   }
