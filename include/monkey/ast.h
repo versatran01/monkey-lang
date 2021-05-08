@@ -89,7 +89,7 @@ struct NodeBase {
 
   NodeType Type() const noexcept { return type; }
   const NodeBase *Ptr() const noexcept { return this; }
-  bool Ok() const noexcept { return type != NodeType::kInvalid; }
+  [[nodiscard]] bool Ok() const noexcept { return type != NodeType::kInvalid; }
 
   std::string String() const noexcept { return StringImpl(); }
   std::string TokenLiteral() const noexcept { return TokenLiteralImpl(); }

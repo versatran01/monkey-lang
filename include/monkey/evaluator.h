@@ -13,9 +13,13 @@ class Evaluator {
 
  private:
   Object EvalStatements(const std::vector<Statement>& stmts) const;
-  Object EvalPrefixExpression(const std::string& op, const Object& obj) const;
   Object EvalBangOperatorExpression(const Object& obj) const;
   Object EvalMinuxPrefixOperatorExpression(const Object& obj) const;
+  Object EvalPrefixExpression(const std::string& op, const Object& obj) const;
+  Object EvalInfixExpression(const Object& lhs, const std::string& op,
+                             const Object& rhs) const;
+  Object EvalIntegerInfixExpression(const Object& lhs, const std::string& op,
+                                    const Object& rhs) const;
 
   static BoolObject kTrueObject;
   static BoolObject kFalseObject;

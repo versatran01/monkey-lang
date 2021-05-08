@@ -27,7 +27,7 @@ class Parser {
 
   Program ParseProgram();
   std::string ErrorMsg() const;
-  bool Ok() const noexcept { return errors_.empty(); }
+  [[nodiscard]] bool Ok() const noexcept { return errors_.empty(); }
 
  private:
   // Parsing functions

@@ -35,6 +35,11 @@ Object Evaluator::Evaluate(const Expression& expr) const {
       const auto* ptr = static_cast<PrefixExpression*>(expr.Ptr());
       return EvalPrefixExpression(ptr->op, Evaluate(ptr->rhs));
     }
+    case NodeType::kInfixExpr: {
+      const auto* ptr = static_cast<InfixExpression*>(expr.Ptr());
+      return EvalInfixExpression(Evaluate(ptr->lhs), ptr->op,
+                                 Evaluate(ptr->rhs));
+    }
     default:
       return ObjectBase{};
   }
@@ -54,6 +59,34 @@ Object Evaluator::EvalPrefixExpression(const std::string& op,
     return EvalBangOperatorExpression(obj);
   } else if (op == "-") {
     return EvalMinuxPrefixOperatorExpression(obj);
+  } else {
+    return kNullObject;
+  }
+}
+
+Object Evaluator::EvalInfixExpression(const Object& lhs, const std::string& op,
+                                      const Object& rhs) const {
+  if (lhs.Type() == ObjectType::kInt && rhs.Type() == ObjectType::kInt) {
+    return EvalIntegerInfixExpression(lhs, op, rhs);
+  } else {
+    return kNullObject;
+  }
+}
+
+Object Evaluator::EvalIntegerInfixExpression(const Object& lhs,
+                                             const std::string& op,
+                                             const Object& rhs) const {
+  const auto* lp = static_cast<IntObject*>(lhs.Ptr());
+  const auto* rp = static_cast<IntObject*>(rhs.Ptr());
+
+  if (op == "+") {
+    return IntObject{lp->value + rp->value};
+  } else if (op == "-") {
+    return IntObject{lp->value - rp->value};
+  } else if (op == "*") {
+    return IntObject{lp->value * rp->value};
+  } else if (op == "/") {
+    return IntObject{lp->value / rp->value};
   } else {
     return kNullObject;
   }
