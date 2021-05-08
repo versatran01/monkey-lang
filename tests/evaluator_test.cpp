@@ -53,9 +53,25 @@ TEST(EvaluatorTest, TestEvalIntergerExpression) {
 
 TEST(EvaluatorTest, TestEvalBooleanExpression) {
   const std::vector<std::pair<std::string, bool>> tests = {
-      {"true", true},    {"false", false}, {"1 < 2", true},  {"1 > 2", false},
-      {"1 < 1", false},  {"1 > 1", false}, {"1 == 1", true}, {"1 != 1", false},
-      {"1 == 2", false}, {"1 != 2", true},
+      {"true", true},
+      {"false", false},
+      {"1 < 2", true},
+      {"1 > 2", false},
+      {"1 < 1", false},
+      {"1 > 1", false},
+      {"1 == 1", true},
+      {"1 != 1", false},
+      {"1 == 2", false},
+      {"1 != 2", true},
+      {"true == true", true},
+      {"false == false", true},
+      {"true == false", false},
+      {"true != false", true},
+      {"false != true", true},
+      {"(1 < 2) == true", true},
+      {"(1 < 2) == false", false},
+      {"(1 > 2) == true", false},
+      {"(1 > 2) == false", true},
   };
   for (const auto& test : tests) {
     const auto obj = ParseAndEval(test.first);

@@ -68,6 +68,17 @@ Object Evaluator::EvalInfixExpression(const Object& lhs, const std::string& op,
                                       const Object& rhs) const {
   if (lhs.Type() == ObjectType::kInt && rhs.Type() == ObjectType::kInt) {
     return EvalIntegerInfixExpression(lhs, op, rhs);
+  } else if (lhs.Type() == ObjectType::kBool &&
+             rhs.Type() == ObjectType::kBool) {
+    const auto* lp = static_cast<BoolObject*>(lhs.Ptr());
+    const auto* rp = static_cast<BoolObject*>(rhs.Ptr());
+    if (op == "==") {
+      return BoolObject{lp->value == rp->value};
+    } else if (op == "!=") {
+      return BoolObject{lp->value != rp->value};
+    } else {
+      return kNullObject;
+    }
   } else {
     return kNullObject;
   }

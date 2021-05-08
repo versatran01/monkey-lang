@@ -48,7 +48,7 @@ struct ObjectBase {
 
   virtual std::string InspectImpl() const { return {}; }
 
-  const ObjectType type{ObjectType::kInvalid};
+  ObjectType type{ObjectType::kInvalid};
 };
 
 struct NullObject final : public ObjectBase {
