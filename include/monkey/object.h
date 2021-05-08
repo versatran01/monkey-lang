@@ -75,4 +75,5 @@ struct BoolObject final : public ObjectBase {
   ValueType value{};
 };
 
+
 }  // namespace monkey

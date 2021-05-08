@@ -18,8 +18,12 @@ class Evaluator {
   Object EvalPrefixExpression(const std::string& op, const Object& obj) const;
   Object EvalInfixExpression(const Object& lhs, const std::string& op,
                              const Object& rhs) const;
-  Object EvalIntegerInfixExpression(const Object& lhs, const std::string& op,
-                                    const Object& rhs) const;
+  Object EvalIntInfixExpression(const IntObject& lhs, const std::string& op,
+                                const IntObject& rhs) const;
+  Object EvalBoolInfixExpression(const BoolObject& lhs, const std::string& op,
+                                 const BoolObject& rhs) const;
+
+  Object EvalIfExpression(const IfExpression& expr) const;
 
   static BoolObject kTrueObject;
   static BoolObject kFalseObject;

@@ -1,5 +1,6 @@
 #include "monkey/evaluator.h"
 
+#include <absl/types/variant.h>
 #include <gtest/gtest.h>
 
 #include "monkey/parser.h"
@@ -13,6 +14,8 @@ Object ParseAndEval(const std::string& input) {
   Evaluator eval;
   return eval.Evaluate(program);
 }
+
+void CheckNullObject(const Object& obj) {}
 
 void CheckIntObject(const Object& obj, int64_t value) {
   ASSERT_EQ(obj.Type(), ObjectType::kInt);
@@ -88,6 +91,33 @@ TEST(EvaluatorTest, TestBangOperator) {
   for (const auto& test : tests) {
     const auto obj = ParseAndEval(test.first);
     CheckBoolObject(obj, test.second);
+  }
+}
+
+TEST(EvaluatorTest, TestIfElseExpression) {
+  using Value = absl::variant<void*, int64_t>;
+  const std::vector<std::pair<std::string, Value>> tests = {
+      {"if (true) { 10 }", 10},
+      {"if (false) { 10 }", nullptr},
+      {"if (1) { 10 }", 10},
+      {"if (1 < 2) { 10 }", 10},
+      {"if (1 > 2) { 10 }", nullptr},
+      {"if (1 > 2) { 10 } else { 20 }", 20},
+      {"if (1 < 2) { 10 } else { 20 }", 10},
+  };
+
+  for (const auto& test : tests) {
+    const auto obj = ParseAndEval(test.first);
+    switch (test.second.index()) {
+      case 0:
+        EXPECT_EQ(obj.Type(), ObjectType::kNull);
+        break;
+      case 1:
+        CheckIntObject(obj, std::get<1>(test.second));
+        break;
+      default:
+        ASSERT_FALSE(true) << "Should not reach here";
+    }
   }
 }
 
