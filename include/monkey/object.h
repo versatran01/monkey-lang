@@ -48,7 +48,7 @@ struct ObjectBase {
 
   virtual std::string InspectImpl() const { return {}; }
 
-  ObjectType type{ObjectType::kInvalid};
+  const ObjectType type{ObjectType::kInvalid};
 };
 
 struct NullObject final : public ObjectBase {
@@ -59,7 +59,7 @@ struct NullObject final : public ObjectBase {
 struct IntObject final : public ObjectBase {
   using ValueType = int64_t;
 
-  IntObject() : ObjectBase{ObjectType::kInt} {}
+  IntObject(ValueType value = 0) : ObjectBase{ObjectType::kInt}, value{value} {}
   std::string InspectImpl() const override { return std::to_string(value); }
 
   ValueType value{};
@@ -68,7 +68,7 @@ struct IntObject final : public ObjectBase {
 struct BoolObject final : public ObjectBase {
   using ValueType = bool;
 
-  BoolObject(bool value = false)
+  BoolObject(ValueType value = false)
       : ObjectBase{ObjectType::kBool}, value{value} {}
   std::string InspectImpl() const override { return value ? "true" : "false"; }
 

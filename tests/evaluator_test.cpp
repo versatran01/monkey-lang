@@ -27,8 +27,12 @@ void CheckBoolObject(const Object& obj, bool value) {
 }
 
 TEST(EvaluatorTest, TestEvalIntergerExpression) {
-  const std::vector<std::pair<std::string, int64_t>> tests = {{"5", 5},
-                                                              {"10", 10}};
+  const std::vector<std::pair<std::string, int64_t>> tests = {
+      {"5", 5},
+      {"10", 10},
+      {"-5", -5},
+      {"-10", -10},
+  };
 
   for (const auto& test : tests) {
     const auto obj = ParseAndEval(test.first);
@@ -37,8 +41,22 @@ TEST(EvaluatorTest, TestEvalIntergerExpression) {
 }
 
 TEST(EvaluatorTest, TestEvalBooleanExpression) {
-  const std::vector<std::pair<std::string, bool>> tests = {{"true", true},
-                                                           {"false", false}};
+  const std::vector<std::pair<std::string, bool>> tests = {
+      {"true", true},
+      {"false", false},
+  };
+  for (const auto& test : tests) {
+    const auto obj = ParseAndEval(test.first);
+    CheckBoolObject(obj, test.second);
+  }
+}
+
+TEST(EvaluatorTest, TestBangOperator) {
+  const std::vector<std::pair<std::string, bool>> tests = {
+      {"!true", false}, {"!false", true},   {"!5", false},
+      {"!!true", true}, {"!!false", false}, {"!!5", true},
+  };
+
   for (const auto& test : tests) {
     const auto obj = ParseAndEval(test.first);
     CheckBoolObject(obj, test.second);
