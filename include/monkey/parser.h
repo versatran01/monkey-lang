@@ -42,11 +42,12 @@ class Parser {
   Expression ParseIntegerLiteral();
   Expression ParseBooleanLiteral();
   Expression ParseFunctionLiteral();
-  Expression ParsePrefixExpression();
-  Expression ParseInfixExpression(const Expression& expr);
-  Expression ParseGroupedExpression();
+
   Expression ParseIfExpression();
+  Expression ParsePrefixExpression();
+  Expression ParseGroupedExpression();
   Expression ParseCallExpression(const Expression& expr);
+  Expression ParseInfixExpression(const Expression& expr);
 
   std::vector<Identifier> ParseFunctionParameters();
   std::vector<Expression> ParseCallArguments();
