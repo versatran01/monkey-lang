@@ -6,8 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 include(cmake/CompilerWarnings.cmake)
-add_library(${PROJECT_NAME}_warnings INTERFACE)
-set_project_warnings(${PROJECT_NAME}_warnings)
+add_library(monkey_warnings INTERFACE)
+set_project_warnings(monkey_warnings)
 
 find_package(fmt REQUIRED)
 find_package(glog REQUIRED)

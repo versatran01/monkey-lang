@@ -1,6 +1,6 @@
 add_library(monkey_core INTERFACE)
 target_include_directories(monkey_core INTERFACE ../include)
-target_link_libraries(monkey_core INTERFACE fmt::fmt)
+target_link_libraries(monkey_core INTERFACE fmt::fmt monkey_warnings)
 
 add_library(monkey_token token.cpp)
 target_link_libraries(

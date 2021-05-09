@@ -262,6 +262,7 @@ TEST(ParserTest, TestParsingFunctionLiteral) {
   const auto expr = stmt.Expr();
   ASSERT_EQ(expr.Type(), NodeType::kFnLiteral);
   const auto* ptr = dynamic_cast<FunctionLiteral*>(expr.Ptr());
+  ASSERT_NE(ptr, nullptr);
   ASSERT_EQ(ptr->NumParams(), 2);
   CheckLiteralExpression(ptr->params[0], std::string("x"));
   CheckLiteralExpression(ptr->params[1], std::string("y"));
@@ -285,6 +286,7 @@ TEST(ParserTest, TestParsingFunctionLiteral2) {
     const auto expr = stmt.Expr();
     ASSERT_EQ(expr.Type(), NodeType::kFnLiteral);
     const auto* ptr = dynamic_cast<FunctionLiteral*>(expr.Ptr());
+    ASSERT_NE(ptr, nullptr);
     ASSERT_EQ(ptr->NumParams(), test.params.size());
     for (size_t i = 0; i < test.params.size(); ++i) {
       CheckIdentifier(ptr->params[i], test.params[i]);
