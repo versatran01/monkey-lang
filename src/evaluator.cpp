@@ -1,14 +1,12 @@
 #include "monkey/evaluator.h"
 
-#include <glog/logging.h>
-
 namespace monkey {
 
 namespace {
+
 const BoolObject kTrueObject{true};
 const BoolObject kFalseObject{false};
 const NullObject kNullObject{};
-}  // namespace
 
 bool IsTruthy(const Object& obj) {
   switch (obj.Type()) {
@@ -20,6 +18,8 @@ bool IsTruthy(const Object& obj) {
       return true;
   }
 }
+
+}  // namespace
 
 Object Evaluator::Evaluate(const Program& node) const {
   return EvalProgram(node);

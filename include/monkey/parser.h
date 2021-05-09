@@ -5,8 +5,7 @@
 #include <functional>
 
 #include "monkey/ast.h"
-#include "monkey/lexer.h"
-#include "monkey/token.h"
+#include "monkey/lexer.h"  // token
 
 namespace monkey {
 
