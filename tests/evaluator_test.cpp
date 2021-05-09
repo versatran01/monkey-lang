@@ -114,18 +114,20 @@ TEST(EvaluatorTest, TestIfElseExpression) {
   }
 }
 
-// TEST(EvaluatorTest, TestReturnStatements) {
-//  const std::vector<InputExpected<int64_t>> tests = {
-//      {"return 10;", 10},
-//      {"return 10; 9;", 10},
-//      {"return 2 * 5; 9;", 10},
-//      {"9; return 2 * 5; 9;", 10}};
+TEST(EvaluatorTest, TestReturnStatements) {
+  const std::vector<InputExpected<int64_t>> tests = {
+      {"return 10;", 10},
+      {"return 10; 9;", 10},
+      {"return 2 * 5; 9;", 10},
+      {"9; return 2 * 5; 9;", 10},
+      {"if (10 > 1) { if (10 > 1) { return 10; } return 1;", 10}};
 
-//  for (const auto& test : tests) {
-//    const auto obj = ParseAndEval(test.first);
-//    CheckIntObject(obj, test.second);
-//  }
-//}
+  for (const auto& test : tests) {
+    const auto obj = ParseAndEval(test.first);
+    ASSERT_EQ(obj.Type(), ObjectType::kInt);
+    EXPECT_EQ(obj.PtrCast<IntObject>()->value, test.second);
+  }
+}
 
 }  // namespace
 }  // namespace monkey

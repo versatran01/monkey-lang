@@ -12,12 +12,13 @@ class Evaluator {
   Object Evaluate(const Expression& expr) const;
 
  private:
-  Object EvalStatements(const std::vector<Statement>& stmts) const;
+  Object EvalProgram(const Program& program) const;
   Object EvalBangOperatorExpression(const Object& obj) const;
   Object EvalMinuxPrefixOperatorExpression(const Object& obj) const;
   Object EvalPrefixExpression(const std::string& op, const Object& obj) const;
   Object EvalInfixExpression(const Object& lhs, const std::string& op,
                              const Object& rhs) const;
+  Object EvalBlockStatment(const BlockStatement& block) const;
 
   Object EvalIfExpression(const IfExpression& expr) const;
   Object EvalIntInfixExpression(const IntObject& lhs, const std::string& op,

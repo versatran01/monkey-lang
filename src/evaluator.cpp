@@ -20,7 +20,7 @@ bool IsTruthy(const Object& obj) {
 }
 
 Object Evaluator::Evaluate(const Program& node) const {
-  return EvalStatements(node.statements);
+  return EvalProgram(node);
 }
 
 Object Evaluator::Evaluate(const Statement& stmt) const {
@@ -28,7 +28,9 @@ Object Evaluator::Evaluate(const Statement& stmt) const {
     case NodeType::kExprStmt:
       return Evaluate(stmt.Expr());
     case NodeType::kBlockStmt:
-      return EvalStatements(stmt.PtrCast<BlockStatement>()->statements);
+      return EvalBlockStatment(*stmt.PtrCast<BlockStatement>());
+    case NodeType::kReturnStmt:
+      return ReturnObject{Evaluate(stmt.Expr())};
     default:
       return ObjectBase{};
   }
@@ -56,11 +58,17 @@ Object Evaluator::Evaluate(const Expression& expr) const {
   }
 }
 
-Object Evaluator::EvalStatements(const std::vector<Statement>& stmts) const {
+Object Evaluator::EvalProgram(const Program& program) const {
   Object obj{ObjectBase{}};
-  for (const auto& stmt : stmts) {
+
+  for (const auto& stmt : program.statements) {
     obj = Evaluate(stmt);
+
+    if (obj.Type() == ObjectType::kReturn) {
+      return obj.PtrCast<ReturnObject>()->value;
+    }
   }
+
   return obj;
 }
 
@@ -87,6 +95,20 @@ Object Evaluator::EvalInfixExpression(const Object& lhs, const std::string& op,
   } else {
     return kNullObject;
   }
+}
+
+Object Evaluator::EvalBlockStatment(const BlockStatement& block) const {
+  Object obj{ObjectBase{}};
+
+  for (const auto& stmt : block.statements) {
+    obj = Evaluate(stmt);
+
+    if (obj.Type() == ObjectType::kReturn) {
+      return obj;
+    }
+  }
+
+  return obj;
 }
 
 Object Evaluator::EvalBangOperatorExpression(const Object& obj) const {
@@ -154,9 +176,9 @@ Object Evaluator::EvalBoolInfixExpression(const BoolObject& lhs,
 Object Evaluator::EvalIfExpression(const IfExpression& expr) const {
   const auto cond = Evaluate(expr.cond);
   if (IsTruthy(cond)) {
-    return EvalStatements(expr.true_block.statements);
+    return EvalBlockStatment(expr.true_block);
   } else if (!expr.false_block.empty()) {
-    return EvalStatements(expr.false_block.statements);
+    return EvalBlockStatment(expr.false_block);
   } else {
     return kNullObject;
   }

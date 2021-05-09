@@ -83,7 +83,8 @@ struct BoolObject final : public ObjectBase {
 };
 
 struct ReturnObject final : public ObjectBase {
-  ReturnObject() : ObjectBase{ObjectType::kReturn} {}
+  ReturnObject(const Object &value = ObjectBase{})
+      : ObjectBase{ObjectType::kReturn}, value{value} {}
   std::string InspectImpl() const override { return value.Inspect(); }
 
   Object value{ObjectBase{}};
