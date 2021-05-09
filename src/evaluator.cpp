@@ -27,10 +27,8 @@ Object Evaluator::Evaluate(const Statement& stmt) const {
   switch (stmt.Type()) {
     case NodeType::kExprStmt:
       return Evaluate(stmt.Expr());
-    case NodeType::kBlockStmt: {
-      const auto* ptr = static_cast<BlockStatement*>(stmt.Ptr());
-      return EvalStatements(ptr->statements);
-    }
+    case NodeType::kBlockStmt:
+      return EvalStatements(stmt.PtrCast<BlockStatement>()->statements);
     default:
       return ObjectBase{};
   }
@@ -38,27 +36,21 @@ Object Evaluator::Evaluate(const Statement& stmt) const {
 
 Object Evaluator::Evaluate(const Expression& expr) const {
   switch (expr.Type()) {
-    case NodeType::kIntLiteral: {
-      const auto* ptr = static_cast<IntegerLiteral*>(expr.Ptr());
-      return IntObject{ptr->value};
-    }
-    case NodeType::kBoolLiteral: {
-      const auto* ptr = static_cast<BooleanLiteral*>(expr.Ptr());
-      return ptr->value ? kTrueObject : kFalseObject;
-    }
+    case NodeType::kIntLiteral:
+      return IntObject{expr.PtrCast<IntLiteral>()->value};
+    case NodeType::kBoolLiteral:
+      return expr.PtrCast<BoolLiteral>()->value ? kTrueObject : kFalseObject;
     case NodeType::kPrefixExpr: {
-      const auto* ptr = static_cast<PrefixExpression*>(expr.Ptr());
+      const auto* ptr = expr.PtrCast<PrefixExpression>();
       return EvalPrefixExpression(ptr->op, Evaluate(ptr->rhs));
     }
     case NodeType::kInfixExpr: {
-      const auto* ptr = static_cast<InfixExpression*>(expr.Ptr());
+      const auto* ptr = expr.PtrCast<InfixExpression>();
       return EvalInfixExpression(Evaluate(ptr->lhs), ptr->op,
                                  Evaluate(ptr->rhs));
     }
-    case NodeType::kIfExpr: {
-      const auto* ptr = static_cast<IfExpression*>(expr.Ptr());
-      return EvalIfExpression(*ptr);
-    }
+    case NodeType::kIfExpr:
+      return EvalIfExpression(*expr.PtrCast<IfExpression>());
     default:
       return ObjectBase{};
   }

@@ -41,33 +41,25 @@ void CheckIdentifier(const Expression& expr, const std::string& value) {
   ASSERT_EQ(expr.Type(), NodeType::kIdentifier);
   EXPECT_EQ(expr.TokenLiteral(), value);
   EXPECT_EQ(expr.String(), value);
-  const auto* ptr = dynamic_cast<Identifier*>(expr.Ptr());
-  ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(ptr->value, value);
+  EXPECT_EQ(expr.PtrCast<Identifier>()->value, value);
 }
 
 void CheckIntegerLiteral(const Expression& expr, int64_t value) {
   ASSERT_EQ(expr.Type(), NodeType::kIntLiteral);
   EXPECT_EQ(expr.TokenLiteral(), std::to_string(value));
-  const auto* ptr = dynamic_cast<IntegerLiteral*>(expr.Ptr());
-  ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(ptr->value, value);
+  EXPECT_EQ(expr.PtrCast<IntLiteral>()->value, value);
 }
 
 void CheckBooleanLiteral(const Expression& expr, bool value) {
   ASSERT_EQ(expr.Type(), NodeType::kBoolLiteral);
   EXPECT_EQ(expr.TokenLiteral(), value ? "true" : "false");
-  const auto* ptr = dynamic_cast<BooleanLiteral*>(expr.Ptr());
-  ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(ptr->value, value);
+  EXPECT_EQ(expr.PtrCast<BoolLiteral>()->value, value);
 }
 
 void CheckLetStatement(const Statement& stmt, const std::string& name) {
   ASSERT_EQ(stmt.TokenLiteral(), "let");
   ASSERT_EQ(stmt.Type(), NodeType::kLetStmt);
-  const auto* ptr = dynamic_cast<LetStatement*>(stmt.Ptr());
-  ASSERT_NE(ptr, nullptr);
-  CheckIdentifier(ptr->name, name);
+  CheckIdentifier(stmt.PtrCast<LetStatement>()->name, name);
 }
 
 void CheckLiteralExpression(const Expression& expr, const LiteralType& value) {

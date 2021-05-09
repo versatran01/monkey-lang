@@ -61,16 +61,17 @@ TEST(AstTest, TestExpressionStatement) {
 }
 
 TEST(AstTest, TestExpressionPtr) {
-  IntegerLiteral intl;
+  IntLiteral intl;
   intl.type = NodeType::kIntLiteral;
   intl.token = Token{TokenType::kInt, "5"};
   intl.value = 5;
 
   Expression expr = intl;
   auto* base_ptr = expr.Ptr();
-  auto* intl_ptr = dynamic_cast<IntegerLiteral*>(base_ptr);
+  auto* intl_ptr = dynamic_cast<IntLiteral*>(base_ptr);
   ASSERT_NE(intl_ptr, nullptr);
   EXPECT_EQ(intl_ptr->value, intl.value);
+  EXPECT_EQ(expr.PtrCast<IntLiteral>()->value, intl.value);
 
   auto* bad_ptr = dynamic_cast<Identifier*>(base_ptr);
   ASSERT_EQ(bad_ptr, nullptr);

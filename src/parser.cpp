@@ -196,7 +196,7 @@ Expression Parser::ParseIdentifier() {
 }
 
 Expression Parser::ParseIntegerLiteral() {
-  IntegerLiteral expr;
+  IntLiteral expr;
   expr.token = curr_token_;
 
   bool ok = absl::SimpleAtoi(expr.token.literal, &expr.value);
@@ -212,7 +212,7 @@ Expression Parser::ParseIntegerLiteral() {
 }
 
 Expression Parser::ParseBooleanLiteral() {
-  BooleanLiteral expr;
+  BoolLiteral expr;
   expr.token = curr_token_;
   expr.value = IsCurrToken(TokenType::kTrue);
   return expr;

@@ -137,14 +137,14 @@ struct Identifier final : public ExpressionBase {
   std::string value;
 };
 
-struct IntegerLiteral final : public ExpressionBase {
-  IntegerLiteral() : ExpressionBase{NodeType::kIntLiteral} {}
+struct IntLiteral final : public ExpressionBase {
+  IntLiteral() : ExpressionBase{NodeType::kIntLiteral} {}
 
   int64_t value{};  // use 64 bits
 };
 
-struct BooleanLiteral final : public ExpressionBase {
-  BooleanLiteral() : ExpressionBase{NodeType::kBoolLiteral} {}
+struct BoolLiteral final : public ExpressionBase {
+  BoolLiteral() : ExpressionBase{NodeType::kBoolLiteral} {}
 
   bool value{};
 };
