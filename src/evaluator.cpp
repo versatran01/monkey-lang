@@ -4,9 +4,11 @@
 
 namespace monkey {
 
-NullObject Evaluator::kNullObject = NullObject{};
-BoolObject Evaluator::kTrueObject = BoolObject{true};
-BoolObject Evaluator::kFalseObject = BoolObject{false};
+namespace {
+const BoolObject kTrueObject{true};
+const BoolObject kFalseObject{false};
+const NullObject kNullObject{};
+}  // namespace
 
 bool IsTruthy(const Object& obj) {
   switch (obj.Type()) {

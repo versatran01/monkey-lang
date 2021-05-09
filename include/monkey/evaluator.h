@@ -13,22 +13,18 @@ class Evaluator {
 
  private:
   Object EvalProgram(const Program& program) const;
+  Object EvalBlockStatment(const BlockStatement& block) const;
+  Object EvalIfExpression(const IfExpression& expr) const;
+
   Object EvalBangOperatorExpression(const Object& obj) const;
   Object EvalMinuxPrefixOperatorExpression(const Object& obj) const;
   Object EvalPrefixExpression(const std::string& op, const Object& obj) const;
   Object EvalInfixExpression(const Object& lhs, const std::string& op,
                              const Object& rhs) const;
-  Object EvalBlockStatment(const BlockStatement& block) const;
-
-  Object EvalIfExpression(const IfExpression& expr) const;
   Object EvalIntInfixExpression(const IntObject& lhs, const std::string& op,
                                 const IntObject& rhs) const;
   Object EvalBoolInfixExpression(const BoolObject& lhs, const std::string& op,
                                  const BoolObject& rhs) const;
-
-  static BoolObject kTrueObject;
-  static BoolObject kFalseObject;
-  static NullObject kNullObject;
 };
 
 }  // namespace monkey
