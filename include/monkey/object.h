@@ -6,7 +6,7 @@
 
 namespace monkey {
 
-enum class ObjectType { kInvalid, kNull, kInt, kBool };
+enum class ObjectType { kInvalid, kNull, kInt, kBool, kReturn };
 
 std::ostream &operator<<(std::ostream &os, ObjectType type);
 
@@ -24,13 +24,20 @@ struct ObjectInterface {
   }
 
   auto Ptr() const {
-    return boost::te::call<ObjectBase *>(
+    return boost::te::call<const ObjectBase *>(
         [](const auto &self) { return self.Ptr(); }, *this);
   }
 
   auto Ok() const {
     return boost::te::call<bool>([](const auto &self) { return self.Ok(); },
                                  *this);
+  }
+
+  template <typename D>
+  const D *PtrCast() const {
+    static_assert(std::is_base_of_v<ObjectBase, D>,
+                  "D is not dervied from ObjectBase");
+    return static_cast<const D *>(Ptr());
   }
 };
 
@@ -75,5 +82,11 @@ struct BoolObject final : public ObjectBase {
   ValueType value{};
 };
 
+struct ReturnObject final : public ObjectBase {
+  ReturnObject() : ObjectBase{ObjectType::kReturn} {}
+  std::string InspectImpl() const override { return value.Inspect(); }
+
+  Object value{ObjectBase{}};
+};
 
 }  // namespace monkey

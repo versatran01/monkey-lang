@@ -12,10 +12,8 @@ bool IsTruthy(const Object& obj) {
   switch (obj.Type()) {
     case ObjectType::kNull:
       return false;
-    case ObjectType::kBool: {
-      const auto* ptr = static_cast<BoolObject*>(obj.Ptr());
-      return ptr->value;
-    }
+    case ObjectType::kBool:
+      return obj.PtrCast<BoolObject>()->value;
     default:
       return true;
   }
@@ -88,14 +86,12 @@ Object Evaluator::EvalPrefixExpression(const std::string& op,
 Object Evaluator::EvalInfixExpression(const Object& lhs, const std::string& op,
                                       const Object& rhs) const {
   if (lhs.Type() == ObjectType::kInt && rhs.Type() == ObjectType::kInt) {
-    const auto* lp = static_cast<IntObject*>(lhs.Ptr());
-    const auto* rp = static_cast<IntObject*>(rhs.Ptr());
-    return EvalIntInfixExpression(*lp, op, *rp);
+    return EvalIntInfixExpression(*lhs.PtrCast<IntObject>(), op,
+                                  *rhs.PtrCast<IntObject>());
   } else if (lhs.Type() == ObjectType::kBool &&
              rhs.Type() == ObjectType::kBool) {
-    const auto* lp = static_cast<BoolObject*>(lhs.Ptr());
-    const auto* rp = static_cast<BoolObject*>(rhs.Ptr());
-    return EvalBoolInfixExpression(*lp, op, *rp);
+    return EvalBoolInfixExpression(*lhs.PtrCast<BoolObject>(), op,
+                                   *rhs.PtrCast<BoolObject>());
   } else {
     return kNullObject;
   }
@@ -103,10 +99,8 @@ Object Evaluator::EvalInfixExpression(const Object& lhs, const std::string& op,
 
 Object Evaluator::EvalBangOperatorExpression(const Object& obj) const {
   switch (obj.Type()) {
-    case ObjectType::kBool: {
-      const auto* ptr = static_cast<BoolObject*>(obj.Ptr());
-      return ptr->value ? kFalseObject : kTrueObject;
-    }
+    case ObjectType::kBool:
+      return obj.PtrCast<BoolObject>()->value ? kFalseObject : kTrueObject;
     case ObjectType::kNull:
       return kTrueObject;
     default:
@@ -119,8 +113,7 @@ Object Evaluator::EvalMinuxPrefixOperatorExpression(const Object& obj) const {
     return kNullObject;
   }
 
-  const auto* ptr = static_cast<IntObject*>(obj.Ptr());
-  return IntObject{-(ptr->value)};
+  return IntObject{-(obj.PtrCast<IntObject>()->value)};
 }
 
 Object Evaluator::EvalIntInfixExpression(const IntObject& lhs,

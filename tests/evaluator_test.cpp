@@ -8,6 +8,9 @@
 namespace monkey {
 namespace {
 
+template <typename T>
+using InputExpected = std::pair<std::string, T>;
+
 Object ParseAndEval(const std::string& input) {
   Parser parser{input};
   const auto program = parser.ParseProgram();
@@ -15,22 +18,8 @@ Object ParseAndEval(const std::string& input) {
   return eval.Evaluate(program);
 }
 
-void CheckNullObject(const Object& obj) {}
-
-void CheckIntObject(const Object& obj, int64_t value) {
-  ASSERT_EQ(obj.Type(), ObjectType::kInt);
-  const auto* ptr = static_cast<IntObject*>(obj.Ptr());
-  EXPECT_EQ(ptr->value, value);
-}
-
-void CheckBoolObject(const Object& obj, bool value) {
-  ASSERT_EQ(obj.Type(), ObjectType::kBool);
-  const auto* ptr = static_cast<BoolObject*>(obj.Ptr());
-  EXPECT_EQ(ptr->value, value);
-}
-
 TEST(EvaluatorTest, TestEvalIntergerExpression) {
-  const std::vector<std::pair<std::string, int64_t>> tests = {
+  const std::vector<InputExpected<int64_t>> tests = {
       {"5", 5},
       {"10", 10},
       {"-5", -5},
@@ -50,12 +39,13 @@ TEST(EvaluatorTest, TestEvalIntergerExpression) {
 
   for (const auto& test : tests) {
     const auto obj = ParseAndEval(test.first);
-    CheckIntObject(obj, test.second);
+    ASSERT_EQ(obj.Type(), ObjectType::kInt);
+    EXPECT_EQ(obj.PtrCast<IntObject>()->value, test.second);
   }
 }
 
 TEST(EvaluatorTest, TestEvalBooleanExpression) {
-  const std::vector<std::pair<std::string, bool>> tests = {
+  const std::vector<InputExpected<bool>> tests = {
       {"true", true},
       {"false", false},
       {"1 < 2", true},
@@ -78,25 +68,27 @@ TEST(EvaluatorTest, TestEvalBooleanExpression) {
   };
   for (const auto& test : tests) {
     const auto obj = ParseAndEval(test.first);
-    CheckBoolObject(obj, test.second);
+    ASSERT_EQ(obj.Type(), ObjectType::kBool);
+    EXPECT_EQ(obj.PtrCast<BoolObject>()->value, test.second);
   }
 }
 
 TEST(EvaluatorTest, TestBangOperator) {
-  const std::vector<std::pair<std::string, bool>> tests = {
+  const std::vector<InputExpected<bool>> tests = {
       {"!true", false}, {"!false", true},   {"!5", false},
       {"!!true", true}, {"!!false", false}, {"!!5", true},
   };
 
   for (const auto& test : tests) {
     const auto obj = ParseAndEval(test.first);
-    CheckBoolObject(obj, test.second);
+    ASSERT_EQ(obj.Type(), ObjectType::kBool);
+    EXPECT_EQ(obj.PtrCast<BoolObject>()->value, test.second);
   }
 }
 
 TEST(EvaluatorTest, TestIfElseExpression) {
   using Value = absl::variant<void*, int64_t>;
-  const std::vector<std::pair<std::string, Value>> tests = {
+  const std::vector<InputExpected<Value>> tests = {
       {"if (true) { 10 }", 10},
       {"if (false) { 10 }", nullptr},
       {"if (1) { 10 }", 10},
@@ -113,13 +105,27 @@ TEST(EvaluatorTest, TestIfElseExpression) {
         EXPECT_EQ(obj.Type(), ObjectType::kNull);
         break;
       case 1:
-        CheckIntObject(obj, std::get<1>(test.second));
+        ASSERT_EQ(obj.Type(), ObjectType::kInt);
+        EXPECT_EQ(obj.PtrCast<IntObject>()->value, std::get<1>(test.second));
         break;
       default:
         ASSERT_FALSE(true) << "Should not reach here";
     }
   }
 }
+
+// TEST(EvaluatorTest, TestReturnStatements) {
+//  const std::vector<InputExpected<int64_t>> tests = {
+//      {"return 10;", 10},
+//      {"return 10; 9;", 10},
+//      {"return 2 * 5; 9;", 10},
+//      {"9; return 2 * 5; 9;", 10}};
+
+//  for (const auto& test : tests) {
+//    const auto obj = ParseAndEval(test.first);
+//    CheckIntObject(obj, test.second);
+//  }
+//}
 
 }  // namespace
 }  // namespace monkey

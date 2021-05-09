@@ -58,6 +58,13 @@ struct NodeInterface {
     return boost::te::call<NodeBase *>(
         [](const auto &self) { return self.Ptr(); }, *this);
   }
+
+  template <typename D>
+  const D *PtrCast() const {
+    static_assert(std::is_base_of_v<NodeBase, D>,
+                  "D is not derived from NodeBase");
+    return static_cast<const D *>(Ptr());
+  }
 };
 
 using AstNode = boost::te::poly<NodeInterface>;
