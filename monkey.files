@@ -9,6 +9,7 @@ example/rppl.cpp
 include/monkey/ast.h
 include/monkey/environment.h
 include/monkey/evaluator.h
+include/monkey/function.h
 include/monkey/lexer.h
 include/monkey/object.h
 include/monkey/parser.h
@@ -18,6 +19,7 @@ src/CMakeLists.txt
 src/ast.cpp
 src/environment.cpp
 src/evaluator.cpp
+src/function.cpp
 src/lexer.cpp
 src/object.cpp
 src/parser.cpp

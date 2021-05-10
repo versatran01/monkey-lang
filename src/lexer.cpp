@@ -13,7 +13,8 @@ bool IsLetter(char c) { return std::isalpha(c) || c == '_'; }
 
 Lexer::Lexer(std::string input) : input_(std::move(input)) { ReadChar(); }
 
-Token Lexer::ReadDualToken(TokenType type1, char next_ch,
+Token Lexer::ReadDualToken(TokenType type1,
+                           char next_ch,
                            TokenType type2) noexcept {
   if (PeekChar() == next_ch) {
     auto prev_ch = ch_;

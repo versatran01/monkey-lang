@@ -17,6 +17,8 @@ class Evaluator {
   Object EvalIdentifier(const Identifier& ident, Environment& env) const;
   Object EvalIfExpression(const IfExpression& expr, Environment& env) const;
   Object EvalBlockStatment(const BlockStatement& block, Environment& env) const;
+  std::vector<Object> EvalExpressions(const std::vector<Expression>& exprs,
+                                      Environment& env) const;
 
   Object EvalBangOperatorExpression(const Object& obj) const;
   Object EvalMinuxPrefixOperatorExpression(const Object& obj) const;
@@ -30,6 +32,8 @@ class Evaluator {
   Object EvalBoolInfixExpression(const BoolObject& lhs,
                                  const std::string& op,
                                  const BoolObject& rhs) const;
+  Object ApplyFunction(const Object& fobj,
+                       const std::vector<Object>& args) const;
 };
 
 }  // namespace monkey

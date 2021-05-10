@@ -2,12 +2,19 @@
 
 namespace monkey {
 
-const Object* Environment::Get(absl::string_view name) const {
+Object* Environment::Get(absl::string_view name) {
   const auto it = store_.find(name);
-  if (it != store_.end()) {
+  if (it == store_.end()) {
+    // Not found
+    if (outer_ == nullptr) {
+      return nullptr;
+    } else {
+      return outer_->Get(name);
+    }
+  } else {
+    // Found
     return &it->second;
   }
-  return nullptr;
 }
 
 void Environment::Set(const std::string& name, const Object& obj) {
@@ -18,5 +25,7 @@ void Environment::Set(const std::string& name, const Object& obj) {
     it->second = obj;
   }
 }
+
+Environment ExtendEnv(Environment& env) { return Environment{&env}; }
 
 }  // namespace monkey

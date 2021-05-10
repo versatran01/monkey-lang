@@ -50,8 +50,8 @@ std::string Program::StringImpl() const {
 }
 
 std::string LetStatement::StringImpl() const {
-  return fmt::format("{} {} = {};", TokenLiteral(), name.String(),
-                     expr.String());
+  return fmt::format(
+      "{} {} = {};", TokenLiteral(), name.String(), expr.String());
 }
 
 std::string ReturnStatement::StringImpl() const {
@@ -86,17 +86,19 @@ std::string IfExpression::StringImpl() const {
 
 std::string BlockStatement::StringImpl() const {
   return fmt::format("{{ {} }}",
-                     absl::StrJoin(statements, " ", StatementFormatter()));
+                     absl::StrJoin(statements, "; ", StatementFormatter()));
 }
 
 std::string FunctionLiteral::StringImpl() const {
-  return fmt::format("{}({}) {}", TokenLiteral(),
+  return fmt::format("{}({}) {}",
+                     TokenLiteral(),
                      absl::StrJoin(params, ", ", ExpressionFormatter()),
                      body.String());
 }
 
 std::string CallExpression::StringImpl() const {
-  return fmt::format("{}({})", func.String(),
+  return fmt::format("{}({})",
+                     func.String(),
                      absl::StrJoin(args, ", ", ExpressionFormatter()));
 }
 

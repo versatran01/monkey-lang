@@ -3,6 +3,8 @@
 #include <fmt/ostream.h>
 #include <glog/logging.h>
 
+#include "monkey/function.h"
+
 namespace monkey {
 
 namespace {
@@ -29,6 +31,25 @@ bool IsError(const Object& obj) noexcept {
 const std::string kUnknownOperator = "unknown operator";
 const std::string kTypeMismatch = "type mismatch";
 const std::string kIdentifierNotFound = "identifier not found";
+const std::string kNotAFunction = "not a function";
+
+Environment ExtendFunctionEnv(const FunctionObject& func,
+                              const std::vector<Object>& args) {
+  auto env = ExtendEnv(*func.env);
+
+  for (size_t i = 0; i < func.params.size(); ++i) {
+    env.Set(func.params[i].value, args[i]);
+  }
+
+  return env;
+}
+
+Object UnwrapReturn(const Object& obj) {
+  if (obj.Type() == ObjectType::kReturn) {
+    return obj.PtrCast<ReturnObject>()->value;
+  }
+  return obj;
+}
 
 }  // namespace
 
@@ -93,6 +114,29 @@ Object Evaluator::Evaluate(const Expression& expr, Environment& env) const {
       return EvalIfExpression(*expr.PtrCast<IfExpression>(), env);
     case NodeType::kIdentifier:
       return EvalIdentifier(*expr.PtrCast<Identifier>(), env);
+    case NodeType::kFnLiteral: {
+      const auto* ptr = expr.PtrCast<FunctionLiteral>();
+      FunctionObject obj;
+      obj.params = ptr->params;
+      obj.body = ptr->body;
+      obj.env = &env;
+      return obj;
+    }
+    case NodeType::kCallExpr: {
+      const auto* ptr = expr.PtrCast<CallExpression>();
+
+      const auto obj = Evaluate(ptr->func, env);
+      if (IsError(obj)) {
+        return obj;
+      }
+
+      const auto args = EvalExpressions(ptr->args, env);
+      if (args.size() == 1 && IsError(args.front())) {
+        return args.front();
+      }
+
+      return ApplyFunction(obj, args);
+    }
     default:
       return ObjectBase{};
   }
@@ -169,6 +213,21 @@ Object Evaluator::EvalBlockStatment(const BlockStatement& block,
   return obj;
 }
 
+std::vector<Object> Evaluator::EvalExpressions(
+    const std::vector<Expression>& exprs, Environment& env) const {
+  std::vector<Object> objs;
+
+  for (const auto& expr : exprs) {
+    auto obj = Evaluate(expr, env);
+    if (IsError(obj)) {
+      return {obj};
+    }
+    objs.push_back(std::move(obj));
+  }
+
+  return objs;
+}
+
 Object Evaluator::EvalBangOperatorExpression(const Object& obj) const {
   switch (obj.Type()) {
     case ObjectType::kBool:
@@ -231,6 +290,18 @@ Object Evaluator::EvalBoolInfixExpression(const BoolObject& lhs,
     return ErrorObject{fmt::format(
         "{}: {} {} {}", kUnknownOperator, lhs.Type(), op, rhs.Type())};
   }
+}
+
+Object Evaluator::ApplyFunction(const Object& fobj,
+                                const std::vector<Object>& args) const {
+  if (fobj.Type() != ObjectType::kFunction) {
+    return ErrorObject{fmt::format("{}: {}", kNotAFunction, fobj.Type())};
+  }
+
+  const auto* ptr = fobj.PtrCast<FunctionObject>();
+  auto env = ExtendFunctionEnv(*ptr, args);
+  const auto ret = EvalBlockStatment(ptr->body, env);
+  return UnwrapReturn(ret);
 }
 
 Object Evaluator::EvalIfExpression(const IfExpression& expr,

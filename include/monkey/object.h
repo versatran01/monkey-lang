@@ -1,14 +1,23 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "monkey/te.hpp"
 
 namespace monkey {
 
-enum class ObjectType { kInvalid, kNull, kInt, kBool, kReturn, kError };
+enum class ObjectType {
+  kInvalid,
+  kNull,
+  kInt,
+  kBool,
+  kReturn,
+  kError,
+  kFunction
+};
 
-std::ostream &operator<<(std::ostream &os, ObjectType type);
+std::ostream& operator<<(std::ostream& os, ObjectType type);
 
 struct ObjectBase {
   ObjectBase() noexcept = default;
@@ -18,7 +27,7 @@ struct ObjectBase {
   std::string Inspect() const { return InspectImpl(); }
   ObjectType Type() const noexcept { return type_; }
   bool Ok() const noexcept { return type_ != ObjectType::kInvalid; }
-  const ObjectBase *Ptr() const noexcept { return this; }
+  const ObjectBase* Ptr() const noexcept { return this; }
 
   virtual std::string InspectImpl() const { return {}; }
 
@@ -27,33 +36,31 @@ struct ObjectBase {
 };
 
 struct ObjectInterface {
-  ObjectInterface() = default;
-
   auto Inspect() const {
     return boost::te::call<std::string>(
-        [](const auto &self) { return self.Inspect(); }, *this);
+        [](const auto& self) { return self.Inspect(); }, *this);
   }
 
   auto Type() const {
     return boost::te::call<ObjectType>(
-        [](const auto &self) { return self.Type(); }, *this);
+        [](const auto& self) { return self.Type(); }, *this);
   }
 
   auto Ptr() const {
-    return boost::te::call<const ObjectBase *>(
-        [](const auto &self) { return self.Ptr(); }, *this);
+    return boost::te::call<const ObjectBase*>(
+        [](const auto& self) { return self.Ptr(); }, *this);
   }
 
   auto Ok() const {
-    return boost::te::call<bool>([](const auto &self) { return self.Ok(); },
+    return boost::te::call<bool>([](const auto& self) { return self.Ok(); },
                                  *this);
   }
 
   template <typename D>
-  const D *PtrCast() const {
+  const D* PtrCast() const {
     static_assert(std::is_base_of_v<ObjectBase, D>,
                   "D is not dervied from ObjectBase");
-    return static_cast<const D *>(Ptr());
+    return static_cast<const D*>(Ptr());
   }
 };
 
@@ -94,7 +101,7 @@ struct ReturnObject final : public ObjectBase {
 struct ErrorObject final : public ObjectBase {
   ErrorObject(std::string msg = {})
       : ObjectBase{ObjectType::kError}, msg{std::move(msg)} {}
-  std::string InspectImpl() const override { return "[ERROR]: " + msg; }
+  std::string InspectImpl() const override { return msg; }
 
   std::string msg;
 };

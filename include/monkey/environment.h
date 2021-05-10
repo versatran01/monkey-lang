@@ -9,7 +9,9 @@ namespace monkey {
 
 class Environment {
  public:
-  const Object* Get(absl::string_view name) const;
+  explicit Environment(Environment* outer = nullptr) : outer_{outer} {}
+
+  Object* Get(absl::string_view name);
   void Set(const std::string& name, const Object& obj);
 
   auto size() const noexcept { return store_.size(); }
@@ -19,5 +21,7 @@ class Environment {
   absl::node_hash_map<std::string, Object> store_;
   Environment* outer_{nullptr};  // TODO: just ptr?
 };
+
+Environment ExtendEnv(Environment& env);
 
 }  // namespace monkey

@@ -373,8 +373,8 @@ bool Parser::ExpectPeek(TokenType type) {
 }
 
 void Parser::PeekError(TokenType type) {
-  errors_.push_back(fmt::format("Expected next token to be {}, got {} instead",
-                                type, peek_token_.type));
+  errors_.push_back(fmt::format(
+      "Expected next token to be {}, got {} instead", type, peek_token_.type));
 }
 
 Precedence Parser::TokenPrecedence(TokenType type) const {

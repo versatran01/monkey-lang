@@ -7,14 +7,18 @@ namespace monkey {
 namespace {
 
 const auto gObjectTypeStrings = absl::flat_hash_map<ObjectType, std::string>{
-    {ObjectType::kInvalid, "INVALID"}, {ObjectType::kNull, "NULL"},
-    {ObjectType::kInt, "INTEGER"},     {ObjectType::kBool, "BOOLEAN"},
-    {ObjectType::kReturn, "RETURN"},   {ObjectType::kError, "ERROR"},
+    {ObjectType::kInvalid, "INVALID"},
+    {ObjectType::kNull, "NULL"},
+    {ObjectType::kInt, "INTEGER"},
+    {ObjectType::kBool, "BOOLEAN"},
+    {ObjectType::kReturn, "RETURN"},
+    {ObjectType::kError, "ERROR"},
+    {ObjectType::kFunction, "FUNCTION"},
 };
 
 }  // namespace
 
-std::ostream &operator<<(std::ostream &os, ObjectType type) {
+std::ostream& operator<<(std::ostream& os, ObjectType type) {
   return os << gObjectTypeStrings.at(type);
 }
 

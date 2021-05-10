@@ -20,12 +20,15 @@ TEST(LexerTest, TestNextToken) {
   const std::string input = "=+(){},;";
 
   Lexer lexer(input);
-  std::vector<Token> true_tokens{
-      {TokenType::kAssign, "="}, {TokenType::kPlus, "+"},
-      {TokenType::kLParen, "("}, {TokenType::kRParen, ")"},
-      {TokenType::kLBrace, "{"}, {TokenType::kRBrace, "}"},
-      {TokenType::kComma, ","},  {TokenType::kSemicolon, ";"},
-      {TokenType::kEof, ""}};
+  std::vector<Token> true_tokens{{TokenType::kAssign, "="},
+                                 {TokenType::kPlus, "+"},
+                                 {TokenType::kLParen, "("},
+                                 {TokenType::kRParen, ")"},
+                                 {TokenType::kLBrace, "{"},
+                                 {TokenType::kRBrace, "}"},
+                                 {TokenType::kComma, ","},
+                                 {TokenType::kSemicolon, ";"},
+                                 {TokenType::kEof, ""}};
 
   for (const auto& true_token : true_tokens) {
     const auto next_token = lexer.NextToken();

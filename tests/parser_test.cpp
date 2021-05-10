@@ -74,7 +74,8 @@ void CheckLiteralExpression(const Expression& expr, const LiteralType& value) {
   }
 }
 
-void CheckPrefixExpression(const Expression& expr, const std::string& op,
+void CheckPrefixExpression(const Expression& expr,
+                           const std::string& op,
                            const LiteralType& rhs) {
   ASSERT_EQ(expr.Type(), NodeType::kPrefixExpr);
   const auto* ptr = dynamic_cast<PrefixExpression*>(expr.Ptr());
@@ -83,8 +84,10 @@ void CheckPrefixExpression(const Expression& expr, const std::string& op,
   CheckLiteralExpression(ptr->rhs, rhs);
 }
 
-void CheckInfixExpression(const Expression& expr, const LiteralType& lhs,
-                          const std::string& op, const LiteralType& rhs) {
+void CheckInfixExpression(const Expression& expr,
+                          const LiteralType& lhs,
+                          const std::string& op,
+                          const LiteralType& rhs) {
   ASSERT_EQ(expr.Type(), NodeType::kInfixExpr);
   const auto* ptr = dynamic_cast<InfixExpression*>(expr.Ptr());
   ASSERT_NE(ptr, nullptr);
@@ -241,8 +244,8 @@ TEST(ParserTest, TestParsingIfExpression) {
   ASSERT_EQ(expr.Type(), NodeType::kIfExpr);
   const auto* ptr = dynamic_cast<IfExpression*>(expr.Ptr());
   ASSERT_NE(ptr, nullptr);
-  CheckInfixExpression(ptr->cond, std::string{"x"}, std::string{"<"},
-                       std::string{"y"});
+  CheckInfixExpression(
+      ptr->cond, std::string{"x"}, std::string{"<"}, std::string{"y"});
   ASSERT_EQ(ptr->true_block.size(), 1);
   ASSERT_EQ(ptr->true_block.Type(), NodeType::kBlockStmt);
   const auto true_expr = ptr->true_block.statements.front();
@@ -267,8 +270,8 @@ TEST(ParserTest, TestParsingFunctionLiteral) {
   CheckLiteralExpression(ptr->params[1], std::string("y"));
   ASSERT_EQ(ptr->body.size(), 1);
   const auto body_stmt = ptr->body.statements.front();
-  CheckInfixExpression(body_stmt.Expr(), std::string("x"), std::string("+"),
-                       std::string("y"));
+  CheckInfixExpression(
+      body_stmt.Expr(), std::string("x"), std::string("+"), std::string("y"));
 }
 
 TEST(ParserTest, TestParsingFunctionLiteral2) {
