@@ -129,5 +129,27 @@ TEST(EvaluatorTest, TestReturnStatements) {
   }
 }
 
+TEST(EvaluatorTest, TestErrorHandling) {
+  const std::vector<InputExpected<std::string>> tests = {
+      {"5 + true;", "type mismatch: INTEGER + BOOLEAN"},
+      {"5 + true; 5;", "type mismatch: INTEGER + BOOLEAN"},
+      {"-true", "unknown operator: -BOOLEAN"},
+      {"true + false;", "unknown operator: BOOLEAN + BOOLEAN"},
+      {"5; true + false; 5", "unknown operator: BOOLEAN + BOOLEAN"},
+      {"if (10 > 1) { true + false; }", "unknown operator: BOOLEAN + BOOLEAN"},
+      {"if (true > 1) { true + 1; }", "type mismatch: BOOLEAN > INTEGER"},
+      {"return true + 1;", "type mismatch: BOOLEAN + INTEGER"},
+      {"if (10 > 1) { if (10 > 1) { return true + false; } return 1; }",
+       "unknown operator: BOOLEAN + BOOLEAN"}};
+
+  for (const auto& test : tests) {
+    const auto obj = ParseAndEval(test.first);
+    EXPECT_EQ(obj.Type(), ObjectType::kError) << test.first;
+    if (obj.Type() == ObjectType::kError) {
+      EXPECT_EQ(obj.PtrCast<ErrorObject>()->msg, test.second) << test.first;
+    }
+  }
+}
+
 }  // namespace
 }  // namespace monkey

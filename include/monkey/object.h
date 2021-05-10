@@ -6,11 +6,25 @@
 
 namespace monkey {
 
-enum class ObjectType { kInvalid, kNull, kInt, kBool, kReturn };
+enum class ObjectType { kInvalid, kNull, kInt, kBool, kReturn, kError };
 
 std::ostream &operator<<(std::ostream &os, ObjectType type);
 
-struct ObjectBase;
+struct ObjectBase {
+  ObjectBase() noexcept = default;
+  explicit ObjectBase(ObjectType type) noexcept : type{type} {}
+  virtual ~ObjectBase() noexcept = default;
+
+  std::string Inspect() const { return InspectImpl(); }
+  ObjectType Type() const noexcept { return type; }
+  bool Ok() const noexcept { return type != ObjectType::kInvalid; }
+  const ObjectBase *Ptr() const noexcept { return this; }
+
+  virtual std::string InspectImpl() const { return {}; }
+
+ private:
+  ObjectType type{ObjectType::kInvalid};
+};
 
 struct ObjectInterface {
   auto Inspect() const {
@@ -43,22 +57,6 @@ struct ObjectInterface {
 
 using Object = boost::te::poly<ObjectInterface>;
 
-struct ObjectBase {
-  ObjectBase() = default;
-  explicit ObjectBase(ObjectType type) : type{type} {}
-  virtual ~ObjectBase() noexcept = default;
-
-  std::string Inspect() const { return InspectImpl(); }
-  ObjectType Type() const noexcept { return type; }
-  bool Ok() const noexcept { return type != ObjectType::kInvalid; }
-  const ObjectBase *Ptr() const noexcept { return this; }
-
-  virtual std::string InspectImpl() const { return {}; }
-
- private:
-  ObjectType type{ObjectType::kInvalid};
-};
-
 struct NullObject final : public ObjectBase {
   NullObject() : ObjectBase{ObjectType::kNull} {}
   std::string InspectImpl() const override { return "null"; }
@@ -84,11 +82,19 @@ struct BoolObject final : public ObjectBase {
 };
 
 struct ReturnObject final : public ObjectBase {
-  ReturnObject(const Object &value = ObjectBase{})
-      : ObjectBase{ObjectType::kReturn}, value{value} {}
+  ReturnObject(Object value = ObjectBase{})
+      : ObjectBase{ObjectType::kReturn}, value{std::move(value)} {}
   std::string InspectImpl() const override { return value.Inspect(); }
 
   Object value{ObjectBase{}};
+};
+
+struct ErrorObject final : public ObjectBase {
+  ErrorObject(std::string msg = {})
+      : ObjectBase{ObjectType::kError}, msg{std::move(msg)} {}
+  std::string InspectImpl() const override { return "[ERROR]: " + msg; }
+
+  std::string msg;
 };
 
 }  // namespace monkey

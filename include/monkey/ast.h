@@ -30,7 +30,28 @@ enum class NodeType {
 
 std::ostream &operator<<(std::ostream &os, NodeType type);
 
-struct NodeBase;
+/// Base Node
+struct NodeBase {
+  NodeBase() noexcept = default;
+  explicit NodeBase(NodeType type, Token token = {}) noexcept
+      : type{type}, token{std::move(token)} {}
+  virtual ~NodeBase() noexcept = default;
+
+  NodeType Type() const noexcept { return type; }
+  const NodeBase *Ptr() const noexcept { return this; }
+  bool Ok() const noexcept { return type != NodeType::kInvalid; }
+
+  std::string String() const noexcept { return StringImpl(); }
+  std::string TokenLiteral() const noexcept { return TokenLiteralImpl(); }
+  virtual std::string StringImpl() const { return token.literal; }
+  virtual std::string TokenLiteralImpl() const { return token.literal; }
+
+ private:
+  NodeType type{NodeType::kInvalid};
+
+ public:
+  Token token;
+};
 
 /// Interface of Node
 struct NodeInterface {
@@ -87,27 +108,6 @@ struct StmtInterface : public NodeInterface {
 };
 
 using Statement = boost::te::poly<StmtInterface>;
-
-/// Base Node
-struct NodeBase {
-  NodeBase() = default;
-  explicit NodeBase(NodeType type) : type{type} {}
-  virtual ~NodeBase() noexcept = default;
-
-  NodeType Type() const noexcept { return type; }
-  const NodeBase *Ptr() const noexcept { return this; }
-  bool Ok() const noexcept { return type != NodeType::kInvalid; }
-
-  std::string String() const noexcept { return StringImpl(); }
-  std::string TokenLiteral() const noexcept { return TokenLiteralImpl(); }
-  virtual std::string StringImpl() const { return token.literal; }
-  virtual std::string TokenLiteralImpl() const { return token.literal; }
-
-  Token token;
-
- private:
-  NodeType type{NodeType::kInvalid};
-};
 
 struct Program final : public NodeBase {
   Program() : NodeBase{NodeType::kProgram} {}

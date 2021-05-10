@@ -39,9 +39,8 @@ enum class TokenType {
 
 std::ostream& operator<<(std::ostream& os, TokenType type);
 
-class Token {
- public:
-  Token() = default;
+struct Token {
+  Token() noexcept = default;
 
   TokenType type{TokenType::kIllegal};
   std::string literal;
