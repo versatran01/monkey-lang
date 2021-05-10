@@ -103,8 +103,10 @@ struct NodeBase {
   virtual std::string StringImpl() const { return token.literal; }
   virtual std::string TokenLiteralImpl() const { return token.literal; }
 
-  NodeType type{NodeType::kInvalid};
   Token token;
+
+ private:
+  NodeType type{NodeType::kInvalid};
 };
 
 struct Program final : public NodeBase {

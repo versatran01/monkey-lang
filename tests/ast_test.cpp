@@ -16,7 +16,6 @@ TEST(AstTest, TestExpressionType) {
 
 TEST(AstTest, TestExpressionValue) {
   Identifier expr;
-  expr.type = NodeType::kIdentifier;
   expr.token = Token{TokenType::kIdent, "abc"};
   expr.value = "abc";
 
@@ -45,12 +44,10 @@ TEST(AstTest, TestStatementType) {
 
 TEST(AstTest, TestExpressionStatement) {
   Identifier expr;
-  expr.type = NodeType::kIdentifier;
   expr.token = Token{TokenType::kIdent, "abc"};
   expr.value = "abc";
 
   ExpressionStatement stmt;
-  stmt.type = NodeType::kExprStmt;
   stmt.token = expr.token;
   stmt.expr = expr;
 
@@ -62,7 +59,6 @@ TEST(AstTest, TestExpressionStatement) {
 
 TEST(AstTest, TestExpressionPtr) {
   IntLiteral intl;
-  intl.type = NodeType::kIntLiteral;
   intl.token = Token{TokenType::kInt, "5"};
   intl.value = 5;
 

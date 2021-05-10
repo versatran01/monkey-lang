@@ -55,6 +55,7 @@ struct ObjectBase {
 
   virtual std::string InspectImpl() const { return {}; }
 
+ private:
   ObjectType type{ObjectType::kInvalid};
 };
 
