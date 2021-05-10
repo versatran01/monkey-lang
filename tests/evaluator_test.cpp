@@ -18,6 +18,21 @@ Object ParseAndEval(const std::string& input) {
   return eval.Evaluate(program);
 }
 
+void CheckBoolObject(const Object& obj, bool value) {
+  ASSERT_EQ(obj.Type(), ObjectType::kBool);
+  EXPECT_EQ(obj.PtrCast<BoolObject>()->value, value);
+}
+
+void CheckIntObject(const Object& obj, int64_t value) {
+  ASSERT_EQ(obj.Type(), ObjectType::kInt);
+  EXPECT_EQ(obj.PtrCast<IntObject>()->value, value);
+}
+
+void CheckErrorObj(const Object& obj, const std::string& msg) {
+  ASSERT_EQ(obj.Type(), ObjectType::kError);
+  EXPECT_EQ(obj.PtrCast<ErrorObject>()->msg, msg);
+}
+
 TEST(EvaluatorTest, TestEvalIntergerExpression) {
   const std::vector<InputExpected<int64_t>> tests = {
       {"5", 5},
@@ -67,9 +82,9 @@ TEST(EvaluatorTest, TestEvalBooleanExpression) {
       {"(1 > 2) == false", true},
   };
   for (const auto& test : tests) {
+    SCOPED_TRACE(test.first);
     const auto obj = ParseAndEval(test.first);
-    ASSERT_EQ(obj.Type(), ObjectType::kBool);
-    EXPECT_EQ(obj.PtrCast<BoolObject>()->value, test.second);
+    CheckBoolObject(obj, test.second);
   }
 }
 
@@ -80,9 +95,9 @@ TEST(EvaluatorTest, TestBangOperator) {
   };
 
   for (const auto& test : tests) {
+    SCOPED_TRACE(test.first);
     const auto obj = ParseAndEval(test.first);
-    ASSERT_EQ(obj.Type(), ObjectType::kBool);
-    EXPECT_EQ(obj.PtrCast<BoolObject>()->value, test.second);
+    CheckBoolObject(obj, test.second);
   }
 }
 
@@ -99,14 +114,14 @@ TEST(EvaluatorTest, TestIfElseExpression) {
   };
 
   for (const auto& test : tests) {
+    SCOPED_TRACE(test.first);
     const auto obj = ParseAndEval(test.first);
     switch (test.second.index()) {
       case 0:
         EXPECT_EQ(obj.Type(), ObjectType::kNull);
         break;
       case 1:
-        ASSERT_EQ(obj.Type(), ObjectType::kInt);
-        EXPECT_EQ(obj.PtrCast<IntObject>()->value, std::get<1>(test.second));
+        CheckIntObject(obj, std::get<1>(test.second));
         break;
       default:
         ASSERT_FALSE(true) << "Should not reach here";
@@ -123,9 +138,9 @@ TEST(EvaluatorTest, TestReturnStatements) {
       {"if (10 > 1) { if (10 > 1) { return 10; } return 1;", 10}};
 
   for (const auto& test : tests) {
+    SCOPED_TRACE(test.first);
     const auto obj = ParseAndEval(test.first);
-    ASSERT_EQ(obj.Type(), ObjectType::kInt);
-    EXPECT_EQ(obj.PtrCast<IntObject>()->value, test.second);
+    CheckIntObject(obj, test.second);
   }
 }
 
@@ -140,14 +155,29 @@ TEST(EvaluatorTest, TestErrorHandling) {
       {"if (true > 1) { true + 1; }", "type mismatch: BOOLEAN > INTEGER"},
       {"return true + 1;", "type mismatch: BOOLEAN + INTEGER"},
       {"if (10 > 1) { if (10 > 1) { return true + false; } return 1; }",
-       "unknown operator: BOOLEAN + BOOLEAN"}};
+       "unknown operator: BOOLEAN + BOOLEAN"},
+      {"foobar", "identifier not found: foobar"},
+  };
 
   for (const auto& test : tests) {
+    SCOPED_TRACE(test.first);
     const auto obj = ParseAndEval(test.first);
-    EXPECT_EQ(obj.Type(), ObjectType::kError) << test.first;
-    if (obj.Type() == ObjectType::kError) {
-      EXPECT_EQ(obj.PtrCast<ErrorObject>()->msg, test.second) << test.first;
-    }
+    CheckErrorObj(obj, test.second);
+  }
+}
+
+TEST(EvaluatorTest, TestLetStatement) {
+  const std::vector<InputExpected<int64_t>> tests = {
+      {"let a = 5; a;", 5},
+      {"let a = 5 * 5; a;", 25},
+      {"let a = 5; let b = a; b;", 5},
+      {"let a = 5; let b = a; let c = a + b + 5; c;", 15},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.first);
+    const auto obj = ParseAndEval(test.first);
+    CheckIntObject(obj, test.second);
   }
 }
 

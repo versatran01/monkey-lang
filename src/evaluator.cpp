@@ -48,6 +48,14 @@ Object Evaluator::Evaluate(const Statement& stmt) const {
       }
       return ReturnObject{std::move(obj)};
     }
+    case NodeType::kLetStmt: {
+      const auto obj = Evaluate(stmt.Expr());
+      if (IsError(obj)) {
+        return obj;
+      }
+
+      return kNullObject;
+    }
     default:
       return ObjectBase{};
   }

@@ -34,12 +34,12 @@ std::ostream &operator<<(std::ostream &os, NodeType type);
 struct NodeBase {
   NodeBase() noexcept = default;
   explicit NodeBase(NodeType type, Token token = {}) noexcept
-      : type{type}, token{std::move(token)} {}
+      : type_{type}, token{std::move(token)} {}
   virtual ~NodeBase() noexcept = default;
 
-  NodeType Type() const noexcept { return type; }
+  NodeType Type() const noexcept { return type_; }
   const NodeBase *Ptr() const noexcept { return this; }
-  bool Ok() const noexcept { return type != NodeType::kInvalid; }
+  bool Ok() const noexcept { return type_ != NodeType::kInvalid; }
 
   std::string String() const noexcept { return StringImpl(); }
   std::string TokenLiteral() const noexcept { return TokenLiteralImpl(); }
@@ -47,7 +47,7 @@ struct NodeBase {
   virtual std::string TokenLiteralImpl() const { return token.literal; }
 
  private:
-  NodeType type{NodeType::kInvalid};
+  NodeType type_{NodeType::kInvalid};
 
  public:
   Token token;

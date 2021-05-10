@@ -1,11 +1,7 @@
 #include "monkey/parser.h"
 
 #include <absl/types/variant.h>
-#include <fmt/ranges.h>
-#include <glog/logging.h>
 #include <gtest/gtest.h>
-
-#include <type_traits>
 
 namespace monkey {
 namespace {
@@ -44,13 +40,13 @@ void CheckIdentifier(const Expression& expr, const std::string& value) {
   EXPECT_EQ(expr.PtrCast<Identifier>()->value, value);
 }
 
-void CheckIntegerLiteral(const Expression& expr, int64_t value) {
+void CheckIntLiteral(const Expression& expr, int64_t value) {
   ASSERT_EQ(expr.Type(), NodeType::kIntLiteral);
   EXPECT_EQ(expr.TokenLiteral(), std::to_string(value));
   EXPECT_EQ(expr.PtrCast<IntLiteral>()->value, value);
 }
 
-void CheckBooleanLiteral(const Expression& expr, bool value) {
+void CheckBoolLiteral(const Expression& expr, bool value) {
   ASSERT_EQ(expr.Type(), NodeType::kBoolLiteral);
   EXPECT_EQ(expr.TokenLiteral(), value ? "true" : "false");
   EXPECT_EQ(expr.PtrCast<BoolLiteral>()->value, value);
@@ -65,10 +61,10 @@ void CheckLetStatement(const Statement& stmt, const std::string& name) {
 void CheckLiteralExpression(const Expression& expr, const LiteralType& value) {
   switch (value.index()) {
     case 0:
-      CheckBooleanLiteral(expr, std::get<0>(value));
+      CheckBoolLiteral(expr, std::get<0>(value));
       break;
     case 1:
-      CheckIntegerLiteral(expr, std::get<1>(value));
+      CheckIntLiteral(expr, std::get<1>(value));
       break;
     case 2:
       CheckIdentifier(expr, std::get<2>(value));
@@ -153,7 +149,7 @@ TEST(ParserTest, TestIntLiteralExpression) {
   ASSERT_EQ(program.NumStatements(), 1);
   const auto stmt = program.statements.front();
   EXPECT_EQ(stmt.Type(), NodeType::kExprStmt);
-  CheckIntegerLiteral(stmt.Expr(), 5);
+  CheckIntLiteral(stmt.Expr(), 5);
 }
 
 TEST(ParserTest, TestParsingBooleanExpression) {
@@ -164,7 +160,7 @@ TEST(ParserTest, TestParsingBooleanExpression) {
   ASSERT_EQ(program.NumStatements(), 1);
   const auto stmt = program.statements.front();
   EXPECT_EQ(stmt.Type(), NodeType::kExprStmt);
-  CheckBooleanLiteral(stmt.Expr(), true);
+  CheckBoolLiteral(stmt.Expr(), true);
 }
 
 TEST(ParserTest, TestParsingPrefixExpressionInt) {
@@ -174,6 +170,7 @@ TEST(ParserTest, TestParsingPrefixExpressionInt) {
                                          {"!false", "!", false}};
 
   for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
     Parser parser{test.input};
     const auto program = parser.ParseProgram();
     ASSERT_EQ(program.NumStatements(), 1) << parser.ErrorMsg();
@@ -199,6 +196,7 @@ TEST(ParserTest, TestParsingInfixExpressionInt) {
                                         {"false==false;", false, "==", false}};
 
   for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
     Parser parser{test.input};
     const auto program = parser.ParseProgram();
     ASSERT_EQ(program.NumStatements(), 1);
@@ -221,6 +219,7 @@ TEST(ParserTest, TestParsingOperatorPrecedence) {
       {"add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))"}};
 
   for (const auto& test : tests) {
+    SCOPED_TRACE(test.first);
     Parser parser{test.first};
     const auto program = parser.ParseProgram();
     ASSERT_EQ(program.NumStatements(), 1);
@@ -278,6 +277,7 @@ TEST(ParserTest, TestParsingFunctionLiteral2) {
                                        {"fn(x, y, z) {};", {"x", "y", "z"}}};
 
   for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
     Parser parser{test.input};
     const auto program = parser.ParseProgram();
     ASSERT_EQ(program.NumStatements(), 1);

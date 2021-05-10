@@ -86,6 +86,7 @@ TEST(LexerTest, TestSimpleCode) {
       {TokenType::kEof, ""}};
 
   for (const auto& true_token : true_tokens) {
+    SCOPED_TRACE(true_token);
     const auto next_token = lexer.NextToken();
     ASSERT_EQ(next_token.type, true_token.type);
     ASSERT_EQ(next_token.literal, true_token.literal);

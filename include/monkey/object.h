@@ -12,18 +12,18 @@ std::ostream &operator<<(std::ostream &os, ObjectType type);
 
 struct ObjectBase {
   ObjectBase() noexcept = default;
-  explicit ObjectBase(ObjectType type) noexcept : type{type} {}
+  explicit ObjectBase(ObjectType type) noexcept : type_{type} {}
   virtual ~ObjectBase() noexcept = default;
 
   std::string Inspect() const { return InspectImpl(); }
-  ObjectType Type() const noexcept { return type; }
-  bool Ok() const noexcept { return type != ObjectType::kInvalid; }
+  ObjectType Type() const noexcept { return type_; }
+  bool Ok() const noexcept { return type_ != ObjectType::kInvalid; }
   const ObjectBase *Ptr() const noexcept { return this; }
 
   virtual std::string InspectImpl() const { return {}; }
 
  private:
-  ObjectType type{ObjectType::kInvalid};
+  ObjectType type_{ObjectType::kInvalid};
 };
 
 struct ObjectInterface {
