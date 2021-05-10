@@ -30,8 +30,10 @@ target_link_libraries(
   PUBLIC monkey_core
   PRIVATE absl::flat_hash_map)
 
-add_library(monkey_eval evaluator.cpp)
-target_link_libraries(monkey_eval PUBLIC monkey_object monkey_ast)
+add_library(monkey_environment environment.cpp)
+target_link_libraries(monkey_environment
+                      PUBLIC monkey_object absl::node_hash_map absl::strings)
 
-add_library(monkey_env environment.cpp)
-target_link_libraries(monkey_env PUBLIC monkey_object absl::node_hash_map)
+add_library(monkey_evaluator evaluator.cpp)
+target_link_libraries(monkey_evaluator PUBLIC monkey_object monkey_ast
+                                              monkey_environment)

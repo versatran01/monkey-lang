@@ -1,6 +1,7 @@
 #pragma once
 
 #include "monkey/ast.h"
+#include "monkey/environment.h"
 #include "monkey/object.h"
 
 namespace monkey {
@@ -25,6 +26,8 @@ class Evaluator {
                                 const IntObject& rhs) const;
   Object EvalBoolInfixExpression(const BoolObject& lhs, const std::string& op,
                                  const BoolObject& rhs) const;
+
+  Environment env_;  // global env
 };
 
 }  // namespace monkey
