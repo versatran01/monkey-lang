@@ -15,7 +15,8 @@ Object ParseAndEval(const std::string& input) {
   Parser parser{input};
   const auto program = parser.ParseProgram();
   Evaluator eval;
-  return eval.Evaluate(program);
+  Environment env;
+  return eval.Evaluate(program, env);
 }
 
 void CheckBoolObject(const Object& obj, bool value) {
@@ -90,8 +91,12 @@ TEST(EvaluatorTest, TestEvalBooleanExpression) {
 
 TEST(EvaluatorTest, TestBangOperator) {
   const std::vector<InputExpected<bool>> tests = {
-      {"!true", false}, {"!false", true},   {"!5", false},
-      {"!!true", true}, {"!!false", false}, {"!!5", true},
+      {"!true", false},
+      {"!false", true},
+      {"!5", false},
+      {"!!true", true},
+      {"!!false", false},
+      {"!!5", true},
   };
 
   for (const auto& test : tests) {

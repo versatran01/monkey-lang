@@ -12,6 +12,9 @@ class Environment {
   const Object* Get(absl::string_view name) const;
   void Set(const std::string& name, const Object& obj);
 
+  auto size() const noexcept { return store_.size(); }
+  auto empty() const noexcept { return store_.empty(); }
+
  private:
   absl::node_hash_map<std::string, Object> store_;
   Environment* outer_{nullptr};  // TODO: just ptr?

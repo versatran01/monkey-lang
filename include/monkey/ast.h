@@ -28,7 +28,7 @@ enum class NodeType {
   kBlockStmt
 };
 
-std::ostream &operator<<(std::ostream &os, NodeType type);
+std::ostream& operator<<(std::ostream& os, NodeType type);
 
 /// Base Node
 struct NodeBase {
@@ -38,7 +38,7 @@ struct NodeBase {
   virtual ~NodeBase() noexcept = default;
 
   NodeType Type() const noexcept { return type_; }
-  const NodeBase *Ptr() const noexcept { return this; }
+  const NodeBase* Ptr() const noexcept { return this; }
   bool Ok() const noexcept { return type_ != NodeType::kInvalid; }
 
   std::string String() const noexcept { return StringImpl(); }
@@ -57,34 +57,34 @@ struct NodeBase {
 struct NodeInterface {
   auto TokenLiteral() const {
     return boost::te::call<std::string>(
-        [](const auto &self) { return self.TokenLiteral(); }, *this);
+        [](const auto& self) { return self.TokenLiteral(); }, *this);
   }
 
   auto String() const {
     return boost::te::call<std::string>(
-        [](const auto &self) { return self.String(); }, *this);
+        [](const auto& self) { return self.String(); }, *this);
   }
 
   auto Type() const noexcept {
     return boost::te::call<NodeType>(
-        [](const auto &self) { return self.Type(); }, *this);
+        [](const auto& self) { return self.Type(); }, *this);
   }
 
   auto Ok() const noexcept {
-    return boost::te::call<bool>([](const auto &self) { return self.Ok(); },
+    return boost::te::call<bool>([](const auto& self) { return self.Ok(); },
                                  *this);
   }
 
-  auto *Ptr() const noexcept {
-    return boost::te::call<NodeBase *>(
-        [](const auto &self) { return self.Ptr(); }, *this);
+  auto* Ptr() const noexcept {
+    return boost::te::call<NodeBase*>(
+        [](const auto& self) { return self.Ptr(); }, *this);
   }
 
   template <typename D>
-  const D *PtrCast() const {
+  const D* PtrCast() const {
     static_assert(std::is_base_of_v<NodeBase, D>,
                   "D is not derived from NodeBase");
-    return static_cast<const D *>(Ptr());
+    return static_cast<const D*>(Ptr());
   }
 };
 
@@ -103,7 +103,7 @@ struct StmtInterface : public NodeInterface {
 
   auto Expr() const {
     return boost::te::call<Expression>(
-        [](const auto &self) { return self.expr; }, *this);
+        [](const auto& self) { return self.expr; }, *this);
   }
 };
 
@@ -114,7 +114,7 @@ struct Program final : public NodeBase {
   std::string TokenLiteralImpl() const override;
   std::string StringImpl() const override;
 
-  void AddStatement(const Statement &stmt) { statements.push_back(stmt); }
+  void AddStatement(const Statement& stmt) { statements.push_back(stmt); }
   auto NumStatements() const noexcept { return statements.size(); }
 
   std::vector<Statement> statements;

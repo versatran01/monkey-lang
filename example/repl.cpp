@@ -13,6 +13,7 @@ const std::string kPrompt = ">> ";
 void StartRepl() {
   std::string line;
   Evaluator eval;
+  Environment env;
 
   while (true) {
     fmt::print(kPrompt);
@@ -25,7 +26,7 @@ void StartRepl() {
       fmt::print("{}\n", parser.ErrorMsg());
     }
 
-    auto result = eval.Evaluate(program);
+    const auto result = eval.Evaluate(program, env);
     if (result.Ok()) {
       fmt::print("{}\n", result.Inspect());
     }

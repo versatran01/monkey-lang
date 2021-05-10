@@ -27,6 +27,8 @@ struct ObjectBase {
 };
 
 struct ObjectInterface {
+  ObjectInterface() = default;
+
   auto Inspect() const {
     return boost::te::call<std::string>(
         [](const auto &self) { return self.Inspect(); }, *this);
