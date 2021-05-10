@@ -95,16 +95,16 @@ Statement Parser::ParseStatement() {
 }
 
 Statement Parser::ParseLetStatement() {
-  LetStatement stmt;
-  stmt.token = curr_token_;
+  LetStatement let_stmt;
+  let_stmt.token = curr_token_;
 
   if (!ExpectPeek(TokenType::kIdent)) {
     LOG(INFO) << "[ParseLetStatement] Next token is not Ident";
     return StatementBase{};
   }
 
-  stmt.name.token = curr_token_;
-  stmt.name.value = curr_token_.literal;
+  let_stmt.name.token = curr_token_;
+  let_stmt.name.value = curr_token_.literal;
 
   if (!ExpectPeek(TokenType::kAssign)) {
     LOG(INFO) << "[ParseLetStatement] Next token is not Assing";
@@ -112,56 +112,56 @@ Statement Parser::ParseLetStatement() {
   }
 
   NextToken();
-  stmt.expr = ParseExpression(Precedence::kLowest);
+  let_stmt.expr = ParseExpression(Precedence::kLowest);
 
   while (!IsCurrToken(TokenType::kSemicolon)) {
     NextToken();
   }
 
-  return stmt;
+  return let_stmt;
 }
 
 Statement Parser::ParseReturnStatement() {
-  ReturnStatement stmt;
-  stmt.token = curr_token_;
+  ReturnStatement ret_stmt;
+  ret_stmt.token = curr_token_;
 
   NextToken();
-  stmt.expr = ParseExpression(Precedence::kLowest);
+  ret_stmt.expr = ParseExpression(Precedence::kLowest);
 
   while (!IsCurrToken(TokenType::kSemicolon)) {
     NextToken();
   }
 
-  return stmt;
+  return ret_stmt;
 }
 
 Statement Parser::ParseExpressionStatement() {
-  ExpressionStatement stmt;
-  stmt.token = curr_token_;
-  stmt.expr = ParseExpression(Precedence::kLowest);
+  ExpressionStatement expr_stmt;
+  expr_stmt.token = curr_token_;
+  expr_stmt.expr = ParseExpression(Precedence::kLowest);
 
   if (IsPeekToken(TokenType::kSemicolon)) {
     NextToken();
   }
 
-  return stmt;
+  return expr_stmt;
 }
 
 BlockStatement Parser::ParseBlockStatement() {
-  BlockStatement block;
-  block.token = curr_token_;
+  BlockStatement block_stmt;
+  block_stmt.token = curr_token_;
 
   NextToken();
 
   while (!IsCurrToken(TokenType::kRBrace) && !IsCurrToken(TokenType::kEof)) {
     auto stmt = ParseStatement();
     if (stmt.Ok()) {
-      block.statements.push_back(std::move(stmt));
+      block_stmt.statements.push_back(std::move(stmt));
     }
     NextToken();
   }
 
-  return block;
+  return block_stmt;
 }
 
 Expression Parser::ParseExpression(Precedence precedence) {
@@ -189,17 +189,17 @@ Expression Parser::ParseExpression(Precedence precedence) {
 }
 
 Expression Parser::ParseIdentifier() {
-  Identifier expr;
-  expr.token = curr_token_;
-  expr.value = curr_token_.literal;
-  return expr;
+  Identifier ident;
+  ident.token = curr_token_;
+  ident.value = curr_token_.literal;
+  return ident;
 }
 
 Expression Parser::ParseIntegerLiteral() {
-  IntLiteral expr;
-  expr.token = curr_token_;
+  IntLiteral int_lit;
+  int_lit.token = curr_token_;
 
-  bool ok = absl::SimpleAtoi(expr.token.literal, &expr.value);
+  bool ok = absl::SimpleAtoi(int_lit.token.literal, &int_lit.value);
   if (!ok) {
     const auto msg =
         fmt::format("could not parse {} as integer", curr_token_.literal);
@@ -208,44 +208,44 @@ Expression Parser::ParseIntegerLiteral() {
     return ExpressionBase{};
   }
 
-  return expr;
+  return int_lit;
 }
 
 Expression Parser::ParseBooleanLiteral() {
-  BoolLiteral expr;
-  expr.token = curr_token_;
-  expr.value = IsCurrToken(TokenType::kTrue);
-  return expr;
+  BoolLiteral bool_lit;
+  bool_lit.token = curr_token_;
+  bool_lit.value = IsCurrToken(TokenType::kTrue);
+  return bool_lit;
 }
 
 Expression Parser::ParseFunctionLiteral() {
-  FunctionLiteral fn;
-  fn.token = curr_token_;
+  FunctionLiteral fn_lit;
+  fn_lit.token = curr_token_;
 
   if (!ExpectPeek(TokenType::kLParen)) {
     return ExpressionBase{};
   }
 
-  fn.params = ParseFunctionParameters();
+  fn_lit.params = ParseFunctionParameters();
 
   if (!ExpectPeek(TokenType::kLBrace)) {
     return ExpressionBase{};
   }
 
-  fn.body = ParseBlockStatement();
-  return fn;
+  fn_lit.body = ParseBlockStatement();
+  return fn_lit;
 }
 
 Expression Parser::ParseInfixExpression(const Expression& lhs) {
-  InfixExpression expr;
-  expr.token = curr_token_;
-  expr.op = curr_token_.literal;
-  expr.lhs = lhs;
+  InfixExpression infx_expr;
+  infx_expr.token = curr_token_;
+  infx_expr.op = curr_token_.literal;
+  infx_expr.lhs = lhs;
 
   const auto precedence = CurrPrecedence();
   NextToken();
-  expr.rhs = ParseExpression(precedence);
-  return expr;
+  infx_expr.rhs = ParseExpression(precedence);
+  return infx_expr;
 }
 
 Expression Parser::ParseGroupedExpression() {
@@ -258,15 +258,15 @@ Expression Parser::ParseGroupedExpression() {
 }
 
 Expression Parser::ParseIfExpression() {
-  IfExpression expr;
-  expr.token = curr_token_;
+  IfExpression if_expr;
+  if_expr.token = curr_token_;
 
   if (!ExpectPeek(TokenType::kLParen)) {
     return ExpressionBase{};
   }
 
   NextToken();
-  expr.cond = ParseExpression(Precedence::kLowest);
+  if_expr.cond = ParseExpression(Precedence::kLowest);
 
   if (!ExpectPeek(TokenType::kRParen)) {
     return ExpressionBase{};
@@ -274,7 +274,7 @@ Expression Parser::ParseIfExpression() {
   if (!ExpectPeek(TokenType::kLBrace)) {
     return ExpressionBase{};
   }
-  expr.true_block = ParseBlockStatement();
+  if_expr.true_block = ParseBlockStatement();
 
   // else
   if (IsPeekToken(TokenType::kElse)) {
@@ -282,18 +282,18 @@ Expression Parser::ParseIfExpression() {
     if (!ExpectPeek(TokenType::kLBrace)) {
       return ExpressionBase{};
     }
-    expr.false_block = ParseBlockStatement();
+    if_expr.false_block = ParseBlockStatement();
   }
 
-  return expr;
+  return if_expr;
 }
 
 Expression Parser::ParseCallExpression(const Expression& expr) {
-  CallExpression call;
-  call.token = curr_token_;
-  call.func = expr;
-  call.args = ParseCallArguments();
-  return call;
+  CallExpression call_expr;
+  call_expr.token = curr_token_;
+  call_expr.func = expr;
+  call_expr.args = ParseCallArguments();
+  return call_expr;
 }
 
 std::vector<Identifier> Parser::ParseFunctionParameters() {
@@ -352,14 +352,14 @@ std::vector<Expression> Parser::ParseCallArguments() {
 }
 
 Expression Parser::ParsePrefixExpression() {
-  PrefixExpression expr;
-  expr.token = curr_token_;
-  expr.op = curr_token_.literal;
+  PrefixExpression prefix_expr;
+  prefix_expr.token = curr_token_;
+  prefix_expr.op = curr_token_.literal;
 
   NextToken();
-  expr.rhs = ParseExpression(Precedence::kPrefix);
+  prefix_expr.rhs = ParseExpression(Precedence::kPrefix);
 
-  return expr;
+  return prefix_expr;
 }
 
 bool Parser::ExpectPeek(TokenType type) {

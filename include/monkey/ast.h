@@ -81,7 +81,7 @@ struct NodeInterface {
   }
 
   template <typename D>
-  const D* PtrCast() const {
+  auto PtrCast() const {
     static_assert(std::is_base_of_v<NodeBase, D>,
                   "D is not derived from NodeBase");
     return static_cast<const D*>(Ptr());

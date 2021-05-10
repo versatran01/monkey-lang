@@ -1,5 +1,6 @@
 #include "monkey/evaluator.h"
 
+#include <absl/strings/str_join.h>
 #include <fmt/ostream.h>
 #include <glog/logging.h>
 
@@ -35,7 +36,7 @@ const std::string kNotAFunction = "not a function";
 
 Environment ExtendFunctionEnv(const FunctionObject& func,
                               const std::vector<Object>& args) {
-  auto env = ExtendEnv(*func.env);
+  auto env = MakeEnclosedEnv(*func.env);
 
   for (size_t i = 0; i < func.params.size(); ++i) {
     env.Set(func.params[i].value, args[i]);
@@ -53,8 +54,8 @@ Object UnwrapReturn(const Object& obj) {
 
 }  // namespace
 
-Object Evaluator::Evaluate(const Program& node, Environment& env) const {
-  return EvalProgram(node, env);
+Object Evaluator::Evaluate(const Program& program, Environment& env) const {
+  return EvalProgram(program, env);
 }
 
 Object Evaluator::Evaluate(const Statement& stmt, Environment& env) const {
@@ -75,8 +76,9 @@ Object Evaluator::Evaluate(const Statement& stmt, Environment& env) const {
       if (IsError(obj)) {
         return obj;
       }
-      const auto* ptr = stmt.PtrCast<LetStatement>();
-      env.Set(ptr->name.String(), obj);
+      LOG(INFO) << "obj before set: " << obj.Inspect();
+      env.Set(stmt.PtrCast<LetStatement>()->name.String(), obj);
+      LOG(INFO) << "obj after set: " << obj.Inspect();
       return obj;
     }
     default:
@@ -91,53 +93,53 @@ Object Evaluator::Evaluate(const Expression& expr, Environment& env) const {
     case NodeType::kBoolLiteral:
       return expr.PtrCast<BoolLiteral>()->value ? kTrueObject : kFalseObject;
     case NodeType::kPrefixExpr: {
-      const auto* ptr = expr.PtrCast<PrefixExpression>();
-      const auto rhs = Evaluate(ptr->rhs, env);
+      const auto* pe_ptr = expr.PtrCast<PrefixExpression>();
+      const auto rhs = Evaluate(pe_ptr->rhs, env);
       if (IsError(rhs)) {
         return rhs;
       }
-      return EvalPrefixExpression(ptr->op, rhs);
+      return EvalPrefixExpression(pe_ptr->op, rhs);
     }
     case NodeType::kInfixExpr: {
-      const auto* ptr = expr.PtrCast<InfixExpression>();
-      const auto lhs = Evaluate(ptr->lhs, env);
+      const auto* ie_ptr = expr.PtrCast<InfixExpression>();
+      const auto lhs = Evaluate(ie_ptr->lhs, env);
       if (IsError(lhs)) {
         return lhs;
       }
-      const auto rhs = Evaluate(ptr->rhs, env);
+      const auto rhs = Evaluate(ie_ptr->rhs, env);
       if (IsError(rhs)) {
         return rhs;
       }
-      return EvalInfixExpression(lhs, ptr->op, rhs);
+      return EvalInfixExpression(lhs, ie_ptr->op, rhs);
     }
     case NodeType::kIfExpr:
       return EvalIfExpression(*expr.PtrCast<IfExpression>(), env);
-    case NodeType::kIdentifier:
+    case NodeType::kIdentifier: {
       return EvalIdentifier(*expr.PtrCast<Identifier>(), env);
+    }
     case NodeType::kFnLiteral: {
-      const auto* ptr = expr.PtrCast<FunctionLiteral>();
-      FunctionObject obj;
-      obj.params = ptr->params;
-      obj.body = ptr->body;
-      obj.env = &env;
-      return obj;
+      const auto* fn_ptr = expr.PtrCast<FunctionLiteral>();
+      return FunctionObject{fn_ptr->params, fn_ptr->body, &env};
     }
     case NodeType::kCallExpr: {
-      const auto* ptr = expr.PtrCast<CallExpression>();
+      const auto* ce_ptr = expr.PtrCast<CallExpression>();
 
-      const auto obj = Evaluate(ptr->func, env);
+      const auto obj = Evaluate(ce_ptr->func, env);
       if (IsError(obj)) {
         return obj;
       }
 
-      const auto args = EvalExpressions(ptr->args, env);
-      if (args.size() == 1 && IsError(args.front())) {
-        return args.front();
+      const auto args_obj = EvalExpressions(ce_ptr->args, env);
+
+      // Handle argument evaluation failure
+      if (args_obj.size() == 1 && IsError(args_obj.front())) {
+        return args_obj.front();
       }
 
-      return ApplyFunction(obj, args);
+      return ApplyFunction(obj, args_obj);
     }
     default:
+      CHECK(false) << "Should not reach";
       return ObjectBase{};
   }
 }
@@ -159,12 +161,12 @@ Object Evaluator::EvalProgram(const Program& program, Environment& env) const {
 }
 
 Object Evaluator::EvalIdentifier(const Identifier& ident,
-                                 Environment& env) const {
-  auto* obj = env.Get(ident.value);
-  if (obj == nullptr) {
+                                 const Environment& env) const {
+  const auto* obj_ptr = env.Get(ident.value);
+  if (obj_ptr == nullptr) {
     return ErrorObject{fmt::format("{}: {}", kIdentifierNotFound, ident.value)};
   }
-  return *obj;
+  return *obj_ptr;
 }
 
 Object Evaluator::EvalPrefixExpression(const std::string& op,
@@ -292,16 +294,16 @@ Object Evaluator::EvalBoolInfixExpression(const BoolObject& lhs,
   }
 }
 
-Object Evaluator::ApplyFunction(const Object& fobj,
+Object Evaluator::ApplyFunction(const Object& obj,
                                 const std::vector<Object>& args) const {
-  if (fobj.Type() != ObjectType::kFunction) {
-    return ErrorObject{fmt::format("{}: {}", kNotAFunction, fobj.Type())};
+  if (obj.Type() != ObjectType::kFunction) {
+    return ErrorObject{fmt::format("{}: {}", kNotAFunction, obj.Type())};
   }
 
-  const auto* ptr = fobj.PtrCast<FunctionObject>();
-  auto env = ExtendFunctionEnv(*ptr, args);
-  const auto ret = EvalBlockStatment(ptr->body, env);
-  return UnwrapReturn(ret);
+  const auto* fn_obj_ptr = obj.PtrCast<FunctionObject>();
+  auto fn_env = ExtendFunctionEnv(*fn_obj_ptr, args);
+  const auto ret_obj = EvalBlockStatment(fn_obj_ptr->body, fn_env);
+  return UnwrapReturn(ret_obj);
 }
 
 Object Evaluator::EvalIfExpression(const IfExpression& expr,

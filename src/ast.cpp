@@ -85,12 +85,12 @@ std::string IfExpression::StringImpl() const {
 }
 
 std::string BlockStatement::StringImpl() const {
-  return fmt::format("{{ {} }}",
+  return fmt::format("{}",
                      absl::StrJoin(statements, "; ", StatementFormatter()));
 }
 
 std::string FunctionLiteral::StringImpl() const {
-  return fmt::format("{}({}) {}",
+  return fmt::format("{}({}) {{ {} }}",
                      TokenLiteral(),
                      absl::StrJoin(params, ", ", ExpressionFormatter()),
                      body.String());

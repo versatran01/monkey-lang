@@ -14,6 +14,7 @@ const auto gObjectTypeStrings = absl::flat_hash_map<ObjectType, std::string>{
     {ObjectType::kReturn, "RETURN"},
     {ObjectType::kError, "ERROR"},
     {ObjectType::kFunction, "FUNCTION"},
+    {ObjectType::kIndirect, "INDIRECT"},
 };
 
 }  // namespace

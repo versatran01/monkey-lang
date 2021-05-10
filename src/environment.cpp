@@ -1,20 +1,27 @@
 #include "monkey/environment.h"
 
+#include <absl/strings/str_join.h>
+#include <fmt/core.h>
+#include <fmt/ostream.h>
+#include <glog/logging.h>
+
+#include <iostream>
+
 namespace monkey {
 
-Object* Environment::Get(absl::string_view name) {
+Object const* Environment::Get(absl::string_view name) const {
   const auto it = store_.find(name);
-  if (it == store_.end()) {
-    // Not found
-    if (outer_ == nullptr) {
-      return nullptr;
-    } else {
-      return outer_->Get(name);
-    }
-  } else {
-    // Found
-    return &it->second;
+  // Found
+  if (it != store_.end()) {
+    return &(it->second);
   }
+
+  // Not found, try outer env
+  if (outer_) {
+    return outer_->Get(name);
+  }
+
+  return nullptr;
 }
 
 void Environment::Set(const std::string& name, const Object& obj) {
@@ -26,6 +33,18 @@ void Environment::Set(const std::string& name, const Object& obj) {
   }
 }
 
-Environment ExtendEnv(Environment& env) { return Environment{&env}; }
+Environment MakeEnclosedEnv(Environment& env) { return Environment{&env}; }
+
+std::ostream& operator<<(std::ostream& os, const Environment& env) {
+  auto pf = absl::PairFormatter(
+      absl::AlphaNumFormatter(), ": ", [](std::string* out, const Object& obj) {
+        out->append(obj.Inspect());
+      });
+  os << fmt::format("\n[{}]", absl::StrJoin(env.store_, "| ", pf));
+  if (env.outer_) {
+    os << *env.outer_;
+  }
+  return os;
+}
 
 }  // namespace monkey

@@ -1,5 +1,6 @@
 #include "monkey/environment.h"
 
+#include <glog/logging.h>
 #include <gtest/gtest.h>
 
 namespace monkey {
@@ -20,6 +21,23 @@ TEST(EnvironmentTest, TestGetSet) {
   const auto o2p = env.Get("a");
   ASSERT_NE(o2p, nullptr);
   EXPECT_EQ(o2p->PtrCast<BoolObject>()->value, true);
+}
+
+TEST(EnvironmentTest, TestOstream) {
+  Environment env;
+  env.Set("i", IntObject{1});
+  env.Set("b", BoolObject{1});
+  LOG(INFO) << env;
+}
+
+TEST(EnvironmentTest, TestGet) {
+  Environment env;
+  env.Set("i", IntObject{1});
+  env.Set("b", BoolObject{1});
+  LOG(INFO) << env;
+
+  auto* i = env.Get("i");
+  LOG(INFO) << env;
 }
 
 }  // namespace

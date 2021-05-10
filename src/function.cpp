@@ -7,7 +7,7 @@ namespace monkey {
 
 std::string FunctionObject::InspectImpl() const {
   return fmt::format(
-      "fn({}) {\n{}\n}",
+      "fn({}) {{\n{}\n}}",
       absl::StrJoin(params,
                     ", ",
                     [](std::string* out, const Identifier& ident) {

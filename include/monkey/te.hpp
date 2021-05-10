@@ -71,14 +71,14 @@ class expr_wrapper final {
 
  public:
   template <class... Ts>
-  decltype(auto) operator()(Ts &&... args) const {
-    return reinterpret_cast<const TExpr &>(*this)(std::forward<Ts>(args)...);
+  decltype(auto) operator()(Ts&&... args) const {
+    return reinterpret_cast<const TExpr&>(*this)(std::forward<Ts>(args)...);
   }
 };
 
 class void_ptr final {
  public:
-  using ptr_t = void *;
+  using ptr_t = void*;
   using del_t = void (*)(ptr_t);
   using copy_t = ptr_t (*)(ptr_t);
 
@@ -87,31 +87,31 @@ class void_ptr final {
 
   template <class T>
   constexpr explicit void_ptr(
-      T *ptr = nullptr,
-      del_t del = [](ptr_t ptr) { delete static_cast<T *>(ptr); },
-      copy_t copy = [](ptr_t ptr) -> void * {
-        return new T{*static_cast<T *>(ptr)};
+      T* ptr = nullptr,
+      del_t del = [](ptr_t ptr) { delete static_cast<T*>(ptr); },
+      copy_t copy = [](ptr_t ptr) -> void* {
+        return new T{*static_cast<T*>(ptr)};
       }) noexcept
       : ptr{ptr}, del{del}, copy{copy} {}
 
-  constexpr void_ptr(const void_ptr &other) noexcept
+  constexpr void_ptr(const void_ptr& other) noexcept
       : ptr{other.copy(other.ptr)}, del{other.del}, copy{other.copy} {}
 
-  constexpr void_ptr(void_ptr &&other) noexcept
+  constexpr void_ptr(void_ptr&& other) noexcept
       : ptr{std::move(other.ptr)},
         del{std::move(other.del)},
         copy{std::move(other.copy)} {
     other.ptr = nullptr;
   }
 
-  constexpr void_ptr &operator=(const void_ptr &other) noexcept {
+  constexpr void_ptr& operator=(const void_ptr& other) noexcept {
     reset(other.copy(other.ptr));
     del = other.del;
     copy = other.copy;
     return *this;
   }
 
-  constexpr void_ptr &operator=(void_ptr &&other) noexcept {
+  constexpr void_ptr& operator=(void_ptr&& other) noexcept {
     reset(std::move(other.ptr));
     del = std::move(other.del);
     copy = std::move(other.copy);
@@ -134,7 +134,7 @@ class void_ptr final {
 
   template <class T = void>
   constexpr decltype(auto) get() const noexcept {
-    return reinterpret_cast<T *>(ptr);
+    return reinterpret_cast<T*>(ptr);
   }
 
  private:
@@ -147,22 +147,23 @@ class void_ptr final {
 class non_owning_storage {
  public:
   template <class T, class T_ = std::decay_t<T> >
-  constexpr explicit non_owning_storage(T &&t, detail::void_ptr &ptr) noexcept {
+  constexpr explicit non_owning_storage(T&& t, detail::void_ptr& ptr) noexcept {
     ptr.reset(
-        &t, []([[maybe_unused]] void *ptr) {},
-        [](void *ptr) -> void * { return static_cast<T_ *>(ptr); });
+        &t,
+        []([[maybe_unused]] void* ptr) {},
+        [](void* ptr) -> void* { return static_cast<T_*>(ptr); });
   }
 };
 
 class dynamic_storage {
  public:
   template <class T, class T_ = std::decay_t<T> >
-  constexpr explicit dynamic_storage(T &&t, detail::void_ptr &ptr) noexcept {
+  constexpr explicit dynamic_storage(T&& t, detail::void_ptr& ptr) noexcept {
     ptr.reset(
         new T_{std::forward<T>(t)},
-        [](void *ptr) { delete static_cast<T_ *>(ptr); },
-        [](void *ptr) -> void * {
-          return new T_{std::move(*static_cast<T_ *>(ptr))};
+        [](void* ptr) { delete static_cast<T_*>(ptr); },
+        [](void* ptr) -> void* {
+          return new T_{std::move(*static_cast<T_*>(ptr))};
         });
   }
 };
@@ -171,13 +172,14 @@ template <std::size_t Size, std::size_t Alignment = 16>
 class local_storage {
  public:
   template <class T, class T_ = std::decay_t<T> >
-  constexpr explicit local_storage(T &&t, detail::void_ptr &ptr) noexcept {
+  constexpr explicit local_storage(T&& t, detail::void_ptr& ptr) noexcept {
     static_assert(sizeof(T) <= Size);
     new (&data) T_{std::forward<T>(t)};
     ptr.reset(
-        &data, [](void *ptr) { static_cast<T_ *>(ptr)->~T_(); },
-        [](void *ptr) -> void * {
-          return new (ptr) T_{std::move(*static_cast<T_ *>(ptr))};
+        &data,
+        [](void* ptr) { static_cast<T_*>(ptr)->~T_(); },
+        [](void* ptr) -> void* {
+          return new (ptr) T_{std::move(*static_cast<T_*>(ptr))};
         });
   }
 
@@ -186,11 +188,12 @@ class local_storage {
 };
 
 class static_vtable {
-  using ptr_t = void *;
+  using ptr_t = void*;
 
  public:
   template <class T, std::size_t Size>
-  static_vtable(T &&, ptr_t *&vtable,
+  static_vtable(T&&,
+                ptr_t*& vtable,
                 std::integral_constant<std::size_t, Size>) noexcept {
     static ptr_t vt[Size]{};
     vtable = vt;
@@ -200,36 +203,40 @@ class static_vtable {
 namespace detail {
 struct poly_base {
   detail::void_ptr ptr{};
-  detail::void_ptr::ptr_t *vptr{};
+  detail::void_ptr::ptr_t* vptr{};
 };
 }  // namespace detail
 
-template <class I, class TStorage = dynamic_storage,
+template <class I,
+          class TStorage = dynamic_storage,
           class TVtable = static_vtable>
 class poly : detail::poly_base,
-             public std::conditional_t<detail::is_complete<I>{}, I,
+             public std::conditional_t<detail::is_complete<I>{},
+                                       I,
                                        detail::type_list<I> > {
  public:
-  template <class T, class = std::enable_if_t<
-                         not std::is_convertible<std::decay_t<T>, poly>{}> >
-  constexpr poly(T &&t) noexcept
+  template <class T,
+            class = std::enable_if_t<
+                not std::is_convertible<std::decay_t<T>, poly>{}> >
+  constexpr poly(T&& t) noexcept
       : poly{std::forward<T>(t),
              detail::type_list<decltype(detail::requires__<I>(bool{}))>{}} {}
-  constexpr poly(poly const &) noexcept = default;
-  constexpr poly &operator=(poly const &) noexcept = default;
-  constexpr poly(poly &&) noexcept = default;
-  constexpr poly &operator=(poly &&) noexcept = default;
+  constexpr poly(poly const&) noexcept = default;
+  constexpr poly& operator=(poly const&) noexcept = default;
+  constexpr poly(poly&&) noexcept = default;
+  constexpr poly& operator=(poly&&) noexcept = default;
 
  private:
   template <class T, class TRequires>
-  constexpr poly(T &&t, const TRequires) noexcept
+  constexpr poly(T&& t, const TRequires) noexcept
       : poly{std::forward<T>(t),
              std::make_index_sequence<detail::mappings_size<I>()>{}} {}
 
   template <class T, class T_ = std::decay_t<T>, std::size_t... Ns>
-  constexpr poly(T &&t, std::index_sequence<Ns...>) noexcept
+  constexpr poly(T&& t, std::index_sequence<Ns...>) noexcept
       : detail::poly_base{},
-        vtable{std::forward<T>(t), vptr,
+        vtable{std::forward<T>(t),
+               vptr,
                std::integral_constant<std::size_t, sizeof...(Ns)>{}},
         storage{std::forward<T>(t), ptr} {
     static_assert(sizeof...(Ns) > 0);
@@ -243,8 +250,8 @@ class poly : detail::poly_base,
 
   template <std::size_t N, class T, class TExpr, class... TArgs>
   constexpr void init(detail::type_list<TExpr, TArgs...>) noexcept {
-    vptr[N - 1] = reinterpret_cast<void *>(+[](void *self, TArgs... args) {
-      return detail::expr_wrapper<TExpr>{}(*static_cast<T *>(self), args...);
+    vptr[N - 1] = reinterpret_cast<void*>(+[](void* self, TArgs... args) {
+      return detail::expr_wrapper<TExpr>{}(*static_cast<T*>(self), args...);
     });
   }
 
@@ -254,11 +261,13 @@ class poly : detail::poly_base,
 
 namespace detail {
 template <class I, std::size_t N, class R, class TExpr, class... Ts>
-constexpr auto call_impl(const poly_base &self,
-                         std::integral_constant<std::size_t, N>, type_list<R>,
-                         const TExpr, Ts &&... args) noexcept {
+constexpr auto call_impl(const poly_base& self,
+                         std::integral_constant<std::size_t, N>,
+                         type_list<R>,
+                         const TExpr,
+                         Ts&&... args) noexcept {
   void(typename mappings<I, N>::template set<type_list<TExpr, Ts...> >{});
-  return reinterpret_cast<R (*)(void *, Ts...)>(self.vptr[N - 1])(
+  return reinterpret_cast<R (*)(void*, Ts...)>(self.vptr[N - 1])(
       self.ptr.get(), std::forward<Ts>(args)...);
 }
 
@@ -279,18 +288,21 @@ constexpr auto requires_impl(std::index_sequence<Ns...>) -> type_list<
 }  // namespace detail
 
 template <class R = void, std::size_t N = 0, class TExpr, class I, class... Ts>
-constexpr auto call(const TExpr expr, const I &interface,
-                    Ts &&... args) noexcept {
+constexpr auto call(const TExpr expr,
+                    const I& interface,
+                    Ts&&... args) noexcept {
   static_assert(std::is_empty<TExpr>{});
   return detail::call_impl<I>(
-      reinterpret_cast<const detail::poly_base &>(interface),
+      reinterpret_cast<const detail::poly_base&>(interface),
       std::integral_constant<std::size_t,
                              detail::mappings_size<I, class call>() + 1>{},
-      detail::type_list<R>{}, expr, std::forward<Ts>(args)...);
+      detail::type_list<R>{},
+      expr,
+      std::forward<Ts>(args)...);
 }
 
 template <class I, class T>
-constexpr auto extends(const T &) noexcept {
+constexpr auto extends(const T&) noexcept {
   detail::extends_impl<I, T>(
       std::make_index_sequence<detail::mappings_size<I, T>()>{});
 }
@@ -322,7 +334,8 @@ concept bool conceptify = requires {
             -> decltype(self.name(std::forward<decltype(args)>(args)...)) { \
           return self.name(std::forward<decltype(args)>(args)...);          \
         },                                                                  \
-        *this, ##__VA_ARGS__);                                              \
+        *this,                                                              \
+        ##__VA_ARGS__);                                                     \
   }
 #endif
 

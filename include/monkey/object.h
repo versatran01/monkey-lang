@@ -14,7 +14,8 @@ enum class ObjectType {
   kBool,
   kReturn,
   kError,
-  kFunction
+  kFunction,
+  kIndirect,
 };
 
 std::ostream& operator<<(std::ostream& os, ObjectType type);
@@ -29,7 +30,7 @@ struct ObjectBase {
   bool Ok() const noexcept { return type_ != ObjectType::kInvalid; }
   const ObjectBase* Ptr() const noexcept { return this; }
 
-  virtual std::string InspectImpl() const { return {}; }
+  virtual std::string InspectImpl() const { return "$Invalid$"; }
 
  private:
   ObjectType type_{ObjectType::kInvalid};
@@ -57,7 +58,7 @@ struct ObjectInterface {
   }
 
   template <typename D>
-  const D* PtrCast() const {
+  auto PtrCast() const {
     static_assert(std::is_base_of_v<ObjectBase, D>,
                   "D is not dervied from ObjectBase");
     return static_cast<const D*>(Ptr());
