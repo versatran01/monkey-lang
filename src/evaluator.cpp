@@ -120,7 +120,6 @@ Object Evaluator::Evaluate(const Expression& expr, Environment& env) const {
       return FunctionObject({fn_ptr->params, fn_ptr->body, &env});
     }
     case NodeType::kCallExpr: {
-      LOG(INFO) << "Eval Call Expr";
       const auto* ce_ptr = expr.PtrCast<CallExpression>();
 
       const auto obj = Evaluate(ce_ptr->func, env);
