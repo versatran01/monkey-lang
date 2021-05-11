@@ -34,11 +34,6 @@ struct Object {
   friend std::ostream& operator<<(std::ostream& os, const Object& obj);
 
   template <typename T>
-  auto PtrCast() const {
-    return absl::any_cast<T>(&value);
-  }
-
-  template <typename T>
   auto Cast() const {
     return absl::any_cast<const T&>(value);
   }
@@ -55,10 +50,12 @@ struct FnObject {
   Environment* env{nullptr};
 };
 
+// Use these to create new objects
 Object NullObject();
 Object IntObject(int64_t value);
 Object BoolObject(bool value);
 Object ErrorObject(std::string value);
+Object ReturnObject(Object value);
 Object FunctionObject(FnObject value);
 
 }  // namespace monkey

@@ -32,9 +32,8 @@ std::ostream& operator<<(std::ostream& os, NodeType type);
 
 /// Base Node
 struct NodeBase {
-  NodeBase() noexcept = default;
-  explicit NodeBase(NodeType type, Token token = {}) noexcept
-      : type_{type}, token{std::move(token)} {}
+  NodeBase() = default;
+  explicit NodeBase(NodeType type) : type_{type} {}
   virtual ~NodeBase() noexcept = default;
 
   NodeType Type() const noexcept { return type_; }
@@ -134,19 +133,22 @@ struct StatementBase : public NodeBase {
 
 /// Expressions
 struct Identifier final : public ExpressionBase {
-  Identifier() : ExpressionBase{NodeType::kIdentifier} {}
+  Identifier(std::string value = {})
+      : ExpressionBase{NodeType::kIdentifier}, value{std::move(value)} {}
 
   std::string value;
 };
 
 struct IntLiteral final : public ExpressionBase {
-  IntLiteral() : ExpressionBase{NodeType::kIntLiteral} {}
+  IntLiteral(int64_t value = {})
+      : ExpressionBase{NodeType::kIntLiteral}, value{value} {}
 
   int64_t value{};  // use 64 bits
 };
 
 struct BoolLiteral final : public ExpressionBase {
-  BoolLiteral() : ExpressionBase{NodeType::kBoolLiteral} {}
+  BoolLiteral(bool value = {})
+      : ExpressionBase{NodeType::kBoolLiteral}, value{value} {}
 
   bool value{};
 };
@@ -184,7 +186,7 @@ struct ReturnStatement final : public StatementBase {
 struct ExpressionStatement final : public StatementBase {
   ExpressionStatement() : StatementBase{NodeType::kExprStmt} {}
   std::string TokenLiteralImpl() const override { return expr.TokenLiteral(); }
-  std::string StringImpl() const override;
+  std::string StringImpl() const override { return expr.String(); }
 };
 
 struct BlockStatement final : public StatementBase {

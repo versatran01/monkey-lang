@@ -26,12 +26,12 @@ class Evaluator {
   Object EvalInfixExpression(const Object& lhs,
                              const std::string& op,
                              const Object& rhs) const;
-  Object EvalIntInfixExpression(const IntObject& lhs,
+  Object EvalIntInfixExpression(const Object& lhs,
                                 const std::string& op,
-                                const IntObject& rhs) const;
-  Object EvalBoolInfixExpression(const BoolObject& lhs,
+                                const Object& rhs) const;
+  Object EvalBoolInfixExpression(const Object& lhs,
                                  const std::string& op,
-                                 const BoolObject& rhs) const;
+                                 const Object& rhs) const;
   Object ApplyFunction(const Object& fobj,
                        const std::vector<Object>& args) const;
 };

@@ -4,7 +4,6 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
-#include "monkey/function.h"
 #include "monkey/parser.h"
 
 namespace monkey {
@@ -23,12 +22,12 @@ Object ParseAndEval(const std::string& input) {
 
 void CheckBoolObject(const Object& obj, bool value) {
   ASSERT_EQ(obj.Type(), ObjectType::kBool);
-  EXPECT_EQ(obj.PtrCast<BoolObject>()->value, value);
+  EXPECT_EQ(obj.Cast<bool>(), value);
 }
 
 void CheckIntObject(const Object& obj, int64_t value) {
   ASSERT_EQ(obj.Type(), ObjectType::kInt);
-  EXPECT_EQ(obj.PtrCast<IntObject>()->value, value);
+  EXPECT_EQ(obj.Cast<int64_t>(), value);
 }
 
 void CheckErrorObj(const Object& obj, const std::string& msg) {
@@ -56,9 +55,9 @@ TEST(EvaluatorTest, TestEvalIntergerExpression) {
   };
 
   for (const auto& test : tests) {
+    SCOPED_TRACE(test.first);
     const auto obj = ParseAndEval(test.first);
-    ASSERT_EQ(obj.Type(), ObjectType::kInt);
-    EXPECT_EQ(obj.PtrCast<IntObject>()->value, test.second);
+    CheckIntObject(obj, test.second);
   }
 }
 
@@ -192,28 +191,25 @@ TEST(EvaluatorTest, TestFunctionObject) {
   const std::string input = "fn(x) { x + 2; return 3; };";
   const auto obj = ParseAndEval(input);
   ASSERT_EQ(obj.Type(), ObjectType::kFunction);
-  const auto* ptr = obj.PtrCast<FunctionObject>();
-  ASSERT_EQ(ptr->NumParams(), 1);
-  EXPECT_EQ(ptr->params.front().String(), "x");
-  EXPECT_EQ(ptr->body.String(), "(x + 2); return 3;");
+  const auto& fobj = obj.Cast<FnObject>();
+  ASSERT_EQ(fobj.params.size(), 1);
+  EXPECT_EQ(fobj.params.front().String(), "x");
+  EXPECT_EQ(fobj.body.String(), "(x + 2); return 3;");
 }
 
 TEST(EvaluatorTest, TestFunctionApplication) {
   const std::vector<InputExpected<int64_t>> tests = {
-      //      {"let identity = fn(x) { x; }; identity(5);", 5},
+      {"let identity = fn(x) { x; }; identity(5);", 5},
       //      {"let identity = fn(x) { return x; }; identity(5);", 5},
       //      {"let double = fn(x) { x * 2; }; double(5);", 10},
       //      {"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
-      {"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
+      //      {"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
       //      {"fn(x) { x; }(5)", 5},
   };
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.first);
     const auto obj = ParseAndEval(test.first);
-    if (obj.Type() == ObjectType::kError) {
-      LOG(INFO) << obj.Inspect();
-    }
     CheckIntObject(obj, test.second);
   }
 }

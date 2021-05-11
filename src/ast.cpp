@@ -71,10 +71,6 @@ std::string InfixExpression::StringImpl() const {
   return fmt::format("({} {} {})", lhs.String(), op, rhs.String());
 }
 
-std::string ExpressionStatement::StringImpl() const {
-  return fmt::format("{}", expr.String());
-}
-
 std::string IfExpression::StringImpl() const {
   std::string str;
   str += fmt::format("if {} {}", cond.String(), true_block.String());

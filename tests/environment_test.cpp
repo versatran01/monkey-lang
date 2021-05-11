@@ -16,7 +16,7 @@ TEST(EnvironmentTest, TestGetSet) {
   ASSERT_NE(o1p, nullptr);
   EXPECT_EQ(o1p->Inspect(), "1");
   EXPECT_EQ(o1p->Cast<int64_t>(), 1);
-  EXPECT_EQ(*o1p->PtrCast<int64_t>(), 1);
+  //  EXPECT_EQ(*o1p->PtrCast<int64_t>(), 1);
 }
 
 TEST(EnvironmentTest, TestOstream) {

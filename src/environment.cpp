@@ -35,12 +35,12 @@ std::ostream& operator<<(std::ostream& os, const Environment& env) {
       absl::AlphaNumFormatter(), ": ", [](std::string* out, const Object& obj) {
         out->append(obj.Inspect());
       });
-  os << fmt::format("\n[{}]", absl::StrJoin(env.store_, " | ", pf));
+  os << fmt::format("[{}]", absl::StrJoin(env.store_, " | ", pf));
 
   // Print outer if exists
-  if (env.outer_) {
-    os << *env.outer_;
-  }
+  //  if (env.outer_) {
+  //    os << *env.outer_;
+  //  }
   return os;
 }
 

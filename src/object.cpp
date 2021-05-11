@@ -64,6 +64,9 @@ Object BoolObject(bool value) { return {ObjectType::kBool, value}; }
 Object ErrorObject(std::string value) {
   return {ObjectType::kError, std::move(value)};
 }
+Object ReturnObject(Object value) {
+  return {ObjectType::kReturn, std::move(value)};
+}
 Object FunctionObject(FnObject value) {
   return {ObjectType::kFunction, std::move(value)};
 }

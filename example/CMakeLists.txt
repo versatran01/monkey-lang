@@ -1,5 +1,5 @@
-#add_executable(monkey_play play.cpp)
-#target_link_libraries(monkey_play PRIVATE monkey_parser monkey_evaluator)
+add_executable(monkey_play play.cpp)
+target_link_libraries(monkey_play PRIVATE monkey_parser monkey_evaluator)
 
 add_executable(monkey_rlpl rlpl.cpp)
 target_link_libraries(monkey_rlpl PRIVATE monkey_lexer)

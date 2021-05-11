@@ -25,10 +25,6 @@ TEST(AstTest, TestExpressionValue) {
 }
 
 TEST(AstTest, TestStatementType) {
-  StatementBase stmt;
-  EXPECT_EQ(stmt.Type(), NodeType::kInvalid);
-  EXPECT_EQ(stmt.Ok(), false);
-
   LetStatement let;
   EXPECT_EQ(let.Type(), NodeType::kLetStmt);
   EXPECT_EQ(let.Ok(), true);
@@ -43,18 +39,18 @@ TEST(AstTest, TestStatementType) {
 }
 
 TEST(AstTest, TestExpressionStatement) {
-  Identifier expr;
-  expr.token = Token{TokenType::kIdent, "abc"};
-  expr.value = "abc";
+  Identifier ident;
+  ident.token = Token{TokenType::kIdent, "abc"};
+  ident.value = "abc";
 
   ExpressionStatement stmt;
-  stmt.token = expr.token;
-  stmt.expr = expr;
+  stmt.token = ident.token;
+  stmt.expr = ident;
 
   Statement node = stmt;
-  EXPECT_EQ(node.TokenLiteral(), expr.TokenLiteral());
-  EXPECT_EQ(node.Expr().String(), expr.String());
-  EXPECT_EQ(node.Expr().Type(), expr.Type());
+  EXPECT_EQ(node.TokenLiteral(), ident.TokenLiteral());
+  EXPECT_EQ(node.Expr().String(), ident.String());
+  EXPECT_EQ(node.Expr().Type(), ident.Type());
 }
 
 TEST(AstTest, TestExpressionPtr) {
