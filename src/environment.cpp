@@ -24,13 +24,8 @@ Object const* Environment::Get(absl::string_view name) const {
   return nullptr;
 }
 
-void Environment::Set(const std::string& name, const Object& obj) {
-  auto it = store_.find(name);
-  if (it == store_.end()) {
-    store_.insert({name, obj});
-  } else {
-    it->second = obj;
-  }
+Object& Environment::Set(const std::string& name, const Object& obj) {
+  return store_[name] = obj;
 }
 
 Environment MakeEnclosedEnv(Environment& env) { return Environment{&env}; }
@@ -40,7 +35,9 @@ std::ostream& operator<<(std::ostream& os, const Environment& env) {
       absl::AlphaNumFormatter(), ": ", [](std::string* out, const Object& obj) {
         out->append(obj.Inspect());
       });
-  os << fmt::format("\n[{}]", absl::StrJoin(env.store_, "| ", pf));
+  os << fmt::format("\n[{}]", absl::StrJoin(env.store_, " | ", pf));
+
+  // Print outer if exists
   if (env.outer_) {
     os << *env.outer_;
   }

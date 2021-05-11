@@ -8,35 +8,20 @@ namespace {
 
 TEST(EnvironmentTest, TestGetSet) {
   Environment env;
-  IntObject o1{1};
-  env.Set("a", o1);
+  env.Set("i", IntObject(1));
   EXPECT_EQ(env.size(), 1);
   EXPECT_EQ(env.Get("_"), nullptr);
-  const auto o1p = env.Get("a");
-  ASSERT_NE(o1p, nullptr);
-  EXPECT_EQ(o1p->PtrCast<IntObject>()->value, o1.value);
 
-  env.Set("a", BoolObject{true});
-  EXPECT_EQ(env.size(), 1);
-  const auto o2p = env.Get("a");
-  ASSERT_NE(o2p, nullptr);
-  EXPECT_EQ(o2p->PtrCast<BoolObject>()->value, true);
+  const auto* o1p = env.Get("i");
+  ASSERT_NE(o1p, nullptr);
+  EXPECT_EQ(o1p->Inspect(), "1");
+  EXPECT_EQ(o1p->CastCRef<int64_t>(), 1);
 }
 
 TEST(EnvironmentTest, TestOstream) {
   Environment env;
-  env.Set("i", IntObject{1});
-  env.Set("b", BoolObject{1});
-  LOG(INFO) << env;
-}
-
-TEST(EnvironmentTest, TestGet) {
-  Environment env;
-  env.Set("i", IntObject{1});
-  env.Set("b", BoolObject{1});
-  LOG(INFO) << env;
-
-  auto* i = env.Get("i");
+  env.Set("i", IntObject(1));
+  env.Set("b", BoolObject(true));
   LOG(INFO) << env;
 }
 

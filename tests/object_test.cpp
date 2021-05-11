@@ -1,27 +1,25 @@
 #include "monkey/object.h"
 
-#include <fmt/ostream.h>
 #include <gtest/gtest.h>
 
 namespace monkey {
 namespace {
 
-TEST(ObjecTest, TestOstream) {
-  std::string s;
-  {
-    s = fmt::format("{}", ObjectBase{}.Type());
-    EXPECT_EQ(s, "INVALID");
-  }
+TEST(ObjecTest, TestInspect) {
+  EXPECT_EQ(NullObject().Inspect(), "Null");
+  EXPECT_EQ(BoolObject(true).Inspect(), "true");
+  EXPECT_EQ(BoolObject(false).Inspect(), "false");
+  EXPECT_EQ(IntObject(1).Inspect(), "1");
+  EXPECT_EQ(ErrorObject("error").Inspect(), "error");
+}
 
-  {
-    s = fmt::format("{}", IntObject{}.Type());
-    EXPECT_EQ(s, "INTEGER");
-  }
+TEST(ObjecTest, TestCast) {
+  EXPECT_THROW(NullObject().CastCRef<int>(), absl::bad_any_cast);
+  EXPECT_THROW(BoolObject(true).CastCRef<int>(), absl::bad_any_cast);
 
-  {
-    s = fmt::format("{}", BoolObject{}.Type());
-    EXPECT_EQ(s, "BOOLEAN");
-  }
+  EXPECT_EQ(BoolObject(true).CastCRef<bool>(), true);
+  EXPECT_EQ(IntObject(1).CastCRef<int64_t>(), 1);
+  EXPECT_EQ(ErrorObject("error").CastCRef<std::string>(), "error");
 }
 
 }  // namespace

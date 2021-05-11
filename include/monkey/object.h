@@ -1,11 +1,15 @@
 #pragma once
 
+#include <absl/types/any.h>
+
 #include <string>
 #include <vector>
 
-#include "monkey/te.hpp"
+#include "monkey/ast.h"
 
 namespace monkey {
+
+class Environment;
 
 enum class ObjectType {
   kInvalid,
@@ -15,96 +19,41 @@ enum class ObjectType {
   kReturn,
   kError,
   kFunction,
-  kIndirect,
 };
 
 std::ostream& operator<<(std::ostream& os, ObjectType type);
 
-struct ObjectBase {
-  ObjectBase() noexcept = default;
-  explicit ObjectBase(ObjectType type) noexcept : type_{type} {}
-  virtual ~ObjectBase() noexcept = default;
+struct Object {
+  Object() = default;
+  explicit Object(ObjectType type) : type{type} {}
+  Object(ObjectType type, const absl::any& value) : type{type}, value{value} {}
+  virtual ~Object() noexcept = default;
 
-  std::string Inspect() const { return InspectImpl(); }
-  ObjectType Type() const noexcept { return type_; }
-  bool Ok() const noexcept { return type_ != ObjectType::kInvalid; }
-  const ObjectBase* Ptr() const noexcept { return this; }
+  std::string Inspect() const;
+  ObjectType Type() const noexcept { return type; }
+  friend std::ostream& operator<<(std::ostream& os, const Object& obj);
 
-  virtual std::string InspectImpl() const { return "$Invalid$"; }
-
- private:
-  ObjectType type_{ObjectType::kInvalid};
-};
-
-struct ObjectInterface {
-  auto Inspect() const {
-    return boost::te::call<std::string>(
-        [](const auto& self) { return self.Inspect(); }, *this);
+  template <typename T>
+  auto CastCRef() const {
+    return absl::any_cast<const T&>(value);
   }
 
-  auto Type() const {
-    return boost::te::call<ObjectType>(
-        [](const auto& self) { return self.Type(); }, *this);
-  }
-
-  auto Ptr() const {
-    return boost::te::call<const ObjectBase*>(
-        [](const auto& self) { return self.Ptr(); }, *this);
-  }
-
-  auto Ok() const {
-    return boost::te::call<bool>([](const auto& self) { return self.Ok(); },
-                                 *this);
-  }
-
-  template <typename D>
-  auto PtrCast() const {
-    static_assert(std::is_base_of_v<ObjectBase, D>,
-                  "D is not dervied from ObjectBase");
-    return static_cast<const D*>(Ptr());
-  }
+  ObjectType type{ObjectType::kInvalid};
+  absl::any value;
 };
 
-using Object = boost::te::poly<ObjectInterface>;
+struct FnObject {
+  std::string Inspect() const;
 
-struct NullObject final : public ObjectBase {
-  NullObject() : ObjectBase{ObjectType::kNull} {}
-  std::string InspectImpl() const override { return "null"; }
+  std::vector<Identifier> params;
+  BlockStatement body;
+  Environment* env{nullptr};
 };
 
-struct IntObject final : public ObjectBase {
-  using ValueType = int64_t;
-
-  IntObject(ValueType value = 0) : ObjectBase{ObjectType::kInt}, value{value} {}
-  std::string InspectImpl() const override { return std::to_string(value); }
-
-  ValueType value{};
-};
-
-struct BoolObject final : public ObjectBase {
-  using ValueType = bool;
-
-  BoolObject(ValueType value = false)
-      : ObjectBase{ObjectType::kBool}, value{value} {}
-  std::string InspectImpl() const override { return value ? "true" : "false"; }
-
-  ValueType value{};
-};
-
-struct ReturnObject final : public ObjectBase {
-  ReturnObject(Object value = ObjectBase{})
-      : ObjectBase{ObjectType::kReturn}, value{std::move(value)} {}
-  std::string InspectImpl() const override { return value.Inspect(); }
-
-  Object value{ObjectBase{}};
-};
-
-struct ErrorObject final : public ObjectBase {
-  ErrorObject(std::string msg = {})
-      : ObjectBase{ObjectType::kError}, msg{std::move(msg)} {}
-  std::string InspectImpl() const override { return msg; }
-
-  std::string msg;
-};
+Object NullObject();
+Object IntObject(int64_t value);
+Object BoolObject(bool value);
+Object ErrorObject(std::string value);
+Object FunctionObject(FnObject value);
 
 }  // namespace monkey

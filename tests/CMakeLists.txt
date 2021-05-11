@@ -26,15 +26,16 @@ add_test(NAME object_test COMMAND $<TARGET_FILE:object_test>)
 set_tests_properties(object_test PROPERTIES FAIL_REGULAR_EXPRESSION
                                             ".*FAILED.*")
 
-add_executable(evaluator_test evaluator_test.cpp)
-target_link_libraries(evaluator_test PRIVATE monkey_evaluator monkey_parser
-                                             monkey_test)
-add_test(NAME evaluator_test COMMAND $<TARGET_FILE:evaluator_test>)
-set_tests_properties(evaluator_test PROPERTIES FAIL_REGULAR_EXPRESSION
-                                               ".*FAILED.*")
-
 add_executable(environment_test environment_test.cpp)
 target_link_libraries(environment_test PRIVATE monkey_environment monkey_test)
 add_test(NAME environment_test COMMAND $<TARGET_FILE:environment_test>)
 set_tests_properties(environment_test PROPERTIES FAIL_REGULAR_EXPRESSION
                                                  ".*FAILED.*")
+
+# add_executable(evaluator_test evaluator_test.cpp)
+# target_link_libraries(evaluator_test PRIVATE monkey_evaluator monkey_parser
+#                                              monkey_test)
+# add_test(NAME evaluator_test COMMAND $<TARGET_FILE:evaluator_test>)
+# set_tests_properties(evaluator_test PROPERTIES FAIL_REGULAR_EXPRESSION
+#                                                ".*FAILED.*")
+
