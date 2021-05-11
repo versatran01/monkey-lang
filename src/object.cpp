@@ -44,11 +44,11 @@ std::string Object::Inspect() const {
     case ObjectType::kInt:
       return std::to_string(absl::any_cast<int64_t>(value));
     case ObjectType::kReturn:
-      return CastCRef<Object>().Inspect();
+      return Cast<Object>().Inspect();
     case ObjectType::kError:
       return absl::any_cast<std::string>(value);
     case ObjectType::kFunction:
-      return CastCRef<FnObject>().Inspect();
+      return Cast<FnObject>().Inspect();
     default:
       return fmt::format("Unknown type: {}", Type());
   }

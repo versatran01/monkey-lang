@@ -14,12 +14,16 @@ TEST(ObjecTest, TestInspect) {
 }
 
 TEST(ObjecTest, TestCast) {
-  EXPECT_THROW(NullObject().CastCRef<int>(), absl::bad_any_cast);
-  EXPECT_THROW(BoolObject(true).CastCRef<int>(), absl::bad_any_cast);
+  EXPECT_THROW(NullObject().Cast<bool>(), absl::bad_any_cast);
+  EXPECT_THROW(IntObject(1).Cast<bool>(), absl::bad_any_cast);
+  EXPECT_THROW(IntObject(2).Cast<std::string>(), absl::bad_any_cast);
 
-  EXPECT_EQ(BoolObject(true).CastCRef<bool>(), true);
-  EXPECT_EQ(IntObject(1).CastCRef<int64_t>(), 1);
-  EXPECT_EQ(ErrorObject("error").CastCRef<std::string>(), "error");
+  EXPECT_EQ(*BoolObject(true).PtrCast<bool>(), true);
+  EXPECT_EQ(*IntObject(1).PtrCast<int64_t>(), 1);
+  EXPECT_EQ(*ErrorObject("error").PtrCast<std::string>(), "error");
+  EXPECT_EQ(BoolObject(true).Cast<bool>(), true);
+  EXPECT_EQ(IntObject(1).Cast<int64_t>(), 1);
+  EXPECT_EQ(ErrorObject("error").Cast<std::string>(), "error");
 }
 
 }  // namespace

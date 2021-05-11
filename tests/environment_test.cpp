@@ -15,7 +15,8 @@ TEST(EnvironmentTest, TestGetSet) {
   const auto* o1p = env.Get("i");
   ASSERT_NE(o1p, nullptr);
   EXPECT_EQ(o1p->Inspect(), "1");
-  EXPECT_EQ(o1p->CastCRef<int64_t>(), 1);
+  EXPECT_EQ(o1p->Cast<int64_t>(), 1);
+  EXPECT_EQ(*o1p->PtrCast<int64_t>(), 1);
 }
 
 TEST(EnvironmentTest, TestOstream) {

@@ -34,7 +34,12 @@ struct Object {
   friend std::ostream& operator<<(std::ostream& os, const Object& obj);
 
   template <typename T>
-  auto CastCRef() const {
+  auto PtrCast() const {
+    return absl::any_cast<T>(&value);
+  }
+
+  template <typename T>
+  auto Cast() const {
     return absl::any_cast<const T&>(value);
   }
 
