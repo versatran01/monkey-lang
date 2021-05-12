@@ -9,8 +9,7 @@ namespace monkey {
 class Evaluator {
  public:
   Object Evaluate(const Program& program, Environment& env) const;
-  Object Evaluate(const StmtNode& stmt, Environment& env) const;
-  Object Evaluate(const ExprNode& expr, Environment& env) const;
+  Object Evaluate(const AstNode& node, Environment& env) const;
 
  private:
   Object EvalProgram(const Program& program, Environment& env) const;

@@ -56,41 +56,34 @@ Object Evaluator::Evaluate(const Program& program, Environment& env) const {
   return EvalProgram(program, env);
 }
 
-Object Evaluator::Evaluate(const StmtNode& stmt, Environment& env) const {
-  switch (stmt.Type()) {
+Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
+  switch (node.Type()) {
     case NodeType::kExprStmt:
-      return Evaluate(stmt.Expr(), env);
+      return Evaluate(GetExpr(node), env);
     case NodeType::kBlockStmt:
-      return EvalBlockStatment(*stmt.PtrCast<BlockStmt>(), env);
+      return EvalBlockStatment(*node.PtrCast<BlockStmt>(), env);
     case NodeType::kReturnStmt: {
-      auto obj = Evaluate(stmt.Expr(), env);
+      auto obj = Evaluate(GetExpr(node), env);
       if (IsError(obj)) {
         return obj;
       }
       return ReturnObject(std::move(obj));
     }
     case NodeType::kLetStmt: {
-      const auto obj = Evaluate(stmt.Expr(), env);
+      const auto obj = Evaluate(GetExpr(node), env);
       if (IsError(obj)) {
         return obj;
       }
-      return env.Set(stmt.PtrCast<LetStmt>()->name.String(), obj);
+      return env.Set(node.PtrCast<LetStmt>()->name.String(), obj);
     }
-    default:
-      return NullObject();
-  }
-}
-
-Object Evaluator::Evaluate(const ExprNode& expr, Environment& env) const {
-  switch (expr.Type()) {
     case NodeType::kIntLiteral: {
-      return IntObject(expr.PtrCast<IntLiteral>()->value);
+      return IntObject(node.PtrCast<IntLiteral>()->value);
     }
     case NodeType::kBoolLiteral: {
-      return expr.PtrCast<BoolLiteral>()->value ? kTrueObject : kFalseObject;
+      return node.PtrCast<BoolLiteral>()->value ? kTrueObject : kFalseObject;
     }
     case NodeType::kPrefixExpr: {
-      const auto* pe_ptr = expr.PtrCast<PrefixExpr>();
+      const auto* pe_ptr = node.PtrCast<PrefixExpr>();
       const auto rhs = Evaluate(pe_ptr->rhs, env);
       if (IsError(rhs)) {
         return rhs;
@@ -98,7 +91,7 @@ Object Evaluator::Evaluate(const ExprNode& expr, Environment& env) const {
       return EvalPrefixExpression(pe_ptr->op, rhs);
     }
     case NodeType::kInfixExpr: {
-      const auto* ie_ptr = expr.PtrCast<InfixExpr>();
+      const auto* ie_ptr = node.PtrCast<InfixExpr>();
       const auto lhs = Evaluate(ie_ptr->lhs, env);
       if (IsError(lhs)) {
         return lhs;
@@ -110,17 +103,17 @@ Object Evaluator::Evaluate(const ExprNode& expr, Environment& env) const {
       return EvalInfixExpression(lhs, ie_ptr->op, rhs);
     }
     case NodeType::kIfExpr: {
-      return EvalIfExpression(*expr.PtrCast<IfExpr>(), env);
+      return EvalIfExpression(*node.PtrCast<IfExpr>(), env);
     }
     case NodeType::kIdentifier: {
-      return EvalIdentifier(*expr.PtrCast<Identifier>(), env);
+      return EvalIdentifier(*node.PtrCast<Identifier>(), env);
     }
     case NodeType::kFnLiteral: {
-      const auto* fn_ptr = expr.PtrCast<FuncLiteral>();
+      const auto* fn_ptr = node.PtrCast<FuncLiteral>();
       return FunctionObject({fn_ptr->params, fn_ptr->body, &env});
     }
     case NodeType::kCallExpr: {
-      const auto* ce_ptr = expr.PtrCast<CallExpr>();
+      const auto* ce_ptr = node.PtrCast<CallExpr>();
 
       const auto obj = Evaluate(ce_ptr->func, env);
       if (IsError(obj)) {
@@ -137,7 +130,6 @@ Object Evaluator::Evaluate(const ExprNode& expr, Environment& env) const {
       return ApplyFunction(obj, args_obj);
     }
     default:
-      CHECK(false) << "Should not reach";
       return NullObject();
   }
 }
@@ -305,8 +297,7 @@ Object Evaluator::ApplyFunction(const Object& obj,
   return UnwrapReturn(ret_obj);
 }
 
-Object Evaluator::EvalIfExpression(const IfExpr& expr,
-                                   Environment& env) const {
+Object Evaluator::EvalIfExpression(const IfExpr& expr, Environment& env) const {
   const auto cond = Evaluate(expr.cond, env);
   if (IsError(cond)) {
     return cond;

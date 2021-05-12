@@ -182,4 +182,7 @@ struct CallExpr final : public NodeBase {
   std::vector<ExprNode> args;
 };
 
+// Helper function to get the expression in ExprStmt
+const ExprNode& GetExpr(const StmtNode& node);
+
 }  // namespace monkey

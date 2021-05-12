@@ -78,10 +78,9 @@ TEST(AstTest, TestExpressionStatement) {
 
   StmtNode node = stmt;
   EXPECT_EQ(node.TokenLiteral(), ident.TokenLiteral());
-  const auto* ptr = node.PtrCast<ExprStmt>();
-  ASSERT_NE(ptr, nullptr);
-  EXPECT_EQ(ptr->expr.String(), ident.String());
-  EXPECT_EQ(ptr->expr.Type(), ident.Type());
+  const auto& expr = GetExpr(node);
+  EXPECT_EQ(expr.String(), ident.String());
+  EXPECT_EQ(expr.Type(), ident.Type());
 }
 
 TEST(AstTest, TestProgramString) {

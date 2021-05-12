@@ -24,6 +24,14 @@ absl::flat_hash_map<TokenType, Precedence> gTokenPrecedence = {
     {TokenType::kAsterisk, Precedence::kProduct},
     {TokenType::kLParen, Precedence::kCall}};
 
+Precedence TokenPrecedence(TokenType type) {
+  const auto it = gTokenPrecedence.find(type);
+  if (it != gTokenPrecedence.end()) {
+    return it->second;
+  }
+  return Precedence::kLowest;
+}
+
 }  // namespace
 
 Parser::Parser(Lexer lexer) : lexer_(std::move(lexer)) {
@@ -100,7 +108,7 @@ StmtNode Parser::ParseLetStatement() {
 
   if (!ExpectPeek(TokenType::kIdent)) {
     LOG(INFO) << "[ParseLetStatement] Next token is not Ident";
-    return StmtBase{};
+    return {};
   }
 
   let_stmt.name.token = curr_token_;
@@ -108,7 +116,7 @@ StmtNode Parser::ParseLetStatement() {
 
   if (!ExpectPeek(TokenType::kAssign)) {
     LOG(INFO) << "[ParseLetStatement] Next token is not Assing";
-    return StmtBase{};
+    return {};
   }
 
   NextToken();
@@ -171,7 +179,7 @@ ExprNode Parser::ParseExpression(Precedence precedence) {
         fmt::format("no prefix parse function for {}", curr_token_.type);
     LOG(WARNING) << msg;
     errors_.push_back(msg);
-    return NodeBase{};
+    return {};
   }
 
   auto lhs = prefix_it->second();
@@ -205,7 +213,7 @@ ExprNode Parser::ParseIntegerLiteral() {
         fmt::format("could not parse {} as integer", curr_token_.literal);
     LOG(WARNING) << msg;
     errors_.push_back(msg);
-    return NodeBase{};
+    return {};
   }
 
   return int_lit;
@@ -223,13 +231,13 @@ ExprNode Parser::ParseFunctionLiteral() {
   fn_lit.token = curr_token_;
 
   if (!ExpectPeek(TokenType::kLParen)) {
-    return NodeBase{};
+    return {};
   }
 
   fn_lit.params = ParseFunctionParameters();
 
   if (!ExpectPeek(TokenType::kLBrace)) {
-    return NodeBase{};
+    return {};
   }
 
   fn_lit.body = ParseBlockStatement();
@@ -252,7 +260,7 @@ ExprNode Parser::ParseGroupedExpression() {
   NextToken();
   auto expr = ParseExpression(Precedence::kLowest);
   if (!ExpectPeek(TokenType::kRParen)) {
-    return NodeBase{};
+    return {};
   }
   return expr;
 }
@@ -262,17 +270,17 @@ ExprNode Parser::ParseIfExpression() {
   if_expr.token = curr_token_;
 
   if (!ExpectPeek(TokenType::kLParen)) {
-    return NodeBase{};
+    return {};
   }
 
   NextToken();
   if_expr.cond = ParseExpression(Precedence::kLowest);
 
   if (!ExpectPeek(TokenType::kRParen)) {
-    return NodeBase{};
+    return {};
   }
   if (!ExpectPeek(TokenType::kLBrace)) {
-    return NodeBase{};
+    return {};
   }
   if_expr.true_block = ParseBlockStatement();
 
@@ -280,7 +288,7 @@ ExprNode Parser::ParseIfExpression() {
   if (IsPeekToken(TokenType::kElse)) {
     NextToken();
     if (!ExpectPeek(TokenType::kLBrace)) {
-      return NodeBase{};
+      return {};
     }
     if_expr.false_block = ParseBlockStatement();
   }
@@ -366,23 +374,15 @@ bool Parser::ExpectPeek(TokenType type) {
   if (IsPeekToken(type)) {
     NextToken();
     return true;
-  } else {
-    PeekError(type);
-    return false;
   }
+
+  PeekError(type);
+  return false;
 }
 
 void Parser::PeekError(TokenType type) {
   errors_.push_back(fmt::format(
       "Expected next token to be {}, got {} instead", type, peek_token_.type));
-}
-
-Precedence Parser::TokenPrecedence(TokenType type) const {
-  const auto it = gTokenPrecedence.find(type);
-  if (it != gTokenPrecedence.end()) {
-    return it->second;
-  }
-  return Precedence::kLowest;
 }
 
 Precedence Parser::CurrPrecedence() const {

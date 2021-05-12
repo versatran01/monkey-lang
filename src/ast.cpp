@@ -94,4 +94,18 @@ std::string CallExpr::String() const {
       "{}({})", func.String(), absl::StrJoin(args, ", ", NodeFmt()));
 }
 
+const ExprNode& GetExpr(const StmtNode& node) {
+  switch (node.Type()) {
+    case NodeType::kExprStmt:
+      return node.PtrCast<ExprStmt>()->expr;
+    case NodeType::kLetStmt:
+      return node.PtrCast<LetStmt>()->expr;
+    case NodeType::kReturnStmt:
+      return node.PtrCast<ReturnStmt>()->expr;
+    default:
+      throw std::runtime_error(
+          "GetExpr can only be called on ExprStmt, LetStmt and ReturnStmt");
+  }
+}
+
 }  // namespace monkey

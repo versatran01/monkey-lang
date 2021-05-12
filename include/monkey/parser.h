@@ -5,7 +5,8 @@
 #include <functional>
 
 #include "monkey/ast.h"
-#include "monkey/lexer.h"  // token
+#include "monkey/lexer.h"
+#include "monkey/token.h"
 
 namespace monkey {
 
@@ -62,12 +63,11 @@ class Parser {
   bool ExpectPeek(TokenType type);
   void PeekError(TokenType type);
 
-  Precedence TokenPrecedence(TokenType type) const;
   Precedence CurrPrecedence() const;
   Precedence PeekPrecedence() const;
 
   using PrefixParseFn = std::function<ExprNode()>;
-  using InfixParseFn = std::function<ExprNode(Expression)>;
+  using InfixParseFn = std::function<ExprNode(ExprNode)>;
 
   void RegisterParseFns();
   void RegisterInfix(TokenType type, InfixParseFn fn) {
