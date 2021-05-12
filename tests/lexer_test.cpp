@@ -31,9 +31,10 @@ TEST(LexerTest, TestNextToken) {
                                  {TokenType::kEof, ""}};
 
   for (const auto& true_token : true_tokens) {
+    SCOPED_TRACE(true_token);
     const auto next_token = lexer.NextToken();
     ASSERT_EQ(next_token.type, true_token.type);
-    ASSERT_EQ(next_token.literal, true_token.literal);
+    EXPECT_EQ(next_token.literal, true_token.literal);
   }
 }
 
@@ -51,6 +52,8 @@ TEST(LexerTest, TestSimpleCode) {
     return false;
     10 == 10;
     10 != 9;
+    "foobar"
+    "foo bar"
   )raw";
 
   Lexer lexer(input);
@@ -86,13 +89,14 @@ TEST(LexerTest, TestSimpleCode) {
       {TokenType::kInt, "10"},        {TokenType::kSemicolon, ";"},
       {TokenType::kInt, "10"},        {TokenType::kNe, "!="},
       {TokenType::kInt, "9"},         {TokenType::kSemicolon, ";"},
+      {TokenType::kStr, "foobar"},    {TokenType::kStr, "foo bar"},
       {TokenType::kEof, ""}};
 
   for (const auto& true_token : true_tokens) {
     SCOPED_TRACE(true_token);
     const auto next_token = lexer.NextToken();
     ASSERT_EQ(next_token.type, true_token.type);
-    ASSERT_EQ(next_token.literal, true_token.literal);
+    EXPECT_EQ(next_token.literal, true_token.literal);
   }
 }
 

@@ -42,22 +42,20 @@ Parser::Parser(Lexer lexer) : lexer_(std::move(lexer)) {
 }
 
 void Parser::RegisterParseFns() {
-  RegisterPrefix(TokenType::kIf, [this]() { return ParseIfExpression(); });
+  RegisterPrefix(TokenType::kIf, [this]() { return ParseIfExpr(); });
   RegisterPrefix(TokenType::kIdent, [this]() { return ParseIdentifier(); });
-  RegisterPrefix(TokenType::kInt, [this]() { return ParseIntegerLiteral(); });
-  RegisterPrefix(TokenType::kTrue, [this]() { return ParseBooleanLiteral(); });
-  RegisterPrefix(TokenType::kFalse, [this]() { return ParseBooleanLiteral(); });
-  RegisterPrefix(TokenType::kFunc, [this]() { return ParseFunctionLiteral(); });
-  RegisterPrefix(TokenType::kLParen,
-                 [this]() { return ParseGroupedExpression(); });
+  RegisterPrefix(TokenType::kInt, [this]() { return ParseIntLiteral(); });
+  RegisterPrefix(TokenType::kTrue, [this]() { return ParseBoolLiteral(); });
+  RegisterPrefix(TokenType::kFalse, [this]() { return ParseBoolLiteral(); });
+  RegisterPrefix(TokenType::kFunc, [this]() { return ParseFuncLiteral(); });
+  RegisterPrefix(TokenType::kLParen, [this]() { return ParseGroupedExpr(); });
+  RegisterPrefix(TokenType::kStr, [this]() { return ParseStrLiteral(); });
 
-  auto parse_prefix = [this]() { return ParsePrefixExpression(); };
+  auto parse_prefix = [this]() { return ParsePrefixExpr(); };
   RegisterPrefix(TokenType::kBang, parse_prefix);
   RegisterPrefix(TokenType::kMinus, parse_prefix);
 
-  auto parse_infix = [this](const auto& expr) {
-    return ParseInfixExpression(expr);
-  };
+  auto parse_infix = [this](const auto& expr) { return ParseInfixExpr(expr); };
   RegisterInfix(TokenType::kPlus, parse_infix);
   RegisterInfix(TokenType::kMinus, parse_infix);
   RegisterInfix(TokenType::kSlash, parse_infix);
@@ -69,7 +67,7 @@ void Parser::RegisterParseFns() {
   RegisterInfix(TokenType::kLe, parse_infix);
   RegisterInfix(TokenType::kGe, parse_infix);
   RegisterInfix(TokenType::kLParen,
-                [this](const auto& expr) { return ParseCallExpression(expr); });
+                [this](const auto& expr) { return PasrseCallExpr(expr); });
 }
 
 void Parser::NextToken() {
@@ -94,15 +92,15 @@ std::string Parser::ErrorMsg() const { return absl::StrJoin(errors_, "\n"); }
 StmtNode Parser::ParseStatement() {
   switch (curr_token_.type) {
     case TokenType::kLet:
-      return ParseLetStatement();
+      return ParseLetStmt();
     case TokenType::kReturn:
-      return ParseReturnStatement();
+      return ParseReturnStmt();
     default:
-      return ParseExpressionStatement();
+      return PasreExprStmt();
   }
 }
 
-StmtNode Parser::ParseLetStatement() {
+StmtNode Parser::ParseLetStmt() {
   LetStmt let_stmt;
   let_stmt.token = curr_token_;
 
@@ -129,7 +127,7 @@ StmtNode Parser::ParseLetStatement() {
   return let_stmt;
 }
 
-StmtNode Parser::ParseReturnStatement() {
+StmtNode Parser::ParseReturnStmt() {
   ReturnStmt ret_stmt;
   ret_stmt.token = curr_token_;
 
@@ -143,7 +141,7 @@ StmtNode Parser::ParseReturnStatement() {
   return ret_stmt;
 }
 
-StmtNode Parser::ParseExpressionStatement() {
+StmtNode Parser::PasreExprStmt() {
   ExprStmt expr_stmt;
   expr_stmt.token = curr_token_;
   expr_stmt.expr = ParseExpression(Precedence::kLowest);
@@ -155,7 +153,7 @@ StmtNode Parser::ParseExpressionStatement() {
   return expr_stmt;
 }
 
-BlockStmt Parser::ParseBlockStatement() {
+BlockStmt Parser::ParseBlockStmt() {
   BlockStmt block_stmt;
   block_stmt.token = curr_token_;
 
@@ -203,7 +201,14 @@ ExprNode Parser::ParseIdentifier() {
   return ident;
 }
 
-ExprNode Parser::ParseIntegerLiteral() {
+ExprNode Parser::ParseStrLiteral() {
+  StrLiteral strlit;
+  strlit.token = curr_token_;
+  strlit.value = curr_token_.literal;
+  return strlit;
+}
+
+ExprNode Parser::ParseIntLiteral() {
   IntLiteral int_lit;
   int_lit.token = curr_token_;
 
@@ -219,14 +224,14 @@ ExprNode Parser::ParseIntegerLiteral() {
   return int_lit;
 }
 
-ExprNode Parser::ParseBooleanLiteral() {
+ExprNode Parser::ParseBoolLiteral() {
   BoolLiteral bool_lit;
   bool_lit.token = curr_token_;
   bool_lit.value = IsCurrToken(TokenType::kTrue);
   return bool_lit;
 }
 
-ExprNode Parser::ParseFunctionLiteral() {
+ExprNode Parser::ParseFuncLiteral() {
   FuncLiteral fn_lit;
   fn_lit.token = curr_token_;
 
@@ -234,17 +239,17 @@ ExprNode Parser::ParseFunctionLiteral() {
     return {};
   }
 
-  fn_lit.params = ParseFunctionParameters();
+  fn_lit.params = ParseFuncParams();
 
   if (!ExpectPeek(TokenType::kLBrace)) {
     return {};
   }
 
-  fn_lit.body = ParseBlockStatement();
+  fn_lit.body = ParseBlockStmt();
   return fn_lit;
 }
 
-ExprNode Parser::ParseInfixExpression(const ExprNode& lhs) {
+ExprNode Parser::ParseInfixExpr(const ExprNode& lhs) {
   InfixExpr infx_expr;
   infx_expr.token = curr_token_;
   infx_expr.op = curr_token_.literal;
@@ -256,7 +261,7 @@ ExprNode Parser::ParseInfixExpression(const ExprNode& lhs) {
   return infx_expr;
 }
 
-ExprNode Parser::ParseGroupedExpression() {
+ExprNode Parser::ParseGroupedExpr() {
   NextToken();
   auto expr = ParseExpression(Precedence::kLowest);
   if (!ExpectPeek(TokenType::kRParen)) {
@@ -265,7 +270,7 @@ ExprNode Parser::ParseGroupedExpression() {
   return expr;
 }
 
-ExprNode Parser::ParseIfExpression() {
+ExprNode Parser::ParseIfExpr() {
   IfExpr if_expr;
   if_expr.token = curr_token_;
 
@@ -282,7 +287,7 @@ ExprNode Parser::ParseIfExpression() {
   if (!ExpectPeek(TokenType::kLBrace)) {
     return {};
   }
-  if_expr.true_block = ParseBlockStatement();
+  if_expr.true_block = ParseBlockStmt();
 
   // else
   if (IsPeekToken(TokenType::kElse)) {
@@ -290,21 +295,21 @@ ExprNode Parser::ParseIfExpression() {
     if (!ExpectPeek(TokenType::kLBrace)) {
       return {};
     }
-    if_expr.false_block = ParseBlockStatement();
+    if_expr.false_block = ParseBlockStmt();
   }
 
   return if_expr;
 }
 
-ExprNode Parser::ParseCallExpression(const ExprNode& expr) {
+ExprNode Parser::PasrseCallExpr(const ExprNode& expr) {
   CallExpr call_expr;
   call_expr.token = curr_token_;
   call_expr.func = expr;
-  call_expr.args = ParseCallArguments();
+  call_expr.args = ParseCallArgs();
   return call_expr;
 }
 
-std::vector<Identifier> Parser::ParseFunctionParameters() {
+std::vector<Identifier> Parser::ParseFuncParams() {
   std::vector<Identifier> params;
 
   if (IsPeekToken(TokenType::kRParen)) {
@@ -335,7 +340,7 @@ std::vector<Identifier> Parser::ParseFunctionParameters() {
   return params;
 }
 
-std::vector<ExprNode> Parser::ParseCallArguments() {
+std::vector<ExprNode> Parser::ParseCallArgs() {
   std::vector<ExprNode> args;
 
   if (IsPeekToken(TokenType::kRParen)) {
@@ -359,7 +364,7 @@ std::vector<ExprNode> Parser::ParseCallArguments() {
   return args;
 }
 
-ExprNode Parser::ParsePrefixExpression() {
+ExprNode Parser::ParsePrefixExpr() {
   PrefixExpr prefix_expr;
   prefix_expr.token = curr_token_;
   prefix_expr.op = curr_token_.literal;

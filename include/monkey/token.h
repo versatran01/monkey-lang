@@ -10,6 +10,7 @@ enum class TokenType {
   kEof,
   kIdent,
   kInt,
+  kStr,
   kAssign,
   kPlus,
   kMinus,

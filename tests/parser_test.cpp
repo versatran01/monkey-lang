@@ -314,5 +314,19 @@ TEST(ParserTest, TestParsingCallExpression) {
   CheckInfixExpression(ptr->args[2], 4, "+", 5);
 }
 
+TEST(ParserTest, TestStrLiteralExpression) {
+  const std::string input = R"raw("hello world";)raw";
+  Parser parser{input};
+  const auto program = parser.ParseProgram();
+  ASSERT_EQ(program.NumStatements(), 1);
+  const auto stmt = program.statements.front();
+  ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
+  const auto& expr = GetExpr(stmt);
+  ASSERT_EQ(expr.Type(), NodeType::kStrLiteral);
+  const auto* ptr = expr.PtrCast<StrLiteral>();
+  ASSERT_NE(ptr, nullptr);
+  EXPECT_EQ(ptr->value, "hello world");
+}
+
 }  // namespace
 }  // namespace monkey

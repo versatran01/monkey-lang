@@ -8,9 +8,9 @@ namespace monkey {
 
 namespace {
 
-const Object kTrueObject = BoolObject(true);
-const Object kFalseObject = BoolObject(false);
-const Object kNullObject = NullObject();
+const Object kTrueObject = BoolObj(true);
+const Object kFalseObject = BoolObj(false);
+const Object kNullObject = NullObj();
 
 bool IsTruthy(const Object& obj) {
   switch (obj.Type()) {
@@ -32,7 +32,7 @@ const std::string kTypeMismatch = "type mismatch";
 const std::string kIdentifierNotFound = "identifier not found";
 const std::string kNotAFunction = "not a function";
 
-Environment ExtendFunctionEnv(const FnObject& func,
+Environment ExtendFunctionEnv(const FuncObject& func,
                               const std::vector<Object>& args) {
   auto env = MakeEnclosedEnv(func.env.get());
 
@@ -61,13 +61,13 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
     case NodeType::kExprStmt:
       return Evaluate(GetExpr(node), env);
     case NodeType::kBlockStmt:
-      return EvalBlockStatment(*node.PtrCast<BlockStmt>(), env);
+      return EvalBlockStmt(*node.PtrCast<BlockStmt>(), env);
     case NodeType::kReturnStmt: {
       auto obj = Evaluate(GetExpr(node), env);
       if (IsError(obj)) {
         return obj;
       }
-      return ReturnObject(std::move(obj));
+      return ReturnObj(std::move(obj));
     }
     case NodeType::kLetStmt: {
       const auto obj = Evaluate(GetExpr(node), env);
@@ -78,10 +78,13 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
       return env.Set(ptr->name.String(), obj);
     }
     case NodeType::kIntLiteral: {
-      return IntObject(node.PtrCast<IntLiteral>()->value);
+      return IntObj(node.PtrCast<IntLiteral>()->value);
     }
     case NodeType::kBoolLiteral: {
       return node.PtrCast<BoolLiteral>()->value ? kTrueObject : kFalseObject;
+    }
+    case NodeType::kStrLiteral: {
+      return StrObj(node.PtrCast<StrLiteral>()->value);
     }
     case NodeType::kPrefixExpr: {
       const auto* pe_ptr = node.PtrCast<PrefixExpr>();
@@ -89,7 +92,7 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
       if (IsError(rhs)) {
         return rhs;
       }
-      return EvalPrefixExpression(pe_ptr->op, rhs);
+      return EvalPrefixExpr(pe_ptr->op, rhs);
     }
     case NodeType::kInfixExpr: {
       const auto* ie_ptr = node.PtrCast<InfixExpr>();
@@ -101,17 +104,17 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
       if (IsError(rhs)) {
         return rhs;
       }
-      return EvalInfixExpression(lhs, ie_ptr->op, rhs);
+      return EvalInfixExpr(lhs, ie_ptr->op, rhs);
     }
     case NodeType::kIfExpr: {
-      return EvalIfExpression(*node.PtrCast<IfExpr>(), env);
+      return EvalIfExpr(*node.PtrCast<IfExpr>(), env);
     }
     case NodeType::kIdentifier: {
       return EvalIdentifier(*node.PtrCast<Identifier>(), env);
     }
     case NodeType::kFnLiteral: {
       const auto* fn_ptr = node.PtrCast<FuncLiteral>();
-      return FunctionObject(
+      return FuncObj(
           {fn_ptr->params, fn_ptr->body, std::make_shared<Environment>(env)});
     }
     case NodeType::kCallExpr: {
@@ -122,22 +125,22 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
         return obj;
       }
 
-      const auto args_obj = EvalExpressions(ce_ptr->args, env);
+      const auto args_obj = EvalExprs(ce_ptr->args, env);
 
       // Handle argument evaluation failure
       if (args_obj.size() == 1 && IsError(args_obj.front())) {
         return args_obj.front();
       }
 
-      return ApplyFunction(obj, args_obj);
+      return ApplyFunc(obj, args_obj);
     }
     default:
-      return NullObject();
+      return NullObj();
   }
 }
 
 Object Evaluator::EvalProgram(const Program& program, Environment& env) const {
-  Object obj = NullObject();
+  Object obj = NullObj();
 
   for (const auto& stmt : program.statements) {
     obj = Evaluate(stmt, env);
@@ -156,44 +159,58 @@ Object Evaluator::EvalIdentifier(const Identifier& ident,
                                  const Environment& env) const {
   const auto obj = env.Get(ident.value);
   if (!obj.Ok()) {
-    return ErrorObject(fmt::format("{}: {}", kIdentifierNotFound, ident.value));
+    return ErrorObj(fmt::format("{}: {}", kIdentifierNotFound, ident.value));
   }
 
   return obj;
 }
 
-Object Evaluator::EvalPrefixExpression(const std::string& op,
-                                       const Object& obj) const {
+Object Evaluator::EvalPrefixExpr(const std::string& op,
+                                 const Object& obj) const {
   if (op == "!") {
-    return EvalBangOperatorExpression(obj);
+    return EvalBangOpExpr(obj);
   } else if (op == "-") {
-    return EvalMinuxPrefixOperatorExpression(obj);
+    return EvalMinuxPrefixOpExpr(obj);
   } else {
-    return ErrorObject(
-        fmt::format("{}: {}{}", kUnknownOperator, op, obj.Type()));
+    return ErrorObj(fmt::format("{}: {}{}", kUnknownOperator, op, obj.Type()));
   }
 }
 
-Object Evaluator::EvalInfixExpression(const Object& lhs,
-                                      const std::string& op,
-                                      const Object& rhs) const {
+Object Evaluator::EvalInfixExpr(const Object& lhs,
+                                const std::string& op,
+                                const Object& rhs) const {
   if (lhs.Type() == ObjectType::kInt && rhs.Type() == ObjectType::kInt) {
-    return EvalIntInfixExpression(lhs, op, rhs);
+    return EvalIntInfixExpr(lhs, op, rhs);
   } else if (lhs.Type() == ObjectType::kBool &&
              rhs.Type() == ObjectType::kBool) {
-    return EvalBoolInfixExpression(lhs, op, rhs);
+    return EvalBoolInfixExpr(lhs, op, rhs);
+  } else if (lhs.Type() == ObjectType::kStr && rhs.Type() == ObjectType::kStr) {
+    return EvalStrInfixExpr(lhs, op, rhs);
   } else if (lhs.Type() != rhs.Type()) {
-    return ErrorObject(
+    return ErrorObj(
         fmt::format("{}: {} {} {}", kTypeMismatch, lhs.Type(), op, rhs.Type()));
   } else {
-    return ErrorObject(fmt::format(
+    return ErrorObj(fmt::format(
         "{}: {} {} {}", kUnknownOperator, lhs.Type(), op, rhs.Type()));
   }
 }
 
-Object Evaluator::EvalBlockStatment(const BlockStmt& block,
-                                    Environment& env) const {
-  Object obj = NullObject();
+Object Evaluator::EvalStrInfixExpr(const Object& lhs,
+                                   const std::string& op,
+                                   const Object& rhs) const {
+  if (op != "+") {
+    return ErrorObj(fmt::format(
+        "{}: {} {} {}", kUnknownOperator, lhs.Type(), op, rhs.Type()));
+  }
+
+  const auto lv = lhs.Cast<std::string>();
+  const auto rv = rhs.Cast<std::string>();
+  return StrObj(lv + rv);
+}
+
+Object Evaluator::EvalBlockStmt(const BlockStmt& block,
+                                Environment& env) const {
+  Object obj = NullObj();
 
   for (const auto& stmt : block.statements) {
     obj = Evaluate(stmt, env);
@@ -206,8 +223,8 @@ Object Evaluator::EvalBlockStatment(const BlockStmt& block,
   return obj;
 }
 
-std::vector<Object> Evaluator::EvalExpressions(
-    const std::vector<ExprNode>& exprs, Environment& env) const {
+std::vector<Object> Evaluator::EvalExprs(const std::vector<ExprNode>& exprs,
+                                         Environment& env) const {
   std::vector<Object> objs;
 
   for (const auto& expr : exprs) {
@@ -221,7 +238,7 @@ std::vector<Object> Evaluator::EvalExpressions(
   return objs;
 }
 
-Object Evaluator::EvalBangOperatorExpression(const Object& obj) const {
+Object Evaluator::EvalBangOpExpr(const Object& obj) const {
   switch (obj.Type()) {
     case ObjectType::kBool:
       return obj.Cast<bool>() ? kFalseObject : kTrueObject;
@@ -232,83 +249,83 @@ Object Evaluator::EvalBangOperatorExpression(const Object& obj) const {
   }
 }
 
-Object Evaluator::EvalMinuxPrefixOperatorExpression(const Object& obj) const {
+Object Evaluator::EvalMinuxPrefixOpExpr(const Object& obj) const {
   if (obj.Type() != ObjectType::kInt) {
-    return ErrorObject(fmt::format("{}: -{}", kUnknownOperator, obj.Type()));
+    return ErrorObj(fmt::format("{}: -{}", kUnknownOperator, obj.Type()));
   }
 
-  return IntObject(-obj.Cast<int64_t>());
+  return IntObj(-obj.Cast<int64_t>());
 }
 
-Object Evaluator::EvalIntInfixExpression(const Object& lhs,
-                                         const std::string& op,
-                                         const Object& rhs) const {
+Object Evaluator::EvalIntInfixExpr(const Object& lhs,
+                                   const std::string& op,
+                                   const Object& rhs) const {
   const auto lv = lhs.Cast<int64_t>();
   const auto rv = rhs.Cast<int64_t>();
 
   if (op == "+") {
-    return IntObject(lv + rv);
+    return IntObj(lv + rv);
   } else if (op == "-") {
-    return IntObject(lv - rv);
+    return IntObj(lv - rv);
   } else if (op == "*") {
-    return IntObject(lv * rv);
+    return IntObj(lv * rv);
   } else if (op == "/") {
-    return IntObject(lv / rv);
+    return IntObj(lv / rv);
   } else if (op == "==") {
-    return BoolObject(lv == rv);
+    return BoolObj(lv == rv);
   } else if (op == "!=") {
-    return BoolObject(lv != rv);
+    return BoolObj(lv != rv);
   } else if (op == ">") {
-    return BoolObject(lv > rv);
+    return BoolObj(lv > rv);
   } else if (op == ">=") {
-    return BoolObject(lv >= rv);
+    return BoolObj(lv >= rv);
   } else if (op == "<") {
-    return BoolObject(lv < rv);
+    return BoolObj(lv < rv);
   } else if (op == "<=") {
-    return BoolObject(lv <= rv);
+    return BoolObj(lv <= rv);
   } else {
-    return ErrorObject(fmt::format(
+    return ErrorObj(fmt::format(
         "{}: {} {} {}", kUnknownOperator, lhs.Type(), op, rhs.Type()));
   }
 }
 
-Object Evaluator::EvalBoolInfixExpression(const Object& lhs,
-                                          const std::string& op,
-                                          const Object& rhs) const {
+Object Evaluator::EvalBoolInfixExpr(const Object& lhs,
+                                    const std::string& op,
+                                    const Object& rhs) const {
   const auto lv = lhs.Cast<bool>();
   const auto rv = rhs.Cast<bool>();
   if (op == "==") {
-    return BoolObject(lv == rv);
+    return BoolObj(lv == rv);
   } else if (op == "!=") {
-    return BoolObject(lv != rv);
+    return BoolObj(lv != rv);
   } else {
-    return ErrorObject(fmt::format(
+    return ErrorObj(fmt::format(
         "{}: {} {} {}", kUnknownOperator, lhs.Type(), op, rhs.Type()));
   }
 }
 
-Object Evaluator::ApplyFunction(const Object& obj,
-                                const std::vector<Object>& args) const {
+Object Evaluator::ApplyFunc(const Object& obj,
+                            const std::vector<Object>& args) const {
   if (obj.Type() != ObjectType::kFunction) {
-    return ErrorObject(fmt::format("{}: {}", kNotAFunction, obj.Type()));
+    return ErrorObj(fmt::format("{}: {}", kNotAFunction, obj.Type()));
   }
 
-  const auto& fn_obj = obj.Cast<FnObject>();
+  const auto& fn_obj = obj.Cast<FuncObject>();
   auto fn_env = ExtendFunctionEnv(fn_obj, args);
-  const auto ret_obj = EvalBlockStatment(fn_obj.body, fn_env);
+  const auto ret_obj = EvalBlockStmt(fn_obj.body, fn_env);
   return UnwrapReturn(ret_obj);
 }
 
-Object Evaluator::EvalIfExpression(const IfExpr& expr, Environment& env) const {
+Object Evaluator::EvalIfExpr(const IfExpr& expr, Environment& env) const {
   const auto cond = Evaluate(expr.cond, env);
   if (IsError(cond)) {
     return cond;
   }
 
   if (IsTruthy(cond)) {
-    return EvalBlockStatment(expr.true_block, env);
+    return EvalBlockStmt(expr.true_block, env);
   } else if (!expr.false_block.empty()) {
-    return EvalBlockStatment(expr.false_block, env);
+    return EvalBlockStmt(expr.false_block, env);
   } else {
     return kNullObject;
   }

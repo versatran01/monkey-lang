@@ -8,7 +8,7 @@ namespace {
 
 TEST(EnvironmentTest, TestGetSet) {
   Environment env;
-  env.Set("i", IntObject(1));
+  env.Set("i", IntObj(1));
   EXPECT_EQ(env.size(), 1);
   EXPECT_FALSE(env.Get("_").Ok());
 
@@ -20,8 +20,8 @@ TEST(EnvironmentTest, TestGetSet) {
 
 TEST(EnvironmentTest, TestOstream) {
   Environment env;
-  env.Set("i", IntObject(1));
-  env.Set("b", BoolObject(true));
+  env.Set("i", IntObj(1));
+  env.Set("b", BoolObj(true));
   LOG(INFO) << env;
 }
 

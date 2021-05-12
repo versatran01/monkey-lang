@@ -73,6 +73,9 @@ Token Lexer::NextToken() {
     case '}':
       token = {TokenType::kRBrace, {ch_}};
       break;
+    case '"':
+      token = {TokenType::kStr, ReadString()};
+      break;
     case 0:
       token = {TokenType::kEof, ""};
       break;
@@ -129,6 +132,17 @@ std::string Lexer::ReadIdentifier() {
   const int start = position_;
   while (IsLetter(ch_)) {
     ReadChar();
+  }
+  return input_.substr(start, position_ - start);
+}
+
+std::string Lexer::ReadString() {
+  const auto start = position_ + 1;
+  while (true) {
+    ReadChar();
+    if (ch_ == '"' || ch_ == 0) {
+      break;
+    }
   }
   return input_.substr(start, position_ - start);
 }

@@ -17,6 +17,7 @@ enum class ObjectType {
   kNull,
   kInt,
   kBool,
+  kStr,
   kReturn,
   kError,
   kFunction,
@@ -44,7 +45,7 @@ struct Object {
   absl::any value;
 };
 
-struct FnObject {
+struct FuncObject {
   std::string Inspect() const;
 
   std::vector<Identifier> params;
@@ -53,11 +54,12 @@ struct FnObject {
 };
 
 // Use these to create new objects
-Object NullObject();
-Object IntObject(int64_t value);
-Object BoolObject(bool value);
-Object ErrorObject(std::string value);
-Object ReturnObject(Object value);
-Object FunctionObject(FnObject value);
+Object NullObj();
+Object IntObj(int64_t value);
+Object StrObj(std::string value);
+Object BoolObj(bool value);
+Object ErrorObj(std::string value);
+Object ReturnObj(Object value);
+Object FuncObj(FuncObject value);
 
 }  // namespace monkey

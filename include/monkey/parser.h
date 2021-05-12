@@ -32,25 +32,26 @@ class Parser {
  private:
   // Parsing functions
   StmtNode ParseStatement();
-  StmtNode ParseLetStatement();
-  StmtNode ParseReturnStatement();
-  StmtNode ParseExpressionStatement();
-  BlockStmt ParseBlockStatement();
+  StmtNode ParseLetStmt();
+  StmtNode ParseReturnStmt();
+  StmtNode PasreExprStmt();
+  BlockStmt ParseBlockStmt();
 
   ExprNode ParseExpression(Precedence precedence);
   ExprNode ParseIdentifier();
-  ExprNode ParseIntegerLiteral();
-  ExprNode ParseBooleanLiteral();
-  ExprNode ParseFunctionLiteral();
+  ExprNode ParseStrLiteral();
+  ExprNode ParseIntLiteral();
+  ExprNode ParseBoolLiteral();
+  ExprNode ParseFuncLiteral();
 
-  ExprNode ParseIfExpression();
-  ExprNode ParsePrefixExpression();
-  ExprNode ParseGroupedExpression();
-  ExprNode ParseCallExpression(const ExprNode& expr);
-  ExprNode ParseInfixExpression(const ExprNode& expr);
+  ExprNode ParseIfExpr();
+  ExprNode ParsePrefixExpr();
+  ExprNode ParseGroupedExpr();
+  ExprNode PasrseCallExpr(const ExprNode& expr);
+  ExprNode ParseInfixExpr(const ExprNode& expr);
 
-  std::vector<Identifier> ParseFunctionParameters();
-  std::vector<ExprNode> ParseCallArguments();
+  std::vector<ExprNode> ParseCallArgs();
+  std::vector<Identifier> ParseFuncParams();
 
   // Token functions
   void NextToken();

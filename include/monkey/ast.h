@@ -16,6 +16,7 @@ enum class NodeType {
   kIdentifier,
   kIntLiteral,
   kBoolLiteral,
+  kStrLiteral,
   kPrefixExpr,
   kInfixExpr,
   kIfExpr,
@@ -103,6 +104,12 @@ struct BoolLiteral final : public NodeBase {
   BoolLiteral() : NodeBase{NodeType::kBoolLiteral} {}
 
   bool value{};
+};
+
+struct StrLiteral final : public NodeBase {
+  StrLiteral() : NodeBase{NodeType::kStrLiteral} {}
+
+  std::string value{};
 };
 
 struct PrefixExpr final : public NodeBase {

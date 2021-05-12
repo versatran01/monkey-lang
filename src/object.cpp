@@ -13,6 +13,7 @@ const auto gObjectTypeStrings = absl::flat_hash_map<ObjectType, std::string>{
     {ObjectType::kNull, "NULL"},
     {ObjectType::kInt, "INTEGER"},
     {ObjectType::kBool, "BOOLEAN"},
+    {ObjectType::kStr, "STRING"},
     {ObjectType::kReturn, "RETURN"},
     {ObjectType::kError, "ERROR"},
     {ObjectType::kFunction, "FUNCTION"},
@@ -24,7 +25,7 @@ std::ostream& operator<<(std::ostream& os, ObjectType type) {
   return os << gObjectTypeStrings.at(type);
 }
 
-std::string FnObject::Inspect() const {
+std::string FuncObject::Inspect() const {
   return fmt::format(
       "fn({}) {{\n{}\n}}",
       absl::StrJoin(params,
@@ -43,12 +44,14 @@ std::string Object::Inspect() const {
       return absl::any_cast<bool>(value) ? "true" : "false";
     case ObjectType::kInt:
       return std::to_string(absl::any_cast<int64_t>(value));
+    case ObjectType::kStr:
+      return absl::any_cast<std::string>(value);
     case ObjectType::kReturn:
       return Cast<Object>().Inspect();
     case ObjectType::kError:
       return absl::any_cast<std::string>(value);
     case ObjectType::kFunction:
-      return Cast<FnObject>().Inspect();
+      return Cast<FuncObject>().Inspect();
     default:
       return fmt::format("Unknown type: {}", Type());
   }
@@ -58,16 +61,19 @@ std::ostream& operator<<(std::ostream& os, const Object& obj) {
   return os << fmt::format("Object({}, {})", obj.Type(), obj.Inspect());
 }
 
-Object NullObject() { return Object{ObjectType::kNull}; }
-Object IntObject(int64_t value) { return {ObjectType::kInt, value}; }
-Object BoolObject(bool value) { return {ObjectType::kBool, value}; }
-Object ErrorObject(std::string value) {
+Object NullObj() { return Object{ObjectType::kNull}; }
+Object IntObj(int64_t value) { return {ObjectType::kInt, value}; }
+Object StrObj(std::string value) {
+  return {ObjectType::kStr, std::move(value)};
+}
+Object BoolObj(bool value) { return {ObjectType::kBool, value}; }
+Object ErrorObj(std::string value) {
   return {ObjectType::kError, std::move(value)};
 }
-Object ReturnObject(Object value) {
+Object ReturnObj(Object value) {
   return {ObjectType::kReturn, std::move(value)};
 }
-Object FunctionObject(FnObject value) {
+Object FuncObj(FuncObject value) {
   return {ObjectType::kFunction, std::move(value)};
 }
 

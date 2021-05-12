@@ -25,6 +25,11 @@ void CheckBoolObject(const Object& obj, bool value) {
   EXPECT_EQ(obj.Cast<bool>(), value);
 }
 
+void CheckStrObject(const Object& obj, const std::string& value) {
+  ASSERT_EQ(obj.Type(), ObjectType::kStr);
+  EXPECT_EQ(obj.Cast<std::string>(), value);
+}
+
 void CheckIntObject(const Object& obj, int64_t value) {
   ASSERT_EQ(obj.Type(), ObjectType::kInt);
   EXPECT_EQ(obj.Cast<int64_t>(), value);
@@ -163,6 +168,7 @@ TEST(EvaluatorTest, TestErrorHandling) {
       {"if (10 > 1) { if (10 > 1) { return true + false; } return 1; }",
        "unknown operator: BOOLEAN + BOOLEAN"},
       {"foobar", "identifier not found: foobar"},
+      {R"raw("Hello" - "World" )raw", "unknown operator: STRING - STRING"},
   };
 
   for (const auto& test : tests) {
@@ -191,7 +197,7 @@ TEST(EvaluatorTest, TestFunctionObject) {
   const std::string input = "fn(x) { x + 2; return 3; };";
   const auto obj = ParseAndEval(input);
   ASSERT_EQ(obj.Type(), ObjectType::kFunction);
-  const auto& fobj = obj.Cast<FnObject>();
+  const auto& fobj = obj.Cast<FuncObject>();
   ASSERT_EQ(fobj.params.size(), 1);
   EXPECT_EQ(fobj.params.front().String(), "x");
   EXPECT_EQ(fobj.body.String(), "(x + 2); return 3;");
@@ -224,6 +230,20 @@ TEST(EvaluatorTest, TestClosures) {
 
   const auto obj = ParseAndEval(input);
   CheckIntObject(obj, 4);
+}
+
+TEST(EvaluatorTest, TestStringLiteral) {
+  const std::string input = R"raw("Hello World!")raw";
+  const auto obj = ParseAndEval(input);
+  SCOPED_TRACE(input);
+  CheckStrObject(obj, "Hello World!");
+}
+
+TEST(EvaluatorTest, TestStringConcat) {
+  const std::string input = R"raw("Hello" + " " + "World!")raw";
+  const auto obj = ParseAndEval(input);
+  SCOPED_TRACE(input);
+  CheckStrObject(obj, "Hello World!");
 }
 
 }  // namespace
