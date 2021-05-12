@@ -10,13 +10,12 @@ TEST(EnvironmentTest, TestGetSet) {
   Environment env;
   env.Set("i", IntObject(1));
   EXPECT_EQ(env.size(), 1);
-  EXPECT_EQ(env.Get("_"), nullptr);
+  EXPECT_FALSE(env.Get("_").Ok());
 
-  const auto* o1p = env.Get("i");
-  ASSERT_NE(o1p, nullptr);
-  EXPECT_EQ(o1p->Inspect(), "1");
-  EXPECT_EQ(o1p->Cast<int64_t>(), 1);
-  //  EXPECT_EQ(*o1p->PtrCast<int64_t>(), 1);
+  const auto o1 = env.Get("i");
+  ASSERT_TRUE(o1.Ok());
+  EXPECT_EQ(o1.Inspect(), "1");
+  EXPECT_EQ(o1.Cast<int64_t>(), 1);
 }
 
 TEST(EnvironmentTest, TestOstream) {

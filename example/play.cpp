@@ -8,13 +8,17 @@
 using namespace monkey;
 
 int main() {
-  const std::string input = "fn(x) { x + 2; return 3; };";
+  const std::string input = R"raw(
+    let newAdder = fn(x) {
+        fn(y) { x + y };
+    };
+    let addTwo = newAdder(2);
+    addTwo(2);)raw";
+
   Parser parser{input};
   const auto program = parser.ParseProgram();
-  LOG(INFO) << program.statements[0].String();
-  LOG(INFO) << program.statements[0].Expr().String();
-
-  const StmtNode& stmt = program.statements[0];
-  LOG(INFO) << "new: " << stmt.String();
-  LOG(INFO) << "old: " << program.statements[0].String();
+  Evaluator eval;
+  Environment env;
+  const auto obj = eval.Evaluate(program, env);
+  LOG(INFO) << obj.Inspect();
 }

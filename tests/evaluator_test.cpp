@@ -214,5 +214,17 @@ TEST(EvaluatorTest, TestFunctionApplication) {
   }
 }
 
+TEST(EvaluatorTest, TestClosures) {
+  const std::string input = R"raw(
+    let newAdder = fn(x) {
+        fn(y) { x + y };
+    };
+    let addTwo = newAdder(2);
+    addTwo(2);)raw";
+
+  const auto obj = ParseAndEval(input);
+  CheckIntObject(obj, 4);
+}
+
 }  // namespace
 }  // namespace monkey

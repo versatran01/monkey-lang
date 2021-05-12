@@ -2,6 +2,7 @@
 
 #include <absl/types/any.h>
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -31,6 +32,7 @@ struct Object {
 
   std::string Inspect() const;
   ObjectType Type() const noexcept { return type; }
+  bool Ok() const noexcept { return value.has_value(); }
   friend std::ostream& operator<<(std::ostream& os, const Object& obj);
 
   template <typename T>
@@ -47,7 +49,7 @@ struct FnObject {
 
   std::vector<Identifier> params;
   BlockStmt body;
-  Environment* env{nullptr};
+  std::shared_ptr<Environment> env{nullptr};
 };
 
 // Use these to create new objects

@@ -1,7 +1,6 @@
 #pragma once
 
 #include <absl/container/node_hash_map.h>
-#include <absl/strings/string_view.h>
 
 #include <iosfwd>
 
@@ -13,7 +12,7 @@ class Environment {
  public:
   explicit Environment(Environment* outer = nullptr) : outer_{outer} {}
 
-  Object const* Get(absl::string_view name) const;
+  Object Get(const std::string& name) const;
   Object& Set(const std::string& name, const Object& obj);
 
   auto size() const noexcept { return store_.size(); }
@@ -26,6 +25,6 @@ class Environment {
   Environment* outer_{nullptr};
 };
 
-Environment MakeEnclosedEnv(Environment& env);
+Environment MakeEnclosedEnv(Environment* env);
 
 }  // namespace monkey

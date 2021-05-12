@@ -34,7 +34,7 @@ const std::string kNotAFunction = "not a function";
 
 Environment ExtendFunctionEnv(const FnObject& func,
                               const std::vector<Object>& args) {
-  auto env = MakeEnclosedEnv(*func.env);
+  auto env = MakeEnclosedEnv(func.env.get());
 
   for (size_t i = 0; i < func.params.size(); ++i) {
     env.Set(func.params[i].value, args[i]);
@@ -74,7 +74,8 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
       if (IsError(obj)) {
         return obj;
       }
-      return env.Set(node.PtrCast<LetStmt>()->name.String(), obj);
+      const auto* ptr = node.PtrCast<LetStmt>();
+      return env.Set(ptr->name.String(), obj);
     }
     case NodeType::kIntLiteral: {
       return IntObject(node.PtrCast<IntLiteral>()->value);
@@ -110,7 +111,8 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
     }
     case NodeType::kFnLiteral: {
       const auto* fn_ptr = node.PtrCast<FuncLiteral>();
-      return FunctionObject({fn_ptr->params, fn_ptr->body, &env});
+      return FunctionObject(
+          {fn_ptr->params, fn_ptr->body, std::make_shared<Environment>(env)});
     }
     case NodeType::kCallExpr: {
       const auto* ce_ptr = node.PtrCast<CallExpr>();
@@ -152,11 +154,12 @@ Object Evaluator::EvalProgram(const Program& program, Environment& env) const {
 
 Object Evaluator::EvalIdentifier(const Identifier& ident,
                                  const Environment& env) const {
-  const auto* obj_ptr = env.Get(ident.value);
-  if (obj_ptr == nullptr) {
+  const auto obj = env.Get(ident.value);
+  if (!obj.Ok()) {
     return ErrorObject(fmt::format("{}: {}", kIdentifierNotFound, ident.value));
   }
-  return *obj_ptr;
+
+  return obj;
 }
 
 Object Evaluator::EvalPrefixExpression(const std::string& op,
@@ -286,7 +289,6 @@ Object Evaluator::EvalBoolInfixExpression(const Object& lhs,
 
 Object Evaluator::ApplyFunction(const Object& obj,
                                 const std::vector<Object>& args) const {
-  LOG(INFO) << "[ApplyFn] " << obj.Inspect();
   if (obj.Type() != ObjectType::kFunction) {
     return ErrorObject(fmt::format("{}: {}", kNotAFunction, obj.Type()));
   }
