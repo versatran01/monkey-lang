@@ -10,6 +10,7 @@ target_link_libraries(monkey_rppl PRIVATE monkey_parser)
 #add_executable(monkey_repl repl.cpp)
 #target_link_libraries(monkey_repl PRIVATE monkey_evaluator monkey_parser)
 
-add_executable(erase erase.cpp)
+add_executable(erase erase2.cpp)
 target_include_directories(erase PRIVATE ../include)
 target_link_libraries(erase PRIVATE fmt::fmt glog::glog absl::strings)
+

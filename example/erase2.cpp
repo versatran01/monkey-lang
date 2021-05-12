@@ -1,12 +1,34 @@
-#include <absl/strings/str_join.h>
 #include <fmt/format.h>
-#include <fmt/ostream.h>
 
 #include <iostream>
-#include <string>
+#include <memory>
 #include <vector>
 
-#include "monkey/te.hpp"
+class AstNode {
+ public:
+  AstNode() = default;
+
+  template <typename T>
+  AstNode(T x) : self_(std::make_shared<Model<T>>(std::move(x))) {}
+
+  std::string String() const { return self_->String(); }
+
+ private:
+  struct Concept {
+    virtual ~Concept() noexcept = default;
+    virtual std::string String() const { return ""; };
+  };
+
+  template <typename T>
+  struct Model final : public Concept {
+    Model(T x) : data_(std::move(x)) {}
+    std::string String() const override { return data_.String(); }
+
+    T data_;
+  };
+
+  std::shared_ptr<const Concept> self_{nullptr};
+};
 
 enum class NodeType {
   kInvalid,
@@ -16,8 +38,6 @@ enum class NodeType {
   // Statement
   kLetStmt,
 };
-
-std::ostream& operator<<(std::ostream& os, NodeType type);
 
 /// Base Node
 struct NodeBase {
@@ -33,26 +53,6 @@ struct NodeBase {
 
  private:
   NodeType type_{NodeType::kInvalid};
-};
-
-/// Interface of Node
-struct NodeInterface {
-  auto String() const {
-    return boost::te::call<std::string>(
-        [](const auto& self) { return self.String(); }, *this);
-  }
-
-  auto Type() const noexcept {
-    return boost::te::call<NodeType>(
-        [](const auto& self) { return self.Type(); }, *this);
-  }
-};
-
-using AstNode = boost::te::poly<NodeInterface>;
-struct NodeFmt {
-  void operator()(std::string* out, const AstNode& node) const {
-    out->append(node.String());
-  }
 };
 
 /// Expressions
@@ -71,7 +71,7 @@ struct LetStatement final : public NodeBase {
   }
 
   Identifier name;
-  AstNode expr{NodeBase{}};
+  AstNode expr;
 };
 
 int main() {
