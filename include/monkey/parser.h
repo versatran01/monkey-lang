@@ -43,6 +43,7 @@ class Parser {
   ExprNode ParseIntLiteral();
   ExprNode ParseBoolLiteral();
   ExprNode ParseFuncLiteral();
+  ExprNode ParseArrayLiteral();
 
   ExprNode ParseIfExpr();
   ExprNode ParsePrefixExpr();
@@ -50,8 +51,8 @@ class Parser {
   ExprNode PasrseCallExpr(const ExprNode& expr);
   ExprNode ParseInfixExpr(const ExprNode& expr);
 
-  std::vector<ExprNode> ParseCallArgs();
   std::vector<Identifier> ParseFuncParams();
+  std::vector<ExprNode> ParseExprList(TokenType end_type);
 
   // Token functions
   void NextToken();

@@ -328,5 +328,22 @@ TEST(ParserTest, TestStrLiteralExpression) {
   EXPECT_EQ(ptr->value, "hello world");
 }
 
+TEST(ParserTest, TestParsingArrayLiterals) {
+  const std::string input = "[1, 2 * 2, 3 + 3]";
+  Parser parser{input};
+  const auto program = parser.ParseProgram();
+  ASSERT_EQ(program.NumStatements(), 1);
+  const auto stmt = program.statements.front();
+  ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
+  const auto& expr = GetExpr(stmt);
+  ASSERT_EQ(expr.Type(), NodeType::kArrayLiteral);
+  const auto* ptr = expr.PtrCast<ArrayLiteral>();
+  ASSERT_NE(ptr, nullptr);
+  ASSERT_EQ(ptr->elements.size(), 3);
+  CheckIntLiteral(ptr->elements[0], 1);
+  CheckInfixExpr(ptr->elements[1], 2, "*", 2);
+  CheckInfixExpr(ptr->elements[2], 3, "+", 3);
+}
+
 }  // namespace
 }  // namespace monkey

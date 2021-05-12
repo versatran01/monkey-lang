@@ -9,11 +9,11 @@ namespace monkey {
 
 namespace {
 // Error message prefix
+const std::string kNotAFunc = "not a function";
 const std::string kUnknownOp = "unknown operator";
 const std::string kTypeMismatch = "type mismatch";
-const std::string kIdentNotFound = "identifier not found";
-const std::string kNotAFunc = "not a function";
 const std::string kWrongNumArgs = "wrong number of arguments";
+const std::string kIdentNotFound = "identifier not found";
 
 // Builtins
 using BuiltinMap = absl::flat_hash_map<std::string, Object>;
@@ -28,7 +28,7 @@ BuiltinMap MakeBuiltins() {
     const auto& arg = args.front();
     switch (arg.Type()) {
       case ObjectType::kStr:
-        return IntObj(arg.Cast<std::string>().size());
+        return IntObj(static_cast<int64_t>(arg.Cast<std::string>().size()));
       default:
         return ErrorObj(
             fmt::format("argument to `len` not supported, got {}", arg.Type()));

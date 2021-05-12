@@ -54,6 +54,7 @@ TEST(LexerTest, TestSimpleCode) {
     10 != 9;
     "foobar"
     "foo bar"
+    [1, 2];
   )raw";
 
   Lexer lexer(input);
@@ -90,6 +91,9 @@ TEST(LexerTest, TestSimpleCode) {
       {TokenType::kInt, "10"},        {TokenType::kNe, "!="},
       {TokenType::kInt, "9"},         {TokenType::kSemicolon, ";"},
       {TokenType::kStr, "foobar"},    {TokenType::kStr, "foo bar"},
+      {TokenType::kLBracket, "["},    {TokenType::kInt, "1"},
+      {TokenType::kComma, ","},       {TokenType::kInt, "2"},
+      {TokenType::kRBracket, "]"},    {TokenType::kSemicolon, ";"},
       {TokenType::kEof, ""}};
 
   for (const auto& true_token : true_tokens) {

@@ -17,6 +17,7 @@ enum class NodeType {
   kIntLiteral,
   kBoolLiteral,
   kStrLiteral,
+  kArrayLiteral,
   kPrefixExpr,
   kInfixExpr,
   kIfExpr,
@@ -62,8 +63,8 @@ class AstNode {
 
   std::string String() const { return self_->String(); }
   std::string TokenLiteral() const { return self_->TokenLiteral(); }
-
   const NodeBase* Ptr() const noexcept { return self_.get(); }
+
   template <typename T>
   auto PtrCast() const noexcept {
     return dynamic_cast<const T*>(self_.get());
@@ -110,6 +111,13 @@ struct StrLiteral final : public NodeBase {
   StrLiteral() : NodeBase{NodeType::kStrLiteral} {}
 
   std::string value{};
+};
+
+struct ArrayLiteral final : public NodeBase {
+  ArrayLiteral() : NodeBase{NodeType::kArrayLiteral} {}
+  std::string String() const override;
+
+  std::vector<ExprNode> elements;
 };
 
 struct PrefixExpr final : public NodeBase {

@@ -50,6 +50,8 @@ void Parser::RegisterParseFns() {
   RegisterPrefix(TokenType::kFunc, [this]() { return ParseFuncLiteral(); });
   RegisterPrefix(TokenType::kLParen, [this]() { return ParseGroupedExpr(); });
   RegisterPrefix(TokenType::kStr, [this]() { return ParseStrLiteral(); });
+  RegisterPrefix(TokenType::kLBracket,
+                 [this]() { return ParseArrayLiteral(); });
 
   auto parse_prefix = [this]() { return ParsePrefixExpr(); };
   RegisterPrefix(TokenType::kBang, parse_prefix);
@@ -249,6 +251,13 @@ ExprNode Parser::ParseFuncLiteral() {
   return fn_lit;
 }
 
+ExprNode Parser::ParseArrayLiteral() {
+  ArrayLiteral arr;
+  arr.token = curr_token_;
+  arr.elements = ParseExprList(TokenType::kRBracket);
+  return arr;
+}
+
 ExprNode Parser::ParseInfixExpr(const ExprNode& lhs) {
   InfixExpr infx_expr;
   infx_expr.token = curr_token_;
@@ -259,6 +268,30 @@ ExprNode Parser::ParseInfixExpr(const ExprNode& lhs) {
   NextToken();
   infx_expr.rhs = ParseExpression(precedence);
   return infx_expr;
+}
+
+std::vector<ExprNode> Parser::ParseExprList(TokenType end_type) {
+  std::vector<ExprNode> exprs;
+
+  if (IsPeekToken(end_type)) {
+    NextToken();
+    return exprs;
+  }
+
+  NextToken();
+  exprs.push_back(ParseExpression(Precedence::kLowest));
+
+  while (IsPeekToken(TokenType::kComma)) {
+    NextToken();
+    NextToken();
+    exprs.push_back(ParseExpression(Precedence::kLowest));
+  }
+
+  if (!ExpectPeek(end_type)) {
+    return {};
+  }
+
+  return exprs;
 }
 
 ExprNode Parser::ParseGroupedExpr() {
@@ -305,7 +338,7 @@ ExprNode Parser::PasrseCallExpr(const ExprNode& expr) {
   CallExpr call_expr;
   call_expr.token = curr_token_;
   call_expr.func = expr;
-  call_expr.args = ParseCallArgs();
+  call_expr.args = ParseExprList(TokenType::kRParen);
   return call_expr;
 }
 
@@ -338,30 +371,6 @@ std::vector<Identifier> Parser::ParseFuncParams() {
   }
 
   return params;
-}
-
-std::vector<ExprNode> Parser::ParseCallArgs() {
-  std::vector<ExprNode> args;
-
-  if (IsPeekToken(TokenType::kRParen)) {
-    NextToken();
-    return args;
-  }
-
-  NextToken();
-  args.push_back(ParseExpression(Precedence::kLowest));
-
-  while (IsPeekToken(TokenType::kComma)) {
-    NextToken();
-    NextToken();
-    args.push_back(ParseExpression(Precedence::kLowest));
-  }
-
-  if (!ExpectPeek(TokenType::kRParen)) {
-    return {};
-  }
-
-  return args;
 }
 
 ExprNode Parser::ParsePrefixExpr() {

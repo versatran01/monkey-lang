@@ -29,6 +29,8 @@ enum class TokenType {
   kRParen,
   kLBrace,
   kRBrace,
+  kLBracket,
+  kRBracket,
   kFunc,
   kLet,
   kTrue,

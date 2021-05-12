@@ -73,6 +73,12 @@ Token Lexer::NextToken() {
     case '}':
       token = {TokenType::kRBrace, {ch_}};
       break;
+    case '[':
+      token = {TokenType::kLBracket, {ch_}};
+      break;
+    case ']':
+      token = {TokenType::kRBracket, {ch_}};
+      break;
     case '"':
       token = {TokenType::kStr, ReadString()};
       break;
@@ -99,7 +105,7 @@ Token Lexer::NextToken() {
 }
 
 void Lexer::ReadChar() noexcept {
-  if (position_ >= static_cast<int>(input_.size())) {
+  if (position_ >= input_.size()) {
     ch_ = 0;
   } else {
     ch_ = input_[read_position_];
@@ -115,13 +121,11 @@ void Lexer::SkipWhitespace() {
 }
 
 char Lexer::PeekChar() const noexcept {
-  return (read_position_ >= static_cast<int>(input_.size()))
-             ? 0
-             : input_[read_position_];
+  return (read_position_ >= input_.size()) ? 0 : input_[read_position_];
 }
 
 std::string Lexer::ReadNumber() {
-  const int start = position_;
+  const auto start = position_;
   while (IsDigit(ch_)) {
     ReadChar();
   }
@@ -129,7 +133,7 @@ std::string Lexer::ReadNumber() {
 }
 
 std::string Lexer::ReadIdentifier() {
-  const int start = position_;
+  const auto start = position_;
   while (IsLetter(ch_)) {
     ReadChar();
   }
