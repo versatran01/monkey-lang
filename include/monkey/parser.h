@@ -30,26 +30,26 @@ class Parser {
 
  private:
   // Parsing functions
-  Statement ParseStatement();
-  Statement ParseLetStatement();
-  Statement ParseReturnStatement();
-  Statement ParseExpressionStatement();
-  BlockStatement ParseBlockStatement();
+  StmtNode ParseStatement();
+  StmtNode ParseLetStatement();
+  StmtNode ParseReturnStatement();
+  StmtNode ParseExpressionStatement();
+  BlockStmt ParseBlockStatement();
 
-  Expression ParseExpression(Precedence precedence);
-  Expression ParseIdentifier();
-  Expression ParseIntegerLiteral();
-  Expression ParseBooleanLiteral();
-  Expression ParseFunctionLiteral();
+  ExprNode ParseExpression(Precedence precedence);
+  ExprNode ParseIdentifier();
+  ExprNode ParseIntegerLiteral();
+  ExprNode ParseBooleanLiteral();
+  ExprNode ParseFunctionLiteral();
 
-  Expression ParseIfExpression();
-  Expression ParsePrefixExpression();
-  Expression ParseGroupedExpression();
-  Expression ParseCallExpression(const Expression& expr);
-  Expression ParseInfixExpression(const Expression& expr);
+  ExprNode ParseIfExpression();
+  ExprNode ParsePrefixExpression();
+  ExprNode ParseGroupedExpression();
+  ExprNode ParseCallExpression(const ExprNode& expr);
+  ExprNode ParseInfixExpression(const ExprNode& expr);
 
   std::vector<Identifier> ParseFunctionParameters();
-  std::vector<Expression> ParseCallArguments();
+  std::vector<ExprNode> ParseCallArguments();
 
   // Token functions
   void NextToken();
@@ -66,8 +66,8 @@ class Parser {
   Precedence CurrPrecedence() const;
   Precedence PeekPrecedence() const;
 
-  using PrefixParseFn = std::function<Expression()>;
-  using InfixParseFn = std::function<Expression(Expression)>;
+  using PrefixParseFn = std::function<ExprNode()>;
+  using InfixParseFn = std::function<ExprNode(Expression)>;
 
   void RegisterParseFns();
   void RegisterInfix(TokenType type, InfixParseFn fn) {

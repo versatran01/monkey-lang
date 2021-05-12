@@ -46,7 +46,7 @@ struct FnObject {
   std::string Inspect() const;
 
   std::vector<Identifier> params;
-  BlockStatement body;
+  BlockStmt body;
   Environment* env{nullptr};
 };
 

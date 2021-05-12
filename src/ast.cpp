@@ -8,14 +8,8 @@ namespace monkey {
 
 namespace {
 
-struct StatementFormatter {
-  void operator()(std::string* out, const StmtNode& stmt) const {
-    out->append(stmt.String());
-  }
-};
-
-struct ExpressionFormatter {
-  void operator()(std::string* out, const ExprNode& expr) const {
+struct NodeFmt {
+  void operator()(std::string* out, const AstNode& expr) const {
     out->append(expr.String());
   }
 };
@@ -46,15 +40,15 @@ std::string Program::TokenLiteral() const {
 }
 
 std::string Program::String() const {
-  return absl::StrJoin(statements, "\n", StatementFormatter());
+  return absl::StrJoin(statements, "\n", NodeFmt());
 }
 
-std::string LetStatement::String() const {
+std::string LetStmt::String() const {
   return fmt::format(
       "{} {} = {};", TokenLiteral(), name.String(), expr.String());
 }
 
-std::string ReturnStatement::String() const {
+std::string ReturnStmt::String() const {
   std::string str = TokenLiteral();
   if (expr.Ok()) {
     str += " " + expr.String();
@@ -63,15 +57,15 @@ std::string ReturnStatement::String() const {
   return str;
 }
 
-std::string PrefixExpression::String() const {
+std::string PrefixExpr::String() const {
   return fmt::format("({}{})", op, rhs.String());
 }
 
-std::string InfixExpression::String() const {
+std::string InfixExpr::String() const {
   return fmt::format("({} {} {})", lhs.String(), op, rhs.String());
 }
 
-std::string IfExpression::String() const {
+std::string IfExpr::String() const {
   std::string str;
   str += fmt::format("if {} {}", cond.String(), true_block.String());
   if (false_block.Ok() && false_block.size() > 0) {
@@ -80,22 +74,24 @@ std::string IfExpression::String() const {
   return str;
 }
 
-std::string BlockStatement::String() const {
-  return fmt::format("{}",
-                     absl::StrJoin(statements, "; ", StatementFormatter()));
+std::string BlockStmt::String() const {
+  return fmt::format("{}", absl::StrJoin(statements, "; ", NodeFmt()));
 }
 
-std::string FunctionLiteral::String() const {
+std::string FuncLiteral::String() const {
   return fmt::format("{}({}) {{ {} }}",
                      TokenLiteral(),
-                     absl::StrJoin(params, ", ", ExpressionFormatter()),
+                     absl::StrJoin(params,
+                                   ", ",
+                                   [](std::string* out, const Identifier& p) {
+                                     out->append(p.String());
+                                   }),
                      body.String());
 }
 
-std::string CallExpression::String() const {
-  return fmt::format("{}({})",
-                     func.String(),
-                     absl::StrJoin(args, ", ", ExpressionFormatter()));
+std::string CallExpr::String() const {
+  return fmt::format(
+      "{}({})", func.String(), absl::StrJoin(args, ", ", NodeFmt()));
 }
 
 }  // namespace monkey

@@ -15,8 +15,8 @@ class Evaluator {
  private:
   Object EvalProgram(const Program& program, Environment& env) const;
   Object EvalIdentifier(const Identifier& ident, const Environment& env) const;
-  Object EvalIfExpression(const IfExpression& expr, Environment& env) const;
-  Object EvalBlockStatment(const BlockStatement& block, Environment& env) const;
+  Object EvalIfExpression(const IfExpr& expr, Environment& env) const;
+  Object EvalBlockStatment(const BlockStmt& block, Environment& env) const;
   std::vector<Object> EvalExpressions(const std::vector<ExprNode>& exprs,
                                       Environment& env) const;
 

@@ -95,7 +95,7 @@ StmtNode Parser::ParseStatement() {
 }
 
 StmtNode Parser::ParseLetStatement() {
-  LetStatement let_stmt;
+  LetStmt let_stmt;
   let_stmt.token = curr_token_;
 
   if (!ExpectPeek(TokenType::kIdent)) {
@@ -122,7 +122,7 @@ StmtNode Parser::ParseLetStatement() {
 }
 
 StmtNode Parser::ParseReturnStatement() {
-  ReturnStatement ret_stmt;
+  ReturnStmt ret_stmt;
   ret_stmt.token = curr_token_;
 
   NextToken();
@@ -136,7 +136,7 @@ StmtNode Parser::ParseReturnStatement() {
 }
 
 StmtNode Parser::ParseExpressionStatement() {
-  ExpressionStatement expr_stmt;
+  ExprStmt expr_stmt;
   expr_stmt.token = curr_token_;
   expr_stmt.expr = ParseExpression(Precedence::kLowest);
 
@@ -147,8 +147,8 @@ StmtNode Parser::ParseExpressionStatement() {
   return expr_stmt;
 }
 
-BlockStatement Parser::ParseBlockStatement() {
-  BlockStatement block_stmt;
+BlockStmt Parser::ParseBlockStatement() {
+  BlockStmt block_stmt;
   block_stmt.token = curr_token_;
 
   NextToken();
@@ -219,7 +219,7 @@ ExprNode Parser::ParseBooleanLiteral() {
 }
 
 ExprNode Parser::ParseFunctionLiteral() {
-  FunctionLiteral fn_lit;
+  FuncLiteral fn_lit;
   fn_lit.token = curr_token_;
 
   if (!ExpectPeek(TokenType::kLParen)) {
@@ -237,7 +237,7 @@ ExprNode Parser::ParseFunctionLiteral() {
 }
 
 ExprNode Parser::ParseInfixExpression(const ExprNode& lhs) {
-  InfixExpression infx_expr;
+  InfixExpr infx_expr;
   infx_expr.token = curr_token_;
   infx_expr.op = curr_token_.literal;
   infx_expr.lhs = lhs;
@@ -258,7 +258,7 @@ ExprNode Parser::ParseGroupedExpression() {
 }
 
 ExprNode Parser::ParseIfExpression() {
-  IfExpression if_expr;
+  IfExpr if_expr;
   if_expr.token = curr_token_;
 
   if (!ExpectPeek(TokenType::kLParen)) {
@@ -289,7 +289,7 @@ ExprNode Parser::ParseIfExpression() {
 }
 
 ExprNode Parser::ParseCallExpression(const ExprNode& expr) {
-  CallExpression call_expr;
+  CallExpr call_expr;
   call_expr.token = curr_token_;
   call_expr.func = expr;
   call_expr.args = ParseCallArguments();
@@ -352,7 +352,7 @@ std::vector<ExprNode> Parser::ParseCallArguments() {
 }
 
 ExprNode Parser::ParsePrefixExpression() {
-  PrefixExpression prefix_expr;
+  PrefixExpr prefix_expr;
   prefix_expr.token = curr_token_;
   prefix_expr.op = curr_token_.literal;
 

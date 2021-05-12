@@ -61,7 +61,7 @@ Object Evaluator::Evaluate(const StmtNode& stmt, Environment& env) const {
     case NodeType::kExprStmt:
       return Evaluate(stmt.Expr(), env);
     case NodeType::kBlockStmt:
-      return EvalBlockStatment(*stmt.PtrCast<BlockStatement>(), env);
+      return EvalBlockStatment(*stmt.PtrCast<BlockStmt>(), env);
     case NodeType::kReturnStmt: {
       auto obj = Evaluate(stmt.Expr(), env);
       if (IsError(obj)) {
@@ -74,7 +74,7 @@ Object Evaluator::Evaluate(const StmtNode& stmt, Environment& env) const {
       if (IsError(obj)) {
         return obj;
       }
-      return env.Set(stmt.PtrCast<LetStatement>()->name.String(), obj);
+      return env.Set(stmt.PtrCast<LetStmt>()->name.String(), obj);
     }
     default:
       return NullObject();
@@ -90,7 +90,7 @@ Object Evaluator::Evaluate(const ExprNode& expr, Environment& env) const {
       return expr.PtrCast<BoolLiteral>()->value ? kTrueObject : kFalseObject;
     }
     case NodeType::kPrefixExpr: {
-      const auto* pe_ptr = expr.PtrCast<PrefixExpression>();
+      const auto* pe_ptr = expr.PtrCast<PrefixExpr>();
       const auto rhs = Evaluate(pe_ptr->rhs, env);
       if (IsError(rhs)) {
         return rhs;
@@ -98,7 +98,7 @@ Object Evaluator::Evaluate(const ExprNode& expr, Environment& env) const {
       return EvalPrefixExpression(pe_ptr->op, rhs);
     }
     case NodeType::kInfixExpr: {
-      const auto* ie_ptr = expr.PtrCast<InfixExpression>();
+      const auto* ie_ptr = expr.PtrCast<InfixExpr>();
       const auto lhs = Evaluate(ie_ptr->lhs, env);
       if (IsError(lhs)) {
         return lhs;
@@ -110,17 +110,17 @@ Object Evaluator::Evaluate(const ExprNode& expr, Environment& env) const {
       return EvalInfixExpression(lhs, ie_ptr->op, rhs);
     }
     case NodeType::kIfExpr: {
-      return EvalIfExpression(*expr.PtrCast<IfExpression>(), env);
+      return EvalIfExpression(*expr.PtrCast<IfExpr>(), env);
     }
     case NodeType::kIdentifier: {
       return EvalIdentifier(*expr.PtrCast<Identifier>(), env);
     }
     case NodeType::kFnLiteral: {
-      const auto* fn_ptr = expr.PtrCast<FunctionLiteral>();
+      const auto* fn_ptr = expr.PtrCast<FuncLiteral>();
       return FunctionObject({fn_ptr->params, fn_ptr->body, &env});
     }
     case NodeType::kCallExpr: {
-      const auto* ce_ptr = expr.PtrCast<CallExpression>();
+      const auto* ce_ptr = expr.PtrCast<CallExpr>();
 
       const auto obj = Evaluate(ce_ptr->func, env);
       if (IsError(obj)) {
@@ -196,7 +196,7 @@ Object Evaluator::EvalInfixExpression(const Object& lhs,
   }
 }
 
-Object Evaluator::EvalBlockStatment(const BlockStatement& block,
+Object Evaluator::EvalBlockStatment(const BlockStmt& block,
                                     Environment& env) const {
   Object obj = NullObject();
 
@@ -305,7 +305,7 @@ Object Evaluator::ApplyFunction(const Object& obj,
   return UnwrapReturn(ret_obj);
 }
 
-Object Evaluator::EvalIfExpression(const IfExpression& expr,
+Object Evaluator::EvalIfExpression(const IfExpr& expr,
                                    Environment& env) const {
   const auto cond = Evaluate(expr.cond, env);
   if (IsError(cond)) {

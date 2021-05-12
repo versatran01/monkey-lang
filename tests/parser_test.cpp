@@ -55,7 +55,7 @@ void CheckBoolLiteral(const ExprNode& expr, bool value) {
 void CheckLetStatement(const StmtNode& stmt, const std::string& name) {
   ASSERT_EQ(stmt.TokenLiteral(), "let");
   ASSERT_EQ(stmt.Type(), NodeType::kLetStmt);
-  CheckIdentifier(stmt.PtrCast<LetStatement>()->name, name);
+  CheckIdentifier(stmt.PtrCast<LetStmt>()->name, name);
 }
 
 void CheckLiteralExpression(const ExprNode& expr, const LiteralType& value) {
@@ -78,7 +78,7 @@ void CheckPrefixExpression(const ExprNode& expr,
                            const std::string& op,
                            const LiteralType& rhs) {
   ASSERT_EQ(expr.Type(), NodeType::kPrefixExpr);
-  const auto* ptr = dynamic_cast<PrefixExpression*>(expr.Ptr());
+  const auto* ptr = dynamic_cast<PrefixExpr*>(expr.Ptr());
   ASSERT_NE(ptr, nullptr);
   EXPECT_EQ(ptr->op, op);
   CheckLiteralExpression(ptr->rhs, rhs);
@@ -89,7 +89,7 @@ void CheckInfixExpression(const ExprNode& expr,
                           const std::string& op,
                           const LiteralType& rhs) {
   ASSERT_EQ(expr.Type(), NodeType::kInfixExpr);
-  const auto* ptr = dynamic_cast<InfixExpression*>(expr.Ptr());
+  const auto* ptr = dynamic_cast<InfixExpr*>(expr.Ptr());
   ASSERT_NE(ptr, nullptr);
   CheckLiteralExpression(ptr->lhs, lhs);
   EXPECT_EQ(ptr->op, op);
@@ -242,7 +242,7 @@ TEST(ParserTest, TestParsingIfExpression) {
   ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
   const auto expr = stmt.Expr();
   ASSERT_EQ(expr.Type(), NodeType::kIfExpr);
-  const auto* ptr = dynamic_cast<IfExpression*>(expr.Ptr());
+  const auto* ptr = dynamic_cast<IfExpr*>(expr.Ptr());
   ASSERT_NE(ptr, nullptr);
   CheckInfixExpression(
       ptr->cond, std::string{"x"}, std::string{"<"}, std::string{"y"});
@@ -263,7 +263,7 @@ TEST(ParserTest, TestParsingFunctionLiteral) {
   ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
   const auto expr = stmt.Expr();
   ASSERT_EQ(expr.Type(), NodeType::kFnLiteral);
-  const auto* ptr = dynamic_cast<FunctionLiteral*>(expr.Ptr());
+  const auto* ptr = dynamic_cast<FuncLiteral*>(expr.Ptr());
   ASSERT_NE(ptr, nullptr);
   ASSERT_EQ(ptr->NumParams(), 2);
   CheckLiteralExpression(ptr->params[0], std::string("x"));
@@ -288,7 +288,7 @@ TEST(ParserTest, TestParsingFunctionLiteral2) {
     ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
     const auto expr = stmt.Expr();
     ASSERT_EQ(expr.Type(), NodeType::kFnLiteral);
-    const auto* ptr = dynamic_cast<FunctionLiteral*>(expr.Ptr());
+    const auto* ptr = dynamic_cast<FuncLiteral*>(expr.Ptr());
     ASSERT_NE(ptr, nullptr);
     ASSERT_EQ(ptr->NumParams(), test.params.size());
     for (size_t i = 0; i < test.params.size(); ++i) {
@@ -306,7 +306,7 @@ TEST(ParserTest, TestParsingCallExpression) {
   ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
   const auto expr = stmt.Expr();
   ASSERT_EQ(expr.Type(), NodeType::kCallExpr);
-  const auto* ptr = dynamic_cast<CallExpression*>(expr.Ptr());
+  const auto* ptr = dynamic_cast<CallExpr*>(expr.Ptr());
   CheckIdentifier(ptr->func, "add");
   ASSERT_EQ(ptr->NumArgs(), 3);
   CheckLiteralExpression(ptr->args[0], 1);
