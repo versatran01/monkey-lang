@@ -52,13 +52,13 @@ void CheckBoolLiteral(const ExprNode& expr, bool value) {
   EXPECT_EQ(expr.PtrCast<BoolLiteral>()->value, value);
 }
 
-void CheckLetStatement(const StmtNode& stmt, const std::string& name) {
+void CheckLetStmt(const StmtNode& stmt, const std::string& name) {
   ASSERT_EQ(stmt.TokenLiteral(), "let");
   ASSERT_EQ(stmt.Type(), NodeType::kLetStmt);
   CheckIdentifier(stmt.PtrCast<LetStmt>()->name, name);
 }
 
-void CheckLiteralExpression(const ExprNode& expr, const LiteralType& value) {
+void CheckLiteralExpr(const ExprNode& expr, const LiteralType& value) {
   switch (value.index()) {
     case 0:
       CheckBoolLiteral(expr, std::get<0>(value));
@@ -74,26 +74,26 @@ void CheckLiteralExpression(const ExprNode& expr, const LiteralType& value) {
   }
 }
 
-void CheckPrefixExpression(const ExprNode& expr,
-                           const std::string& op,
-                           const LiteralType& rhs) {
+void CheckPrefixExpr(const ExprNode& expr,
+                     const std::string& op,
+                     const LiteralType& rhs) {
   ASSERT_EQ(expr.Type(), NodeType::kPrefixExpr);
   const auto* ptr = expr.PtrCast<PrefixExpr>();
   ASSERT_NE(ptr, nullptr);
   EXPECT_EQ(ptr->op, op);
-  CheckLiteralExpression(ptr->rhs, rhs);
+  CheckLiteralExpr(ptr->rhs, rhs);
 }
 
-void CheckInfixExpression(const ExprNode& expr,
-                          const LiteralType& lhs,
-                          const std::string& op,
-                          const LiteralType& rhs) {
+void CheckInfixExpr(const ExprNode& expr,
+                    const LiteralType& lhs,
+                    const std::string& op,
+                    const LiteralType& rhs) {
   ASSERT_EQ(expr.Type(), NodeType::kInfixExpr);
   const auto* ptr = expr.PtrCast<InfixExpr>();
   ASSERT_NE(ptr, nullptr);
-  CheckLiteralExpression(ptr->lhs, lhs);
+  CheckLiteralExpr(ptr->lhs, lhs);
   EXPECT_EQ(ptr->op, op);
-  CheckLiteralExpression(ptr->rhs, rhs);
+  CheckLiteralExpr(ptr->rhs, rhs);
 }
 
 /// Tests
@@ -108,8 +108,8 @@ TEST(ParserTest, TestParsingLetStatement) {
     ASSERT_EQ(program.NumStatements(), 1);
     const auto stmt = program.statements.front();
     ASSERT_EQ(stmt.Type(), NodeType::kLetStmt);
-    CheckLetStatement(stmt, test.ident);
-    CheckLiteralExpression(GetExpr(stmt), test.value);
+    CheckLetStmt(stmt, test.ident);
+    CheckLiteralExpr(GetExpr(stmt), test.value);
   }
 }
 
@@ -179,7 +179,7 @@ TEST(ParserTest, TestParsingPrefixExpressionInt) {
     ASSERT_EQ(program.NumStatements(), 1) << parser.ErrorMsg();
     const auto stmt = program.statements.front();
     ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
-    CheckPrefixExpression(GetExpr(stmt), test.op, test.rhs);
+    CheckPrefixExpr(GetExpr(stmt), test.op, test.rhs);
   }
 }
 
@@ -205,7 +205,7 @@ TEST(ParserTest, TestParsingInfixExpressionInt) {
     ASSERT_EQ(program.NumStatements(), 1);
     const auto stmt = program.statements.front();
     ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
-    CheckInfixExpression(GetExpr(stmt), test.lhs, test.op, test.rhs);
+    CheckInfixExpr(GetExpr(stmt), test.lhs, test.op, test.rhs);
   }
 }
 
@@ -244,7 +244,7 @@ TEST(ParserTest, TestParsingIfExpression) {
   ASSERT_EQ(expr.Type(), NodeType::kIfExpr);
   const auto* ptr = expr.PtrCast<IfExpr>();
   ASSERT_NE(ptr, nullptr);
-  CheckInfixExpression(
+  CheckInfixExpr(
       ptr->cond, std::string{"x"}, std::string{"<"}, std::string{"y"});
   ASSERT_EQ(ptr->true_block.size(), 1);
   ASSERT_EQ(ptr->true_block.Type(), NodeType::kBlockStmt);
@@ -266,11 +266,11 @@ TEST(ParserTest, TestParsingFunctionLiteral) {
   const auto* ptr = expr.PtrCast<FuncLiteral>();
   ASSERT_NE(ptr, nullptr);
   ASSERT_EQ(ptr->NumParams(), 2);
-  CheckLiteralExpression(ptr->params[0], std::string("x"));
-  CheckLiteralExpression(ptr->params[1], std::string("y"));
+  CheckLiteralExpr(ptr->params[0], std::string("x"));
+  CheckLiteralExpr(ptr->params[1], std::string("y"));
   ASSERT_EQ(ptr->body.size(), 1);
   const auto body_stmt = ptr->body.statements.front();
-  CheckInfixExpression(
+  CheckInfixExpr(
       GetExpr(body_stmt), std::string("x"), std::string("+"), std::string("y"));
 }
 
@@ -309,9 +309,9 @@ TEST(ParserTest, TestParsingCallExpression) {
   const auto* ptr = expr.PtrCast<CallExpr>();
   CheckIdentifier(ptr->func, "add");
   ASSERT_EQ(ptr->NumArgs(), 3);
-  CheckLiteralExpression(ptr->args[0], 1);
-  CheckInfixExpression(ptr->args[1], 2, "*", 3);
-  CheckInfixExpression(ptr->args[2], 4, "+", 5);
+  CheckLiteralExpr(ptr->args[0], 1);
+  CheckInfixExpr(ptr->args[1], 2, "*", 3);
+  CheckInfixExpr(ptr->args[2], 4, "+", 5);
 }
 
 TEST(ParserTest, TestStrLiteralExpression) {

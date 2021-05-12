@@ -20,23 +20,23 @@ Object ParseAndEval(const std::string& input) {
   return eval.Evaluate(program, env);
 }
 
-void CheckBoolObject(const Object& obj, bool value) {
-  ASSERT_EQ(obj.Type(), ObjectType::kBool);
+void CheckBoolObj(const Object& obj, bool value) {
+  ASSERT_EQ(obj.Type(), ObjectType::kBool) << obj.Inspect();
   EXPECT_EQ(obj.Cast<bool>(), value);
 }
 
-void CheckStrObject(const Object& obj, const std::string& value) {
-  ASSERT_EQ(obj.Type(), ObjectType::kStr);
+void CheckStrObj(const Object& obj, const std::string& value) {
+  ASSERT_EQ(obj.Type(), ObjectType::kStr) << obj.Inspect();
   EXPECT_EQ(obj.Cast<std::string>(), value);
 }
 
-void CheckIntObject(const Object& obj, int64_t value) {
-  ASSERT_EQ(obj.Type(), ObjectType::kInt);
+void CheckIntObj(const Object& obj, int64_t value) {
+  ASSERT_EQ(obj.Type(), ObjectType::kInt) << obj.Inspect();
   EXPECT_EQ(obj.Cast<int64_t>(), value);
 }
 
 void CheckErrorObj(const Object& obj, const std::string& msg) {
-  ASSERT_EQ(obj.Type(), ObjectType::kError);
+  ASSERT_EQ(obj.Type(), ObjectType::kError) << obj.Inspect();
   EXPECT_EQ(obj.Inspect(), msg);
 }
 
@@ -62,7 +62,7 @@ TEST(EvaluatorTest, TestEvalIntergerExpression) {
   for (const auto& test : tests) {
     SCOPED_TRACE(test.first);
     const auto obj = ParseAndEval(test.first);
-    CheckIntObject(obj, test.second);
+    CheckIntObj(obj, test.second);
   }
 }
 
@@ -91,7 +91,7 @@ TEST(EvaluatorTest, TestEvalBooleanExpression) {
   for (const auto& test : tests) {
     SCOPED_TRACE(test.first);
     const auto obj = ParseAndEval(test.first);
-    CheckBoolObject(obj, test.second);
+    CheckBoolObj(obj, test.second);
   }
 }
 
@@ -108,7 +108,7 @@ TEST(EvaluatorTest, TestBangOperator) {
   for (const auto& test : tests) {
     SCOPED_TRACE(test.first);
     const auto obj = ParseAndEval(test.first);
-    CheckBoolObject(obj, test.second);
+    CheckBoolObj(obj, test.second);
   }
 }
 
@@ -132,7 +132,7 @@ TEST(EvaluatorTest, TestIfElseExpression) {
         EXPECT_EQ(obj.Type(), ObjectType::kNull);
         break;
       case 1:
-        CheckIntObject(obj, std::get<1>(test.second));
+        CheckIntObj(obj, std::get<1>(test.second));
         break;
       default:
         ASSERT_FALSE(true) << "Should not reach here";
@@ -151,7 +151,7 @@ TEST(EvaluatorTest, TestReturnStatements) {
   for (const auto& test : tests) {
     SCOPED_TRACE(test.first);
     const auto obj = ParseAndEval(test.first);
-    CheckIntObject(obj, test.second);
+    CheckIntObj(obj, test.second);
   }
 }
 
@@ -189,14 +189,14 @@ TEST(EvaluatorTest, TestLetStatement) {
   for (const auto& test : tests) {
     SCOPED_TRACE(test.first);
     const auto obj = ParseAndEval(test.first);
-    CheckIntObject(obj, test.second);
+    CheckIntObj(obj, test.second);
   }
 }
 
 TEST(EvaluatorTest, TestFunctionObject) {
   const std::string input = "fn(x) { x + 2; return 3; };";
   const auto obj = ParseAndEval(input);
-  ASSERT_EQ(obj.Type(), ObjectType::kFunction);
+  ASSERT_EQ(obj.Type(), ObjectType::kFunc);
   const auto& fobj = obj.Cast<FuncObject>();
   ASSERT_EQ(fobj.params.size(), 1);
   EXPECT_EQ(fobj.params.front().String(), "x");
@@ -216,7 +216,7 @@ TEST(EvaluatorTest, TestFunctionApplication) {
   for (const auto& test : tests) {
     SCOPED_TRACE(test.first);
     const auto obj = ParseAndEval(test.first);
-    CheckIntObject(obj, test.second);
+    CheckIntObj(obj, test.second);
   }
 }
 
@@ -229,21 +229,47 @@ TEST(EvaluatorTest, TestClosures) {
     addTwo(2);)raw";
 
   const auto obj = ParseAndEval(input);
-  CheckIntObject(obj, 4);
+  CheckIntObj(obj, 4);
 }
 
 TEST(EvaluatorTest, TestStringLiteral) {
   const std::string input = R"raw("Hello World!")raw";
   const auto obj = ParseAndEval(input);
   SCOPED_TRACE(input);
-  CheckStrObject(obj, "Hello World!");
+  CheckStrObj(obj, "Hello World!");
 }
 
 TEST(EvaluatorTest, TestStringConcat) {
   const std::string input = R"raw("Hello" + " " + "World!")raw";
   const auto obj = ParseAndEval(input);
   SCOPED_TRACE(input);
-  CheckStrObject(obj, "Hello World!");
+  CheckStrObj(obj, "Hello World!");
+}
+
+TEST(EvaluatorTest, TestBuiltinFunctions) {
+  using Value = absl::variant<int64_t, std::string>;
+  const std::vector<InputExpected<Value>> tests = {
+      {R"r(len(""))r", 0},
+      {R"r(len("four"))r", 4},
+      {R"r(len("hello world"))r", 11},
+      {R"r(len(1))r", "argument to `len` not supported, got INTEGER"},
+      {R"r(len("one", "two"))r", "wrong number of arguments. got=2, want=1"}};
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.first);
+    const auto obj = ParseAndEval(test.first);
+
+    switch (test.second.index()) {
+      case 0:
+        CheckIntObj(obj, std::get<0>(test.second));
+        break;
+      case 1:
+        CheckErrorObj(obj, std::get<1>(test.second));
+        break;
+      default:
+        ASSERT_TRUE(false) << "Should not reach here";
+    }
+  }
 }
 
 }  // namespace

@@ -1,5 +1,6 @@
 #include "monkey/evaluator.h"
 
+#include <absl/container/flat_hash_map.h>
 #include <absl/strings/str_join.h>
 #include <fmt/ostream.h>
 #include <glog/logging.h>
@@ -7,7 +8,37 @@
 namespace monkey {
 
 namespace {
+// Error message prefix
+const std::string kUnknownOp = "unknown operator";
+const std::string kTypeMismatch = "type mismatch";
+const std::string kIdentNotFound = "identifier not found";
+const std::string kNotAFunc = "not a function";
+const std::string kWrongNumArgs = "wrong number of arguments";
 
+// Builtins
+using BuiltinMap = absl::flat_hash_map<std::string, Object>;
+BuiltinMap MakeBuiltins() {
+  BuiltinMap map;
+  map["len"] = BuiltinFuncObj([](const std::vector<Object>& args) -> Object {
+    if (args.size() != 1) {
+      return ErrorObj(
+          fmt::format("{}. got={}, want=1", kWrongNumArgs, args.size()));
+    }
+
+    const auto& arg = args.front();
+    switch (arg.Type()) {
+      case ObjectType::kStr:
+        return IntObj(arg.Cast<std::string>().size());
+      default:
+        return ErrorObj(
+            fmt::format("argument to `len` not supported, got {}", arg.Type()));
+    }
+  });
+  return map;
+}
+const auto gBuiltins = MakeBuiltins();
+
+// Some const objects
 const Object kTrueObject = BoolObj(true);
 const Object kFalseObject = BoolObj(false);
 const Object kNullObject = NullObj();
@@ -26,11 +57,6 @@ bool IsTruthy(const Object& obj) {
 bool IsError(const Object& obj) noexcept {
   return obj.Type() == ObjectType::kError;
 }
-
-const std::string kUnknownOperator = "unknown operator";
-const std::string kTypeMismatch = "type mismatch";
-const std::string kIdentifierNotFound = "identifier not found";
-const std::string kNotAFunction = "not a function";
 
 Environment ExtendFunctionEnv(const FuncObject& func,
                               const std::vector<Object>& args) {
@@ -158,11 +184,16 @@ Object Evaluator::EvalProgram(const Program& program, Environment& env) const {
 Object Evaluator::EvalIdentifier(const Identifier& ident,
                                  const Environment& env) const {
   const auto obj = env.Get(ident.value);
-  if (!obj.Ok()) {
-    return ErrorObj(fmt::format("{}: {}", kIdentifierNotFound, ident.value));
+  if (obj.Ok()) {
+    return obj;
   }
 
-  return obj;
+  const auto it = gBuiltins.find(ident.value);
+  if (it != gBuiltins.end()) {
+    return it->second;
+  }
+
+  return ErrorObj(fmt::format("{}: {}", kIdentNotFound, ident.value));
 }
 
 Object Evaluator::EvalPrefixExpr(const std::string& op,
@@ -172,7 +203,7 @@ Object Evaluator::EvalPrefixExpr(const std::string& op,
   } else if (op == "-") {
     return EvalMinuxPrefixOpExpr(obj);
   } else {
-    return ErrorObj(fmt::format("{}: {}{}", kUnknownOperator, op, obj.Type()));
+    return ErrorObj(fmt::format("{}: {}{}", kUnknownOp, op, obj.Type()));
   }
 }
 
@@ -190,8 +221,8 @@ Object Evaluator::EvalInfixExpr(const Object& lhs,
     return ErrorObj(
         fmt::format("{}: {} {} {}", kTypeMismatch, lhs.Type(), op, rhs.Type()));
   } else {
-    return ErrorObj(fmt::format(
-        "{}: {} {} {}", kUnknownOperator, lhs.Type(), op, rhs.Type()));
+    return ErrorObj(
+        fmt::format("{}: {} {} {}", kUnknownOp, lhs.Type(), op, rhs.Type()));
   }
 }
 
@@ -199,8 +230,8 @@ Object Evaluator::EvalStrInfixExpr(const Object& lhs,
                                    const std::string& op,
                                    const Object& rhs) const {
   if (op != "+") {
-    return ErrorObj(fmt::format(
-        "{}: {} {} {}", kUnknownOperator, lhs.Type(), op, rhs.Type()));
+    return ErrorObj(
+        fmt::format("{}: {} {} {}", kUnknownOp, lhs.Type(), op, rhs.Type()));
   }
 
   const auto lv = lhs.Cast<std::string>();
@@ -251,7 +282,7 @@ Object Evaluator::EvalBangOpExpr(const Object& obj) const {
 
 Object Evaluator::EvalMinuxPrefixOpExpr(const Object& obj) const {
   if (obj.Type() != ObjectType::kInt) {
-    return ErrorObj(fmt::format("{}: -{}", kUnknownOperator, obj.Type()));
+    return ErrorObj(fmt::format("{}: -{}", kUnknownOp, obj.Type()));
   }
 
   return IntObj(-obj.Cast<int64_t>());
@@ -284,8 +315,8 @@ Object Evaluator::EvalIntInfixExpr(const Object& lhs,
   } else if (op == "<=") {
     return BoolObj(lv <= rv);
   } else {
-    return ErrorObj(fmt::format(
-        "{}: {} {} {}", kUnknownOperator, lhs.Type(), op, rhs.Type()));
+    return ErrorObj(
+        fmt::format("{}: {} {} {}", kUnknownOp, lhs.Type(), op, rhs.Type()));
   }
 }
 
@@ -299,21 +330,27 @@ Object Evaluator::EvalBoolInfixExpr(const Object& lhs,
   } else if (op == "!=") {
     return BoolObj(lv != rv);
   } else {
-    return ErrorObj(fmt::format(
-        "{}: {} {} {}", kUnknownOperator, lhs.Type(), op, rhs.Type()));
+    return ErrorObj(
+        fmt::format("{}: {} {} {}", kUnknownOp, lhs.Type(), op, rhs.Type()));
   }
 }
 
 Object Evaluator::ApplyFunc(const Object& obj,
                             const std::vector<Object>& args) const {
-  if (obj.Type() != ObjectType::kFunction) {
-    return ErrorObj(fmt::format("{}: {}", kNotAFunction, obj.Type()));
+  switch (obj.Type()) {
+    case ObjectType::kFunc: {
+      const auto& fn_obj = obj.Cast<FuncObject>();
+      auto fn_env = ExtendFunctionEnv(fn_obj, args);
+      const auto ret_obj = EvalBlockStmt(fn_obj.body, fn_env);
+      return UnwrapReturn(ret_obj);
+    }
+    case ObjectType::kBuiltinFunc: {
+      const auto& fn_obj = obj.Cast<BuiltinFunc>();
+      return fn_obj(args);
+    }
+    default:
+      return ErrorObj(fmt::format("{}: {}", kNotAFunc, obj.Type()));
   }
-
-  const auto& fn_obj = obj.Cast<FuncObject>();
-  auto fn_env = ExtendFunctionEnv(fn_obj, args);
-  const auto ret_obj = EvalBlockStmt(fn_obj.body, fn_env);
-  return UnwrapReturn(ret_obj);
 }
 
 Object Evaluator::EvalIfExpr(const IfExpr& expr, Environment& env) const {

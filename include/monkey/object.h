@@ -2,6 +2,7 @@
 
 #include <absl/types/any.h>
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -20,7 +21,8 @@ enum class ObjectType {
   kStr,
   kReturn,
   kError,
-  kFunction,
+  kFunc,
+  kBuiltinFunc,
 };
 
 std::ostream& operator<<(std::ostream& os, ObjectType type);
@@ -45,6 +47,8 @@ struct Object {
   absl::any value;
 };
 
+using BuiltinFunc = std::function<Object(std::vector<Object>)>;
+
 struct FuncObject {
   std::string Inspect() const;
 
@@ -61,5 +65,6 @@ Object BoolObj(bool value);
 Object ErrorObj(std::string value);
 Object ReturnObj(Object value);
 Object FuncObj(FuncObject value);
+Object BuiltinFuncObj(BuiltinFunc value);
 
 }  // namespace monkey
