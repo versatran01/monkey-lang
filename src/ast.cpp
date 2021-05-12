@@ -9,13 +9,13 @@ namespace monkey {
 namespace {
 
 struct StatementFormatter {
-  void operator()(std::string* out, const Statement& stmt) const {
+  void operator()(std::string* out, const StmtNode& stmt) const {
     out->append(stmt.String());
   }
 };
 
 struct ExpressionFormatter {
-  void operator()(std::string* out, const Expression& expr) const {
+  void operator()(std::string* out, const ExprNode& expr) const {
     out->append(expr.String());
   }
 };
@@ -41,20 +41,20 @@ std::ostream& operator<<(std::ostream& os, NodeType type) {
   return os << gNodeTypeStrings.at(type);
 }
 
-std::string Program::TokenLiteralImpl() const {
+std::string Program::TokenLiteral() const {
   return statements.empty() ? "" : statements.front().TokenLiteral();
 }
 
-std::string Program::StringImpl() const {
+std::string Program::String() const {
   return absl::StrJoin(statements, "\n", StatementFormatter());
 }
 
-std::string LetStatement::StringImpl() const {
+std::string LetStatement::String() const {
   return fmt::format(
       "{} {} = {};", TokenLiteral(), name.String(), expr.String());
 }
 
-std::string ReturnStatement::StringImpl() const {
+std::string ReturnStatement::String() const {
   std::string str = TokenLiteral();
   if (expr.Ok()) {
     str += " " + expr.String();
@@ -63,15 +63,15 @@ std::string ReturnStatement::StringImpl() const {
   return str;
 }
 
-std::string PrefixExpression::StringImpl() const {
+std::string PrefixExpression::String() const {
   return fmt::format("({}{})", op, rhs.String());
 }
 
-std::string InfixExpression::StringImpl() const {
+std::string InfixExpression::String() const {
   return fmt::format("({} {} {})", lhs.String(), op, rhs.String());
 }
 
-std::string IfExpression::StringImpl() const {
+std::string IfExpression::String() const {
   std::string str;
   str += fmt::format("if {} {}", cond.String(), true_block.String());
   if (false_block.Ok() && false_block.size() > 0) {
@@ -80,19 +80,19 @@ std::string IfExpression::StringImpl() const {
   return str;
 }
 
-std::string BlockStatement::StringImpl() const {
+std::string BlockStatement::String() const {
   return fmt::format("{}",
                      absl::StrJoin(statements, "; ", StatementFormatter()));
 }
 
-std::string FunctionLiteral::StringImpl() const {
+std::string FunctionLiteral::String() const {
   return fmt::format("{}({}) {{ {} }}",
                      TokenLiteral(),
                      absl::StrJoin(params, ", ", ExpressionFormatter()),
                      body.String());
 }
 
-std::string CallExpression::StringImpl() const {
+std::string CallExpression::String() const {
   return fmt::format("{}({})",
                      func.String(),
                      absl::StrJoin(args, ", ", ExpressionFormatter()));

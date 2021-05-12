@@ -72,7 +72,7 @@ void Parser::NextToken() {
 Program Parser::ParseProgram() {
   Program program;
   while (curr_token_.type != TokenType::kEof) {
-    const Statement stmt = ParseStatement();
+    const StmtNode stmt = ParseStatement();
     if (stmt.Ok()) {
       program.statements.push_back(stmt);
     }
@@ -83,7 +83,7 @@ Program Parser::ParseProgram() {
 
 std::string Parser::ErrorMsg() const { return absl::StrJoin(errors_, "\n"); }
 
-Statement Parser::ParseStatement() {
+StmtNode Parser::ParseStatement() {
   switch (curr_token_.type) {
     case TokenType::kLet:
       return ParseLetStatement();
@@ -94,13 +94,13 @@ Statement Parser::ParseStatement() {
   }
 }
 
-Statement Parser::ParseLetStatement() {
+StmtNode Parser::ParseLetStatement() {
   LetStatement let_stmt;
   let_stmt.token = curr_token_;
 
   if (!ExpectPeek(TokenType::kIdent)) {
     LOG(INFO) << "[ParseLetStatement] Next token is not Ident";
-    return StatementBase{};
+    return StmtBase{};
   }
 
   let_stmt.name.token = curr_token_;
@@ -108,7 +108,7 @@ Statement Parser::ParseLetStatement() {
 
   if (!ExpectPeek(TokenType::kAssign)) {
     LOG(INFO) << "[ParseLetStatement] Next token is not Assing";
-    return StatementBase{};
+    return StmtBase{};
   }
 
   NextToken();
@@ -121,7 +121,7 @@ Statement Parser::ParseLetStatement() {
   return let_stmt;
 }
 
-Statement Parser::ParseReturnStatement() {
+StmtNode Parser::ParseReturnStatement() {
   ReturnStatement ret_stmt;
   ret_stmt.token = curr_token_;
 
@@ -135,7 +135,7 @@ Statement Parser::ParseReturnStatement() {
   return ret_stmt;
 }
 
-Statement Parser::ParseExpressionStatement() {
+StmtNode Parser::ParseExpressionStatement() {
   ExpressionStatement expr_stmt;
   expr_stmt.token = curr_token_;
   expr_stmt.expr = ParseExpression(Precedence::kLowest);
@@ -164,14 +164,14 @@ BlockStatement Parser::ParseBlockStatement() {
   return block_stmt;
 }
 
-Expression Parser::ParseExpression(Precedence precedence) {
+ExprNode Parser::ParseExpression(Precedence precedence) {
   const auto prefix_it = prefix_parse_fn_.find(curr_token_.type);
   if (prefix_it == prefix_parse_fn_.end()) {
     const std::string msg =
         fmt::format("no prefix parse function for {}", curr_token_.type);
     LOG(WARNING) << msg;
     errors_.push_back(msg);
-    return ExpressionBase{};
+    return NodeBase{};
   }
 
   auto lhs = prefix_it->second();
@@ -188,14 +188,14 @@ Expression Parser::ParseExpression(Precedence precedence) {
   return lhs;
 }
 
-Expression Parser::ParseIdentifier() {
+ExprNode Parser::ParseIdentifier() {
   Identifier ident;
   ident.token = curr_token_;
   ident.value = curr_token_.literal;
   return ident;
 }
 
-Expression Parser::ParseIntegerLiteral() {
+ExprNode Parser::ParseIntegerLiteral() {
   IntLiteral int_lit;
   int_lit.token = curr_token_;
 
@@ -205,38 +205,38 @@ Expression Parser::ParseIntegerLiteral() {
         fmt::format("could not parse {} as integer", curr_token_.literal);
     LOG(WARNING) << msg;
     errors_.push_back(msg);
-    return ExpressionBase{};
+    return NodeBase{};
   }
 
   return int_lit;
 }
 
-Expression Parser::ParseBooleanLiteral() {
+ExprNode Parser::ParseBooleanLiteral() {
   BoolLiteral bool_lit;
   bool_lit.token = curr_token_;
   bool_lit.value = IsCurrToken(TokenType::kTrue);
   return bool_lit;
 }
 
-Expression Parser::ParseFunctionLiteral() {
+ExprNode Parser::ParseFunctionLiteral() {
   FunctionLiteral fn_lit;
   fn_lit.token = curr_token_;
 
   if (!ExpectPeek(TokenType::kLParen)) {
-    return ExpressionBase{};
+    return NodeBase{};
   }
 
   fn_lit.params = ParseFunctionParameters();
 
   if (!ExpectPeek(TokenType::kLBrace)) {
-    return ExpressionBase{};
+    return NodeBase{};
   }
 
   fn_lit.body = ParseBlockStatement();
   return fn_lit;
 }
 
-Expression Parser::ParseInfixExpression(const Expression& lhs) {
+ExprNode Parser::ParseInfixExpression(const ExprNode& lhs) {
   InfixExpression infx_expr;
   infx_expr.token = curr_token_;
   infx_expr.op = curr_token_.literal;
@@ -248,31 +248,31 @@ Expression Parser::ParseInfixExpression(const Expression& lhs) {
   return infx_expr;
 }
 
-Expression Parser::ParseGroupedExpression() {
+ExprNode Parser::ParseGroupedExpression() {
   NextToken();
   auto expr = ParseExpression(Precedence::kLowest);
   if (!ExpectPeek(TokenType::kRParen)) {
-    return ExpressionBase{};
+    return NodeBase{};
   }
   return expr;
 }
 
-Expression Parser::ParseIfExpression() {
+ExprNode Parser::ParseIfExpression() {
   IfExpression if_expr;
   if_expr.token = curr_token_;
 
   if (!ExpectPeek(TokenType::kLParen)) {
-    return ExpressionBase{};
+    return NodeBase{};
   }
 
   NextToken();
   if_expr.cond = ParseExpression(Precedence::kLowest);
 
   if (!ExpectPeek(TokenType::kRParen)) {
-    return ExpressionBase{};
+    return NodeBase{};
   }
   if (!ExpectPeek(TokenType::kLBrace)) {
-    return ExpressionBase{};
+    return NodeBase{};
   }
   if_expr.true_block = ParseBlockStatement();
 
@@ -280,7 +280,7 @@ Expression Parser::ParseIfExpression() {
   if (IsPeekToken(TokenType::kElse)) {
     NextToken();
     if (!ExpectPeek(TokenType::kLBrace)) {
-      return ExpressionBase{};
+      return NodeBase{};
     }
     if_expr.false_block = ParseBlockStatement();
   }
@@ -288,7 +288,7 @@ Expression Parser::ParseIfExpression() {
   return if_expr;
 }
 
-Expression Parser::ParseCallExpression(const Expression& expr) {
+ExprNode Parser::ParseCallExpression(const ExprNode& expr) {
   CallExpression call_expr;
   call_expr.token = curr_token_;
   call_expr.func = expr;
@@ -327,8 +327,8 @@ std::vector<Identifier> Parser::ParseFunctionParameters() {
   return params;
 }
 
-std::vector<Expression> Parser::ParseCallArguments() {
-  std::vector<Expression> args;
+std::vector<ExprNode> Parser::ParseCallArguments() {
+  std::vector<ExprNode> args;
 
   if (IsPeekToken(TokenType::kRParen)) {
     NextToken();
@@ -351,7 +351,7 @@ std::vector<Expression> Parser::ParseCallArguments() {
   return args;
 }
 
-Expression Parser::ParsePrefixExpression() {
+ExprNode Parser::ParsePrefixExpression() {
   PrefixExpression prefix_expr;
   prefix_expr.token = curr_token_;
   prefix_expr.op = curr_token_.literal;

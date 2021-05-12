@@ -1,3 +1,4 @@
+
 #include <fmt/format.h>
 
 #include <iostream>
@@ -20,6 +21,7 @@ struct NodeBase {
 
   NodeType Type() const noexcept { return type; }
   virtual std::string String() const { return ""; }
+  bool Ok() const noexcept { return type != NodeType::kInvalid; }
 
   NodeType type{NodeType::kInvalid};
 };
@@ -29,26 +31,19 @@ class AstNode {
   AstNode() = default;
 
   template <typename T>
-  AstNode(T x) : self_(std::make_shared<Model<T>>(std::move(x))) {}
-  //  AstNode(T x) : self_(std::make_shared<NodeBase>(std::move(x))) {}
+  AstNode(T x) : self_(std::make_shared<T>(std::move(x))) {}
 
   std::string String() const { return self_->String(); }
+  NodeType Type() const noexcept { return self_->Type(); }
+  bool Ok() const noexcept { return self_ != nullptr && self_->Ok(); }
+  const NodeBase* Ptr() const noexcept { return self_.get(); }
+  template <typename T>
+  auto PtrCast() const noexcept {
+    return dynamic_cast<const T*>(self_.get());
+  }
 
  private:
-  struct Concept {
-    virtual ~Concept() noexcept = default;
-    virtual std::string String() const = 0;
-  };
-
-  template <typename T>
-  struct Model final : public Concept {
-    explicit Model(T x) : data_(std::move(x)) {}
-    std::string String() const override { return data_.String(); }
-
-    T data_;
-  };
-
-  std::shared_ptr<const Concept> self_{nullptr};
+  std::shared_ptr<const NodeBase> self_{nullptr};
 };
 
 /// Expressions
@@ -87,4 +82,11 @@ int main() {
   std::cout << ident.String() << "\n";
   std::cout << let.String() << "\n";
   std::cout << nodes.front().String() << "\n";
+
+  const auto* ptr = let.expr.PtrCast<Identifier>();
+  if (ptr == nullptr) {
+    std::cout << "cast failed\n";
+  } else {
+    std::cout << "cast good\n";
+  }
 }

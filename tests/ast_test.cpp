@@ -7,7 +7,7 @@ namespace monkey {
 namespace {
 
 TEST(AstTest, TestExpressionType) {
-  ExpressionBase expr;
+  NodeBase expr;
   EXPECT_EQ(expr.Type(), NodeType::kInvalid);
 
   Identifier ident;
@@ -19,7 +19,7 @@ TEST(AstTest, TestExpressionValue) {
   expr.token = Token{TokenType::kIdent, "abc"};
   expr.value = "abc";
 
-  Expression node = expr;
+  ExprNode node = expr;
   EXPECT_EQ(node.String(), expr.value);
   EXPECT_EQ(node.TokenLiteral(), expr.token.literal);
 }
@@ -47,7 +47,7 @@ TEST(AstTest, TestExpressionStatement) {
   stmt.token = ident.token;
   stmt.expr = ident;
 
-  Statement node = stmt;
+  StmtNode node = stmt;
   EXPECT_EQ(node.TokenLiteral(), ident.TokenLiteral());
   EXPECT_EQ(node.Expr().String(), ident.String());
   EXPECT_EQ(node.Expr().Type(), ident.Type());
@@ -58,7 +58,7 @@ TEST(AstTest, TestExpressionPtr) {
   intl.token = Token{TokenType::kInt, "5"};
   intl.value = 5;
 
-  Expression expr = intl;
+  ExprNode expr = intl;
   auto* base_ptr = expr.Ptr();
   auto* intl_ptr = dynamic_cast<IntLiteral*>(base_ptr);
   ASSERT_NE(intl_ptr, nullptr);

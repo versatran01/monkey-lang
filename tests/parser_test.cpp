@@ -33,32 +33,32 @@ struct InfixTest {
 };
 
 /// Helper functions
-void CheckIdentifier(const Expression& expr, const std::string& value) {
+void CheckIdentifier(const ExprNode& expr, const std::string& value) {
   ASSERT_EQ(expr.Type(), NodeType::kIdentifier);
   EXPECT_EQ(expr.TokenLiteral(), value);
   EXPECT_EQ(expr.String(), value);
   EXPECT_EQ(expr.PtrCast<Identifier>()->value, value);
 }
 
-void CheckIntLiteral(const Expression& expr, int64_t value) {
+void CheckIntLiteral(const ExprNode& expr, int64_t value) {
   ASSERT_EQ(expr.Type(), NodeType::kIntLiteral);
   EXPECT_EQ(expr.TokenLiteral(), std::to_string(value));
   EXPECT_EQ(expr.PtrCast<IntLiteral>()->value, value);
 }
 
-void CheckBoolLiteral(const Expression& expr, bool value) {
+void CheckBoolLiteral(const ExprNode& expr, bool value) {
   ASSERT_EQ(expr.Type(), NodeType::kBoolLiteral);
   EXPECT_EQ(expr.TokenLiteral(), value ? "true" : "false");
   EXPECT_EQ(expr.PtrCast<BoolLiteral>()->value, value);
 }
 
-void CheckLetStatement(const Statement& stmt, const std::string& name) {
+void CheckLetStatement(const StmtNode& stmt, const std::string& name) {
   ASSERT_EQ(stmt.TokenLiteral(), "let");
   ASSERT_EQ(stmt.Type(), NodeType::kLetStmt);
   CheckIdentifier(stmt.PtrCast<LetStatement>()->name, name);
 }
 
-void CheckLiteralExpression(const Expression& expr, const LiteralType& value) {
+void CheckLiteralExpression(const ExprNode& expr, const LiteralType& value) {
   switch (value.index()) {
     case 0:
       CheckBoolLiteral(expr, std::get<0>(value));
@@ -74,7 +74,7 @@ void CheckLiteralExpression(const Expression& expr, const LiteralType& value) {
   }
 }
 
-void CheckPrefixExpression(const Expression& expr,
+void CheckPrefixExpression(const ExprNode& expr,
                            const std::string& op,
                            const LiteralType& rhs) {
   ASSERT_EQ(expr.Type(), NodeType::kPrefixExpr);
@@ -84,7 +84,7 @@ void CheckPrefixExpression(const Expression& expr,
   CheckLiteralExpression(ptr->rhs, rhs);
 }
 
-void CheckInfixExpression(const Expression& expr,
+void CheckInfixExpression(const ExprNode& expr,
                           const LiteralType& lhs,
                           const std::string& op,
                           const LiteralType& rhs) {

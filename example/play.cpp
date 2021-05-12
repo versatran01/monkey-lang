@@ -14,7 +14,7 @@ int main() {
   LOG(INFO) << program.statements[0].String();
   LOG(INFO) << program.statements[0].Expr().String();
 
-  const Statement& stmt = program.statements[0];
+  const StmtNode& stmt = program.statements[0];
   LOG(INFO) << "new: " << stmt.String();
   LOG(INFO) << "old: " << program.statements[0].String();
 }

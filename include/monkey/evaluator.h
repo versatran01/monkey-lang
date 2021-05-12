@@ -9,15 +9,15 @@ namespace monkey {
 class Evaluator {
  public:
   Object Evaluate(const Program& program, Environment& env) const;
-  Object Evaluate(const Statement& stmt, Environment& env) const;
-  Object Evaluate(const Expression& expr, Environment& env) const;
+  Object Evaluate(const StmtNode& stmt, Environment& env) const;
+  Object Evaluate(const ExprNode& expr, Environment& env) const;
 
  private:
   Object EvalProgram(const Program& program, Environment& env) const;
   Object EvalIdentifier(const Identifier& ident, const Environment& env) const;
   Object EvalIfExpression(const IfExpression& expr, Environment& env) const;
   Object EvalBlockStatment(const BlockStatement& block, Environment& env) const;
-  std::vector<Object> EvalExpressions(const std::vector<Expression>& exprs,
+  std::vector<Object> EvalExpressions(const std::vector<ExprNode>& exprs,
                                       Environment& env) const;
 
   Object EvalBangOperatorExpression(const Object& obj) const;

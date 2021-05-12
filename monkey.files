@@ -4,6 +4,7 @@ cmake/FindGMock.cmake
 example/CMakeLists.txt
 example/erase.cpp
 example/erase2.cpp
+example/erase3.cpp
 example/play.cpp
 example/repl.cpp
 example/rlpl.cpp

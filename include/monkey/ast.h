@@ -1,10 +1,10 @@
 #pragma once
 
 #include <iosfwd>
+#include <memory>
 #include <string>
 #include <vector>
 
-#include "monkey/te.hpp"
 #include "monkey/token.h"
 
 namespace monkey {
@@ -32,18 +32,14 @@ std::ostream& operator<<(std::ostream& os, NodeType type);
 
 /// Base Node
 struct NodeBase {
-  NodeBase() = default;
   explicit NodeBase(NodeType type) : type_{type} {}
   virtual ~NodeBase() noexcept = default;
 
   NodeType Type() const noexcept { return type_; }
-  const NodeBase* Ptr() const noexcept { return this; }
   bool Ok() const noexcept { return type_ != NodeType::kInvalid; }
 
-  std::string String() const noexcept { return StringImpl(); }
-  std::string TokenLiteral() const noexcept { return TokenLiteralImpl(); }
-  virtual std::string StringImpl() const { return token.literal; }
-  virtual std::string TokenLiteralImpl() const { return token.literal; }
+  virtual std::string String() const { return token.literal; };
+  virtual std::string TokenLiteral() const { return token.literal; }
 
  private:
   NodeType type_{NodeType::kInvalid};
@@ -52,177 +48,155 @@ struct NodeBase {
   Token token;
 };
 
-/// Interface of Node
-struct NodeInterface {
-  auto TokenLiteral() const {
-    return boost::te::call<std::string>(
-        [](const auto& self) { return self.TokenLiteral(); }, *this);
+class AstNode {
+ public:
+  AstNode() = default;
+
+  template <typename T>
+  AstNode(T x) : self_(std::make_shared<Model<T>>(std::move(x))) {}
+
+  std::string String() const { return self_->String(); }
+  std::string TokenLiteral() const { return self_->TokenLiteral(); }
+  bool Ok() const { return self_ != nullptr; }
+
+  template <typename T>
+  auto Ptr() const {
+    return dynamic_cast<T*>(self_->Ptr());
   }
 
-  auto String() const {
-    return boost::te::call<std::string>(
-        [](const auto& self) { return self.String(); }, *this);
-  }
+ private:
+  struct Concept {
+    virtual ~Concept() noexcept = default;
+    virtual std::string String() const = 0;
+    virtual std::string TokenLiteral() const = 0;
+  };
 
-  auto Type() const noexcept {
-    return boost::te::call<NodeType>(
-        [](const auto& self) { return self.Type(); }, *this);
-  }
+  template <typename T>
+  struct Model final : public Concept {
+    explicit Model(T x) : data_(std::move(x)) {}
+    std::string String() const override { return data_.String(); }
+    std::string TokenLiteral() const override { return data_.TokenLiteral(); }
+    const NodeBase* Ptr() const noexcept { return &data_; }
 
-  auto Ok() const noexcept {
-    return boost::te::call<bool>([](const auto& self) { return self.Ok(); },
-                                 *this);
-  }
+    T data_;
+  };
 
-  auto* Ptr() const noexcept {
-    return boost::te::call<NodeBase*>(
-        [](const auto& self) { return self.Ptr(); }, *this);
-  }
-
-  template <typename D>
-  auto PtrCast() const {
-    static_assert(std::is_base_of_v<NodeBase, D>,
-                  "D is not derived from NodeBase");
-    return static_cast<const D*>(Ptr());
-  }
+  std::shared_ptr<const Concept> self_{nullptr};
 };
 
-using AstNode = boost::te::poly<NodeInterface>;
-
-/// Interface of expression, extends NodeInterface and also returns a ptr to the
-/// underlying node that can be used to recover its original type
-struct ExprInterface : public NodeInterface {
-  ExprInterface() { boost::te::extends<NodeInterface>(*this); }
-};
-
-using Expression = boost::te::poly<ExprInterface>;
-
-struct StmtInterface : public NodeInterface {
-  StmtInterface() { boost::te::extends<NodeInterface>(*this); }
-
-  auto Expr() const {
-    return boost::te::call<Expression>(
-        [](const auto& self) { return self.expr; }, *this);
-  }
-};
-
-using Statement = boost::te::poly<StmtInterface>;
+using ExprNode = AstNode;
+using StmtNode = AstNode;
 
 struct Program final : public NodeBase {
   Program() : NodeBase{NodeType::kProgram} {}
-  std::string TokenLiteralImpl() const override;
-  std::string StringImpl() const override;
+  std::string TokenLiteral() const override;
+  std::string String() const override;
 
-  void AddStatement(const Statement& stmt) { statements.push_back(stmt); }
+  auto AddStatement(const StmtNode& stmt) { return statements.push_back(stmt); }
   auto NumStatements() const noexcept { return statements.size(); }
 
-  std::vector<Statement> statements;
-};
-
-/// Base expression
-struct ExpressionBase : public NodeBase {
-  using NodeBase::NodeBase;
+  std::vector<StmtNode> statements;
 };
 
 /// Base statement
-struct StatementBase : public NodeBase {
+struct StmtBase : public NodeBase {
   using NodeBase::NodeBase;
 
-  Expression expr{ExpressionBase{}};
+  ExprNode expr;
 };
 
 /// Expressions
-struct Identifier final : public ExpressionBase {
+struct Identifier final : public NodeBase {
   Identifier(std::string value = {})
-      : ExpressionBase{NodeType::kIdentifier}, value{std::move(value)} {}
+      : NodeBase{NodeType::kIdentifier}, value{std::move(value)} {}
 
   std::string value;
 };
 
-struct IntLiteral final : public ExpressionBase {
+struct IntLiteral final : public NodeBase {
   IntLiteral(int64_t value = {})
-      : ExpressionBase{NodeType::kIntLiteral}, value{value} {}
+      : NodeBase{NodeType::kIntLiteral}, value{value} {}
 
   int64_t value{};  // use 64 bits
 };
 
-struct BoolLiteral final : public ExpressionBase {
+struct BoolLiteral final : public NodeBase {
   BoolLiteral(bool value = {})
-      : ExpressionBase{NodeType::kBoolLiteral}, value{value} {}
+      : NodeBase{NodeType::kBoolLiteral}, value{value} {}
 
   bool value{};
 };
 
-struct PrefixExpression final : public ExpressionBase {
-  PrefixExpression() : ExpressionBase{NodeType::kPrefixExpr} {}
-  std::string StringImpl() const override;
+struct PrefixExpression final : public NodeBase {
+  PrefixExpression() : NodeBase{NodeType::kPrefixExpr} {}
+  std::string String() const override;
 
   std::string op;
-  Expression rhs{ExpressionBase{}};
+  ExprNode rhs;
 };
 
-struct InfixExpression final : public ExpressionBase {
-  InfixExpression() : ExpressionBase{NodeType::kInfixExpr} {}
-  std::string StringImpl() const override;
+struct InfixExpression final : public NodeBase {
+  InfixExpression() : NodeBase{NodeType::kInfixExpr} {}
+  std::string String() const override;
 
-  Expression lhs{ExpressionBase{}};
+  ExprNode lhs;
   std::string op;
-  Expression rhs{ExpressionBase{}};
+  ExprNode rhs;
 };
 
 /// Statements
-struct LetStatement final : public StatementBase {
-  LetStatement() : StatementBase{NodeType::kLetStmt} {}
-  std::string StringImpl() const override;
+struct LetStatement final : public StmtBase {
+  LetStatement() : StmtBase{NodeType::kLetStmt} {}
+  std::string String() const override;
 
   Identifier name;
 };
 
-struct ReturnStatement final : public StatementBase {
-  ReturnStatement() : StatementBase{NodeType::kReturnStmt} {}
-  std::string StringImpl() const override;
+struct ReturnStatement final : public StmtBase {
+  ReturnStatement() : StmtBase{NodeType::kReturnStmt} {}
+  std::string String() const override;
 };
 
-struct ExpressionStatement final : public StatementBase {
-  ExpressionStatement() : StatementBase{NodeType::kExprStmt} {}
-  std::string TokenLiteralImpl() const override { return expr.TokenLiteral(); }
-  std::string StringImpl() const override { return expr.String(); }
+struct ExpressionStatement final : public StmtBase {
+  ExpressionStatement() : StmtBase{NodeType::kExprStmt} {}
+  std::string TokenLiteral() const override { return expr.TokenLiteral(); }
+  std::string String() const override { return expr.String(); }
 };
 
-struct BlockStatement final : public StatementBase {
-  BlockStatement() : StatementBase{NodeType::kBlockStmt} {}
-  std::string StringImpl() const override;
+struct BlockStatement final : public StmtBase {
+  BlockStatement() : StmtBase{NodeType::kBlockStmt} {}
+  std::string String() const override;
   auto size() const noexcept { return statements.size(); }
   bool empty() const noexcept { return statements.empty(); }
 
-  std::vector<Statement> statements;
+  std::vector<StmtNode> statements;
 };
 
-struct IfExpression final : public ExpressionBase {
-  IfExpression() : ExpressionBase{NodeType::kIfExpr} {}
-  std::string StringImpl() const override;
+struct IfExpression final : public NodeBase {
+  IfExpression() : NodeBase{NodeType::kIfExpr} {}
+  std::string String() const override;
 
-  Expression cond{ExpressionBase{}};
+  ExprNode cond;
   BlockStatement true_block;
   BlockStatement false_block;
 };
 
-struct FunctionLiteral final : public ExpressionBase {
-  FunctionLiteral() : ExpressionBase{NodeType::kFnLiteral} {}
-  std::string StringImpl() const override;
+struct FunctionLiteral final : public NodeBase {
+  FunctionLiteral() : NodeBase{NodeType::kFnLiteral} {}
+  std::string String() const override;
   auto NumParams() const noexcept { return params.size(); }
 
   std::vector<Identifier> params;
   BlockStatement body;
 };
 
-struct CallExpression final : public ExpressionBase {
-  CallExpression() : ExpressionBase{NodeType::kCallExpr} {}
-  std::string StringImpl() const override;
+struct CallExpression final : public NodeBase {
+  CallExpression() : NodeBase{NodeType::kCallExpr} {}
+  std::string String() const override;
   auto NumArgs() const noexcept { return args.size(); }
 
-  Expression func{ExpressionBase{}};
-  std::vector<Expression> args;
+  ExprNode func;
+  std::vector<ExprNode> args;
 };
 
 }  // namespace monkey

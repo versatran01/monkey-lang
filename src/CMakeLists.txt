@@ -11,32 +11,32 @@ target_link_libraries(
 add_library(monkey_lexer lexer.cpp)
 target_link_libraries(monkey_lexer PUBLIC monkey_token)
 
-add_library(monkey_ast ast.cpp)
-target_link_libraries(
-  monkey_ast
-  PUBLIC monkey_token
-  PRIVATE absl::strings absl::flat_hash_map)
+#add_library(monkey_ast ast.cpp)
+#target_link_libraries(
+#  monkey_ast
+#  PUBLIC monkey_token
+#  PRIVATE absl::strings absl::flat_hash_map)
 
-add_library(monkey_parser parser.cpp)
-target_link_libraries(
-  monkey_parser
-  PUBLIC monkey_ast monkey_lexer
-  PRIVATE absl::strings absl::flat_hash_map)
+#add_library(monkey_parser parser.cpp)
+#target_link_libraries(
+#  monkey_parser
+#  PUBLIC monkey_ast monkey_lexer
+#  PRIVATE absl::strings absl::flat_hash_map)
 
-add_library(monkey_object object.cpp)
-target_link_libraries(
-  monkey_object
-  PUBLIC monkey_ast
-  PRIVATE absl::flat_hash_map)
+#add_library(monkey_object object.cpp)
+#target_link_libraries(
+#  monkey_object
+#  PUBLIC monkey_ast
+#  PRIVATE absl::flat_hash_map)
 
-add_library(monkey_environment environment.cpp)
-target_link_libraries(monkey_environment PUBLIC monkey_object absl::strings
-                                                absl::node_hash_map)
+#add_library(monkey_environment environment.cpp)
+#target_link_libraries(monkey_environment PUBLIC monkey_object absl::strings
+#                                                absl::node_hash_map)
 
-add_library(monkey_evaluator evaluator.cpp)
-target_link_libraries(
-  monkey_evaluator
-  PUBLIC monkey_ast
-         monkey_object
-         monkey_environment
-  PRIVATE absl::strings)
+#add_library(monkey_evaluator evaluator.cpp)
+#target_link_libraries(
+#  monkey_evaluator
+#  PUBLIC monkey_ast
+#         monkey_object
+#         monkey_environment
+#  PRIVATE absl::strings)

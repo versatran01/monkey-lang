@@ -56,7 +56,7 @@ Object Evaluator::Evaluate(const Program& program, Environment& env) const {
   return EvalProgram(program, env);
 }
 
-Object Evaluator::Evaluate(const Statement& stmt, Environment& env) const {
+Object Evaluator::Evaluate(const StmtNode& stmt, Environment& env) const {
   switch (stmt.Type()) {
     case NodeType::kExprStmt:
       return Evaluate(stmt.Expr(), env);
@@ -81,7 +81,7 @@ Object Evaluator::Evaluate(const Statement& stmt, Environment& env) const {
   }
 }
 
-Object Evaluator::Evaluate(const Expression& expr, Environment& env) const {
+Object Evaluator::Evaluate(const ExprNode& expr, Environment& env) const {
   switch (expr.Type()) {
     case NodeType::kIntLiteral: {
       return IntObject(expr.PtrCast<IntLiteral>()->value);
@@ -212,7 +212,7 @@ Object Evaluator::EvalBlockStatment(const BlockStatement& block,
 }
 
 std::vector<Object> Evaluator::EvalExpressions(
-    const std::vector<Expression>& exprs, Environment& env) const {
+    const std::vector<ExprNode>& exprs, Environment& env) const {
   std::vector<Object> objs;
 
   for (const auto& expr : exprs) {
