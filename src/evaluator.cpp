@@ -287,6 +287,13 @@ Object Evaluator::EvalDictLiteral(const DictLiteral& expr,
       return key_obj;
     }
 
+    // Check if key is valid
+    if (!(key_obj.Type() == ObjectType::kBool ||
+          key_obj.Type() == ObjectType::kInt ||
+          key_obj.Type() == ObjectType::kStr)) {
+      return ErrorObj(fmt::format("unusable as dict key: {}", key_obj.Type()));
+    }
+
     const auto val_obj = Evaluate(val_expr, env);
     if (IsError(val_obj)) {
       return val_obj;

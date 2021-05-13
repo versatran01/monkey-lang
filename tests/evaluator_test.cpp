@@ -40,6 +40,29 @@ void CheckErrorObj(const Object& obj, const std::string& msg) {
   EXPECT_EQ(obj.Inspect(), msg);
 }
 
+using LiteralType = absl::variant<void*, int64_t, std::string>;
+
+void CheckLiteral(const Object& obj, const LiteralType& lit) {
+  switch (lit.index()) {
+    case 0:  // null
+      EXPECT_EQ(obj.Type(), ObjectType::kNull);
+      break;
+    case 1:  // int
+      CheckIntObj(obj, std::get<1>(lit));
+      break;
+    case 2: {  // str
+      if (obj.Type() == ObjectType::kError) {
+        CheckErrorObj(obj, std::get<2>(lit));
+      } else {
+        CheckStrObj(obj, std::get<2>(lit));
+      }
+      break;
+    }
+    default:
+      ASSERT_FALSE(true) << "Should not reach here";
+  }
+}
+
 TEST(EvaluatorTest, TestEvalIntergerExpression) {
   const std::vector<InputExpected<int64_t>> tests = {
       {"5", 5},
@@ -113,8 +136,7 @@ TEST(EvaluatorTest, TestBangOperator) {
 }
 
 TEST(EvaluatorTest, TestIfElseExpression) {
-  using Value = absl::variant<void*, int64_t>;
-  const std::vector<InputExpected<Value>> tests = {
+  const std::vector<InputExpected<LiteralType>> tests = {
       {"if (true) { 10 }", 10},
       {"if (false) { 10 }", nullptr},
       {"if (1) { 10 }", 10},
@@ -127,16 +149,7 @@ TEST(EvaluatorTest, TestIfElseExpression) {
   for (const auto& test : tests) {
     SCOPED_TRACE(test.first);
     const auto obj = ParseAndEval(test.first);
-    switch (test.second.index()) {
-      case 0:
-        EXPECT_EQ(obj.Type(), ObjectType::kNull);
-        break;
-      case 1:
-        CheckIntObj(obj, std::get<1>(test.second));
-        break;
-      default:
-        ASSERT_FALSE(true) << "Should not reach here";
-    }
+    CheckLiteral(obj, test.second);
   }
 }
 
@@ -168,8 +181,8 @@ TEST(EvaluatorTest, TestErrorHandling) {
       {"if (10 > 1) { if (10 > 1) { return true + false; } return 1; }",
        "unknown operator: BOOLEAN + BOOLEAN"},
       {"foobar", "identifier not found: foobar"},
-      {R"raw("Hello" - "World" )raw", "unknown operator: STRING - STRING"},
-  };
+      {R"r("Hello" - "World" )r", "unknown operator: STRING - STRING"},
+      {R"r("{"name": "x"}[fn(x) { x }];)r", "unusable as dict key: FUNCTION"}};
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.first);
@@ -248,8 +261,7 @@ TEST(EvaluatorTest, TestStringConcat) {
 }
 
 TEST(EvaluatorTest, TestBuiltinFunctions) {
-  using Value = absl::variant<int64_t, std::string>;
-  const std::vector<InputExpected<Value>> tests = {
+  const std::vector<InputExpected<LiteralType>> tests = {
       {R"r(len(""))r", 0},
       {R"r(len("four"))r", 4},
       {R"r(len("hello world"))r", 11},
@@ -259,17 +271,7 @@ TEST(EvaluatorTest, TestBuiltinFunctions) {
   for (const auto& test : tests) {
     SCOPED_TRACE(test.first);
     const auto obj = ParseAndEval(test.first);
-
-    switch (test.second.index()) {
-      case 0:
-        CheckIntObj(obj, std::get<0>(test.second));
-        break;
-      case 1:
-        CheckErrorObj(obj, std::get<1>(test.second));
-        break;
-      default:
-        ASSERT_TRUE(false) << "Should not reach here";
-    }
+    CheckLiteral(obj, test.second);
   }
 }
 
@@ -287,7 +289,7 @@ TEST(EvaluatorTest, TestArrayLiterals) {
 
 TEST(EvaluatorTest, TestArrayIndexExpression) {
   using Value = absl::variant<void*, int64_t>;
-  const std::vector<InputExpected<Value>> tests = {
+  const std::vector<InputExpected<LiteralType>> tests = {
       {"[1, 2, 3][0]", 1},
       {"[1, 2, 3][1]", 2},
       {"[1, 2, 3][2]", 3},
@@ -303,21 +305,11 @@ TEST(EvaluatorTest, TestArrayIndexExpression) {
   for (const auto& test : tests) {
     SCOPED_TRACE(test.first);
     const auto obj = ParseAndEval(test.first);
-
-    switch (test.second.index()) {
-      case 0:
-        EXPECT_EQ(obj.Type(), ObjectType::kNull);
-        break;
-      case 1:
-        CheckIntObj(obj, std::get<1>(test.second));
-        break;
-      default:
-        ASSERT_FALSE(true) << "Should not reach here";
-    }
+    CheckLiteral(obj, test.second);
   }
 }
 
-TEST(EvaluatorTest, TestHashLiterals) {
+TEST(EvaluatorTest, TestDictLiteral) {
   const std::string input = R"r(
     let two = "two";
     {
@@ -350,6 +342,24 @@ TEST(EvaluatorTest, TestHashLiterals) {
     const auto& io = it->second;
     ASSERT_EQ(io.Type(), ObjectType::kInt);
     EXPECT_EQ(io.Cast<int64_t>(), v);
+  }
+}
+
+TEST(EvaluatorTest, TestDictIndexExpression) {
+  const std::vector<InputExpected<LiteralType>> tests = {
+      {R"r("{"foo": 5}["foo"])r", 5},
+      {R"r("{"foo": 5}["bar"])r", nullptr},
+      {R"r(let key = "foo"; {"foo": 5}[key])r", 5},
+      {R"r(){}["foo"])r", nullptr},
+      {"{5: 5}[5]", 5},
+      {"{true: 5}[true]", 5},
+      {"{false: 5}[false]", 5},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.first);
+    const auto obj = ParseAndEval(test.first);
+    CheckLiteral(obj, test.second);
   }
 }
 
