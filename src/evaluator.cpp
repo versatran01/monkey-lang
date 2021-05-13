@@ -234,20 +234,43 @@ Object Evaluator::EvalInfixExpr(const Object& lhs,
 Object Evaluator::EvalIndexExpr(const Object& lhs, const Object& index) const {
   if (lhs.Type() == ObjectType::kArray && index.Type() == ObjectType::kInt) {
     return EvalArrayIndexExpr(lhs, index);
+  } else if (lhs.Type() == ObjectType::kDict) {
+    return EvalDictIndexExpr(lhs, index);
   } else {
     return ErrorObj(fmt::format("{} {}", kIndexOpNotSupported, lhs.Type()));
   }
 }
 
-Object Evaluator::EvalArrayIndexExpr(const Object& array,
+Object Evaluator::EvalArrayIndexExpr(const Object& obj,
                                      const Object& index) const {
-  const auto& arr = array.Cast<Array>();
-  const auto idx = index.Cast<int64_t>();
+  CHECK_EQ(obj.Type(), ObjectType::kArray);
+  const auto& arr = obj.Cast<Array>();
 
-  if (idx < 0 || idx >= arr.size()) {
+  CHECK_EQ(index.Type(), ObjectType::kInt);
+  const auto idx = static_cast<size_t>(index.Cast<int64_t>());
+
+  if (idx < size_t{0} || idx >= arr.size()) {
     return kNullObject;
   }
-  return arr[static_cast<size_t>(idx)];
+  return arr[idx];
+}
+
+Object Evaluator::EvalDictIndexExpr(const Object& obj,
+                                    const Object& key) const {
+  CHECK_EQ(obj.Type(), ObjectType::kDict);
+  const auto& dict = obj.Cast<Dict>();
+
+  if (!IsObjectHashable(key.Type())) {
+    return ErrorObj(fmt::format("unusable as dict key: {}", key.Type()));
+  }
+
+  // get the value
+  const auto it = dict.find(key);
+  if (it == dict.end()) {
+    return kNullObject;
+  }
+
+  return it->second;
 }
 
 Object Evaluator::EvalStrInfixExpr(const Object& lhs,
@@ -257,6 +280,9 @@ Object Evaluator::EvalStrInfixExpr(const Object& lhs,
     return ErrorObj(
         fmt::format("{}: {} {} {}", kUnknownOp, lhs.Type(), op, rhs.Type()));
   }
+
+  CHECK_EQ(lhs.Type(), ObjectType::kStr);
+  CHECK_EQ(rhs.Type(), ObjectType::kStr);
 
   const auto lv = lhs.Cast<std::string>();
   const auto rv = rhs.Cast<std::string>();
@@ -281,24 +307,23 @@ Object Evaluator::EvalBlockStmt(const BlockStmt& block,
 Object Evaluator::EvalDictLiteral(const DictLiteral& expr,
                                   Environment& env) const {
   Dict dict;
-  for (const auto& [key_expr, val_expr] : expr.pairs) {
-    const auto key_obj = Evaluate(key_expr, env);
-    if (IsError(key_obj)) {
-      return key_obj;
+  for (const auto& [k, v] : expr.pairs) {
+    const auto key = Evaluate(k, env);
+
+    if (IsError(key)) {
+      return key;
     }
 
     // Check if key is valid
-    if (!(key_obj.Type() == ObjectType::kBool ||
-          key_obj.Type() == ObjectType::kInt ||
-          key_obj.Type() == ObjectType::kStr)) {
-      return ErrorObj(fmt::format("unusable as dict key: {}", key_obj.Type()));
+    if (!IsObjectHashable(key.Type())) {
+      return ErrorObj(fmt::format("unusable as dict key: {}", key.Type()));
     }
 
-    const auto val_obj = Evaluate(val_expr, env);
-    if (IsError(val_obj)) {
-      return val_obj;
+    const auto val = Evaluate(v, env);
+    if (IsError(val)) {
+      return val;
     }
-    dict[key_obj] = val_obj;
+    dict[key] = val;
   }
   return DictObject(std::move(dict));
 }
@@ -330,11 +355,10 @@ Object Evaluator::EvalBangOpExpr(const Object& obj) const {
 }
 
 Object Evaluator::EvalMinuxPrefixOpExpr(const Object& obj) const {
-  if (obj.Type() != ObjectType::kInt) {
-    return ErrorObj(fmt::format("{}: -{}", kUnknownOp, obj.Type()));
+  if (obj.Type() == ObjectType::kInt) {
+    return IntObj(-obj.Cast<int64_t>());
   }
-
-  return IntObj(-obj.Cast<int64_t>());
+  return ErrorObj(fmt::format("{}: -{}", kUnknownOp, obj.Type()));
 }
 
 Object Evaluator::EvalIntInfixExpr(const Object& lhs,

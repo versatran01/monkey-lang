@@ -88,6 +88,8 @@ struct FuncObject {
   std::shared_ptr<Environment> env{nullptr};
 };
 
+bool IsObjectHashable(ObjectType type);
+
 // Use these to create new objects
 Object NullObj();
 Object IntObj(int64_t value);

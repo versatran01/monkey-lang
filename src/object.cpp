@@ -78,6 +78,11 @@ std::ostream& operator<<(std::ostream& os, const Object& obj) {
   return os << fmt::format("Object({}, {})", obj.Type(), obj.Inspect());
 }
 
+bool IsObjectHashable(ObjectType type) {
+  return type == ObjectType::kBool || type == ObjectType::kInt ||
+         type == ObjectType::kStr;
+}
+
 Object NullObj() { return Object{ObjectType::kNull}; }
 Object IntObj(int64_t value) { return {ObjectType::kInt, value}; }
 Object StrObj(std::string value) {

@@ -21,23 +21,23 @@ Object ParseAndEval(const std::string& input) {
 }
 
 void CheckBoolObj(const Object& obj, bool value) {
-  ASSERT_EQ(obj.Type(), ObjectType::kBool) << obj.Inspect();
-  EXPECT_EQ(obj.Cast<bool>(), value);
+  ASSERT_EQ(obj.Type(), ObjectType::kBool) << obj;
+  EXPECT_EQ(obj.Cast<bool>(), value) << obj;
 }
 
 void CheckStrObj(const Object& obj, const std::string& value) {
-  ASSERT_EQ(obj.Type(), ObjectType::kStr) << obj.Inspect();
-  EXPECT_EQ(obj.Cast<std::string>(), value);
+  ASSERT_EQ(obj.Type(), ObjectType::kStr) << obj;
+  EXPECT_EQ(obj.Cast<std::string>(), value) << obj;
 }
 
 void CheckIntObj(const Object& obj, int64_t value) {
-  ASSERT_EQ(obj.Type(), ObjectType::kInt) << obj.Inspect();
-  EXPECT_EQ(obj.Cast<int64_t>(), value);
+  ASSERT_EQ(obj.Type(), ObjectType::kInt) << obj;
+  EXPECT_EQ(obj.Cast<int64_t>(), value) << obj;
 }
 
 void CheckErrorObj(const Object& obj, const std::string& msg) {
-  ASSERT_EQ(obj.Type(), ObjectType::kError) << obj.Inspect();
-  EXPECT_EQ(obj.Inspect(), msg);
+  ASSERT_EQ(obj.Type(), ObjectType::kError) << obj;
+  EXPECT_EQ(obj.Inspect(), msg) << obj;
 }
 
 using LiteralType = absl::variant<void*, int64_t, std::string>;
@@ -182,7 +182,7 @@ TEST(EvaluatorTest, TestErrorHandling) {
        "unknown operator: BOOLEAN + BOOLEAN"},
       {"foobar", "identifier not found: foobar"},
       {R"r("Hello" - "World" )r", "unknown operator: STRING - STRING"},
-      {R"r("{"name": "x"}[fn(x) { x }];)r", "unusable as dict key: FUNCTION"}};
+      {R"r({"name": "x"}[fn(x) { x }];)r", "unusable as dict key: FUNCTION"}};
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.first);
@@ -347,8 +347,8 @@ TEST(EvaluatorTest, TestDictLiteral) {
 
 TEST(EvaluatorTest, TestDictIndexExpression) {
   const std::vector<InputExpected<LiteralType>> tests = {
-      {R"r("{"foo": 5}["foo"])r", 5},
-      {R"r("{"foo": 5}["bar"])r", nullptr},
+      {R"r({"foo": 5}["foo"])r", 5},
+      {R"r({"foo": 5}["bar"])r", nullptr},
       {R"r(let key = "foo"; {"foo": 5}[key])r", 5},
       {R"r(){}["foo"])r", nullptr},
       {"{5: 5}[5]", 5},

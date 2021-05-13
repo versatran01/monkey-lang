@@ -61,7 +61,9 @@ class AstNode {
   AstNode(T x) : self_(std::make_shared<T>(std::move(x))) {}
 
   bool Ok() const { return self_ != nullptr && self_->Ok(); }
-  NodeType Type() const noexcept { return self_->Type(); }
+  NodeType Type() const noexcept {
+    return self_ ? self_->Type() : NodeType::kInvalid;
+  }
 
   std::string String() const { return self_->String(); }
   std::string TokenLiteral() const { return self_->TokenLiteral(); }
