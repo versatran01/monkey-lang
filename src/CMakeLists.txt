@@ -2,6 +2,14 @@ add_library(monkey_core INTERFACE)
 target_include_directories(monkey_core INTERFACE ../include)
 target_link_libraries(monkey_core INTERFACE fmt::fmt glog::glog monkey_warnings)
 
+add_library(monkey_timer timer.cpp)
+target_link_libraries(
+  monkey_timer
+  PUBLIC monkey_core
+         absl::time
+         absl::strings
+         absl::flat_hash_map)
+
 add_library(monkey_token token.cpp)
 target_link_libraries(
   monkey_token
@@ -36,7 +44,7 @@ target_link_libraries(monkey_builtin PUBLIC monkey_object)
 add_library(monkey_environment environment.cpp)
 target_link_libraries(
   monkey_environment
-  PUBLIC monkey_object absl::node_hash_map
+  PUBLIC monkey_object absl::flat_hash_map
   PRIVATE absl::strings)
 
 add_library(monkey_evaluator evaluator.cpp)

@@ -36,7 +36,7 @@ std::ostream& operator<<(std::ostream& os, const Environment& env) {
         out->append(obj.Inspect());
       });
   os << fmt::format("[{}]", absl::StrJoin(env.store_, " | ", pf));
-  if (env.outer_) {
+  if (env.outer_ != nullptr) {
     os << "->" << *env.outer_;
   }
   return os;

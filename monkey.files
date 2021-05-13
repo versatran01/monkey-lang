@@ -13,6 +13,8 @@ include/monkey/evaluator.h
 include/monkey/lexer.h
 include/monkey/object.h
 include/monkey/parser.h
+include/monkey/stats.h
+include/monkey/timer.h
 include/monkey/token.h
 src/CMakeLists.txt
 src/ast.cpp
@@ -24,6 +26,7 @@ src/object.cpp
 src/parser.cpp
 src/play.cpp
 src/rlpl.cpp
+src/timer.cpp
 src/token.cpp
 tests/CMakeLists.txt
 tests/ast_test.cpp

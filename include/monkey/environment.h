@@ -1,6 +1,6 @@
 #pragma once
 
-#include <absl/container/node_hash_map.h>
+#include <absl/container/flat_hash_map.h>
 
 #include <iosfwd>
 
@@ -21,7 +21,7 @@ class Environment {
   friend std::ostream& operator<<(std::ostream& os, const Environment& env);
 
  private:
-  absl::node_hash_map<std::string, Object> store_;
+  absl::flat_hash_map<std::string, Object> store_;
   Environment* outer_{nullptr};
 };
 
