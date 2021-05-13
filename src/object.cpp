@@ -50,11 +50,11 @@ std::string Object::Inspect() const {
     case ObjectType::kNull:
       return "Null";
     case ObjectType::kBool:
-      return absl::any_cast<bool>(value) ? "true" : "false";
+      return absl::any_cast<BoolType>(value) ? "true" : "false";
     case ObjectType::kInt:
-      return std::to_string(absl::any_cast<int64_t>(value));
+      return std::to_string(absl::any_cast<IntType>(value));
     case ObjectType::kStr:
-      return absl::any_cast<std::string>(value);
+      return absl::any_cast<StrType>(value);
     case ObjectType::kReturn:
       return Cast<Object>().Inspect();
     case ObjectType::kError:
@@ -84,11 +84,9 @@ bool IsObjectHashable(ObjectType type) {
 }
 
 Object NullObj() { return Object{ObjectType::kNull}; }
-Object IntObj(int64_t value) { return {ObjectType::kInt, value}; }
-Object StrObj(std::string value) {
-  return {ObjectType::kStr, std::move(value)};
-}
-Object BoolObj(bool value) { return {ObjectType::kBool, value}; }
+Object IntObj(IntType value) { return {ObjectType::kInt, value}; }
+Object StrObj(StrType value) { return {ObjectType::kStr, std::move(value)}; }
+Object BoolObj(BoolType value) { return {ObjectType::kBool, value}; }
 Object ErrorObj(std::string value) {
   return {ObjectType::kError, std::move(value)};
 }

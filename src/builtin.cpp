@@ -17,9 +17,9 @@ Object BuiltinLen(const std::vector<Object>& args) {
   const auto& arg = args.front();
   switch (arg.Type()) {
     case ObjectType::kStr:
-      return IntObj(static_cast<int64_t>(arg.Cast<std::string>().size()));
+      return IntObj(static_cast<IntType>(arg.Cast<std::string>().size()));
     case ObjectType::kArray:
-      return IntObj(static_cast<int64_t>(arg.Cast<Array>().size()));
+      return IntObj(static_cast<IntType>(arg.Cast<Array>().size()));
     default:
       return ErrorObj(
           fmt::format("argument to `len` not supported, got {}", arg.Type()));

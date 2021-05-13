@@ -9,6 +9,10 @@
 
 namespace monkey {
 
+using IntType = int64_t;
+using BoolType = bool;
+using StrType = std::string;
+
 enum class NodeType {
   kInvalid,
   kProgram,
@@ -100,21 +104,24 @@ struct Identifier final : public NodeBase {
 };
 
 struct IntLiteral final : public NodeBase {
+  using ValueType = IntType;
   IntLiteral() : NodeBase{NodeType::kIntLiteral} {}
 
-  int64_t value{};  // use 64 bits
+  ValueType value{};  // use 64 bits
 };
 
 struct BoolLiteral final : public NodeBase {
+  using ValueType = BoolType;
   BoolLiteral() : NodeBase{NodeType::kBoolLiteral} {}
 
-  bool value{};
+  ValueType value{};
 };
 
 struct StrLiteral final : public NodeBase {
+  using ValueType = StrType;
   StrLiteral() : NodeBase{NodeType::kStrLiteral} {}
 
-  std::string value{};
+  ValueType value{};
 };
 
 struct ArrayLiteral final : public NodeBase {

@@ -20,19 +20,19 @@ Object ParseAndEval(const std::string& input) {
   return eval.Evaluate(program, env);
 }
 
-void CheckBoolObj(const Object& obj, bool value) {
+void CheckBoolObj(const Object& obj, BoolType value) {
   ASSERT_EQ(obj.Type(), ObjectType::kBool) << obj;
   EXPECT_EQ(obj.Cast<bool>(), value) << obj;
 }
 
-void CheckStrObj(const Object& obj, const std::string& value) {
+void CheckStrObj(const Object& obj, const StrType& value) {
   ASSERT_EQ(obj.Type(), ObjectType::kStr) << obj;
   EXPECT_EQ(obj.Cast<std::string>(), value) << obj;
 }
 
-void CheckIntObj(const Object& obj, int64_t value) {
+void CheckIntObj(const Object& obj, IntType value) {
   ASSERT_EQ(obj.Type(), ObjectType::kInt) << obj;
-  EXPECT_EQ(obj.Cast<int64_t>(), value) << obj;
+  EXPECT_EQ(obj.Cast<IntType>(), value) << obj;
 }
 
 void CheckErrorObj(const Object& obj, const std::string& msg) {
@@ -40,7 +40,7 @@ void CheckErrorObj(const Object& obj, const std::string& msg) {
   EXPECT_EQ(obj.Inspect(), msg) << obj;
 }
 
-using LiteralType = absl::variant<void*, int64_t, std::string>;
+using LiteralType = absl::variant<void*, IntType, StrType>;
 
 void CheckLiteral(const Object& obj, const LiteralType& lit) {
   switch (lit.index()) {
@@ -64,7 +64,7 @@ void CheckLiteral(const Object& obj, const LiteralType& lit) {
 }
 
 TEST(EvaluatorTest, TestEvalIntergerExpression) {
-  const std::vector<InputExpected<int64_t>> tests = {
+  const std::vector<InputExpected<IntType>> tests = {
       {"5", 5},
       {"10", 10},
       {"-5", -5},
@@ -154,7 +154,7 @@ TEST(EvaluatorTest, TestIfElseExpression) {
 }
 
 TEST(EvaluatorTest, TestReturnStatements) {
-  const std::vector<InputExpected<int64_t>> tests = {
+  const std::vector<InputExpected<IntType>> tests = {
       {"return 10;", 10},
       {"return 10; 9;", 10},
       {"return 2 * 5; 9;", 10},
@@ -192,7 +192,7 @@ TEST(EvaluatorTest, TestErrorHandling) {
 }
 
 TEST(EvaluatorTest, TestLetStatement) {
-  const std::vector<InputExpected<int64_t>> tests = {
+  const std::vector<InputExpected<IntType>> tests = {
       {"let a = 5; a;", 5},
       {"let a = 5 * 5; a;", 25},
       {"let a = 5; let b = a; b;", 5},
@@ -217,7 +217,7 @@ TEST(EvaluatorTest, TestFunctionObject) {
 }
 
 TEST(EvaluatorTest, TestFunctionApplication) {
-  const std::vector<InputExpected<int64_t>> tests = {
+  const std::vector<InputExpected<IntType>> tests = {
       {"let identity = fn(x) { x; }; identity(5);", 5},
       {"let identity = fn(x) { return x; }; identity(5);", 5},
       {"let double = fn(x) { x * 2; }; double(5);", 10},
@@ -321,7 +321,7 @@ TEST(EvaluatorTest, TestDictLiteral) {
     }
     )r";
 
-  const absl::flat_hash_map<Object, int64_t> expected = {
+  const absl::flat_hash_map<Object, IntType> expected = {
       {StrObj("one"), 1},
       {StrObj("two"), 2},
       {StrObj("three"), 3},
@@ -340,7 +340,7 @@ TEST(EvaluatorTest, TestDictLiteral) {
     ASSERT_NE(it, dict.end());
     const auto& io = it->second;
     ASSERT_EQ(io.Type(), ObjectType::kInt);
-    EXPECT_EQ(io.Cast<int64_t>(), v);
+    EXPECT_EQ(io.Cast<IntType>(), v);
   }
 }
 

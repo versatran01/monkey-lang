@@ -20,7 +20,7 @@ TEST(ObjecTest, TestCast) {
   EXPECT_THROW(IntObj(2).Cast<std::string>(), absl::bad_any_cast);
 
   EXPECT_EQ(BoolObj(true).Cast<bool>(), true);
-  EXPECT_EQ(IntObj(1).Cast<int64_t>(), 1);
+  EXPECT_EQ(IntObj(1).Cast<IntType>(), 1);
   EXPECT_EQ(ErrorObj("error").Cast<std::string>(), "error");
 }
 

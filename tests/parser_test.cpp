@@ -40,13 +40,13 @@ void CheckIdentifier(const ExprNode& expr, const std::string& value) {
   EXPECT_EQ(expr.PtrCast<Identifier>()->value, value);
 }
 
-void CheckIntLiteral(const ExprNode& expr, int64_t value) {
+void CheckIntLiteral(const ExprNode& expr, IntType value) {
   ASSERT_EQ(expr.Type(), NodeType::kIntLiteral);
   EXPECT_EQ(expr.TokenLiteral(), std::to_string(value));
   EXPECT_EQ(expr.PtrCast<IntLiteral>()->value, value);
 }
 
-void CheckStrLiteral(const ExprNode& expr, const std::string& value) {
+void CheckStrLiteral(const ExprNode& expr, const StrType& value) {
   ASSERT_EQ(expr.Type(), NodeType::kStrLiteral);
   EXPECT_EQ(expr.TokenLiteral(), value);
   EXPECT_EQ(expr.PtrCast<StrLiteral>()->value, value);

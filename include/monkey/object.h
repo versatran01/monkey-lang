@@ -53,12 +53,11 @@ struct Object {
     const auto t = static_cast<int>(obj.Type());
     switch (obj.Type()) {
       case ObjectType::kBool:
-        return H::combine(std::move(h), t, absl::any_cast<bool>(obj.value));
+        return H::combine(std::move(h), t, absl::any_cast<BoolType>(obj.value));
       case ObjectType::kInt:
-        return H::combine(std::move(h), t, absl::any_cast<int64_t>(obj.value));
+        return H::combine(std::move(h), t, absl::any_cast<IntType>(obj.value));
       case ObjectType::kStr:
-        return H::combine(
-            std::move(h), t, absl::any_cast<std::string>(obj.value));
+        return H::combine(std::move(h), t, absl::any_cast<StrType>(obj.value));
       default:
         return H::combine(std::move(h), t, obj.Inspect());
     }
@@ -92,9 +91,9 @@ bool IsObjectHashable(ObjectType type);
 
 // Use these to create new objects
 Object NullObj();
-Object IntObj(int64_t value);
-Object StrObj(std::string value);
-Object BoolObj(bool value);
+Object IntObj(IntType value);
+Object StrObj(StrType value);
+Object BoolObj(BoolType value);
 Object ErrorObj(std::string value);
 Object ReturnObj(Object value);
 Object FuncObj(FuncObject value);

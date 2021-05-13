@@ -50,10 +50,7 @@ Environment ExtendFunctionEnv(const FuncObject& func,
 }
 
 Object UnwrapReturn(const Object& obj) {
-  if (obj.Type() == ObjectType::kReturn) {
-    return obj.Cast<Object>();
-  }
-  return obj;
+  return obj.Type() == ObjectType::kReturn ? obj.Cast<Object>() : obj;
 }
 
 }  // namespace
@@ -247,7 +244,7 @@ Object Evaluator::EvalArrayIndexExpr(const Object& obj,
   const auto& arr = obj.Cast<Array>();
 
   CHECK_EQ(index.Type(), ObjectType::kInt);
-  const auto idx = static_cast<size_t>(index.Cast<int64_t>());
+  const auto idx = static_cast<size_t>(index.Cast<IntType>());
 
   if (idx < size_t{0} || idx >= arr.size()) {
     return kNullObject;
@@ -356,7 +353,7 @@ Object Evaluator::EvalBangOpExpr(const Object& obj) const {
 
 Object Evaluator::EvalMinuxPrefixOpExpr(const Object& obj) const {
   if (obj.Type() == ObjectType::kInt) {
-    return IntObj(-obj.Cast<int64_t>());
+    return IntObj(-obj.Cast<IntType>());
   }
   return ErrorObj(fmt::format("{}: -{}", kUnknownOp, obj.Type()));
 }
@@ -364,8 +361,8 @@ Object Evaluator::EvalMinuxPrefixOpExpr(const Object& obj) const {
 Object Evaluator::EvalIntInfixExpr(const Object& lhs,
                                    const std::string& op,
                                    const Object& rhs) const {
-  const auto lv = lhs.Cast<int64_t>();
-  const auto rv = rhs.Cast<int64_t>();
+  const auto lv = lhs.Cast<IntType>();
+  const auto rv = rhs.Cast<IntType>();
 
   if (op == "+") {
     return IntObj(lv + rv);
