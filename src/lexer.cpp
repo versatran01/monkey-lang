@@ -46,6 +46,9 @@ Token Lexer::NextToken() {
     case ';':
       token = {TokenType::kSemicolon, {ch_}};
       break;
+    case ':':
+      token = {TokenType::kColon, {ch_}};
+      break;
     case '(':
       token = {TokenType::kLParen, {ch_}};
       break;

@@ -37,7 +37,8 @@ enum class TokenType {
   kFalse,
   kIf,
   kElse,
-  kReturn
+  kReturn,
+  kColon
 };
 
 std::ostream& operator<<(std::ostream& os, TokenType type);

@@ -37,6 +37,7 @@ const auto gTokenTypeStrings = absl::flat_hash_map<TokenType, std::string>{
     {TokenType::kLet, "LET"},         {TokenType::kTrue, "TRUE"},
     {TokenType::kFalse, "FALSE"},     {TokenType::kIf, "IF"},
     {TokenType::kElse, "ELSE"},       {TokenType::kReturn, "RETURN"},
+    {TokenType::kColon, "COLON"},
 };
 
 }  // namespace

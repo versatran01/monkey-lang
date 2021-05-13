@@ -44,6 +44,7 @@ class Parser {
   ExprNode ParseIntLiteral();
   ExprNode ParseBoolLiteral();
   ExprNode ParseFuncLiteral();
+  ExprNode ParseHashLiteral();
   ExprNode ParseArrayLiteral();
 
   ExprNode ParseIfExpr();

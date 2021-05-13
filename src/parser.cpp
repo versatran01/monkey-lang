@@ -45,13 +45,14 @@ Parser::Parser(Lexer lexer) : lexer_(std::move(lexer)) {
 
 void Parser::RegisterParseFns() {
   RegisterPrefix(TokenType::kIf, [this]() { return ParseIfExpr(); });
-  RegisterPrefix(TokenType::kIdent, [this]() { return ParseIdentifier(); });
+  RegisterPrefix(TokenType::kStr, [this]() { return ParseStrLiteral(); });
   RegisterPrefix(TokenType::kInt, [this]() { return ParseIntLiteral(); });
+  RegisterPrefix(TokenType::kFunc, [this]() { return ParseFuncLiteral(); });
+  RegisterPrefix(TokenType::kIdent, [this]() { return ParseIdentifier(); });
   RegisterPrefix(TokenType::kTrue, [this]() { return ParseBoolLiteral(); });
   RegisterPrefix(TokenType::kFalse, [this]() { return ParseBoolLiteral(); });
-  RegisterPrefix(TokenType::kFunc, [this]() { return ParseFuncLiteral(); });
   RegisterPrefix(TokenType::kLParen, [this]() { return ParseGroupedExpr(); });
-  RegisterPrefix(TokenType::kStr, [this]() { return ParseStrLiteral(); });
+  RegisterPrefix(TokenType::kLBrace, [this]() { return ParseHashLiteral(); });
   RegisterPrefix(TokenType::kLBracket,
                  [this]() { return ParseArrayLiteral(); });
 
@@ -208,17 +209,17 @@ ExprNode Parser::ParseIdentifier() {
 }
 
 ExprNode Parser::ParseStrLiteral() {
-  StrLiteral strlit;
-  strlit.token = curr_token_;
-  strlit.value = curr_token_.literal;
-  return strlit;
+  StrLiteral str;
+  str.token = curr_token_;
+  str.value = curr_token_.literal;
+  return str;
 }
 
 ExprNode Parser::ParseIntLiteral() {
-  IntLiteral int_lit;
-  int_lit.token = curr_token_;
+  IntLiteral intl;
+  intl.token = curr_token_;
 
-  bool ok = absl::SimpleAtoi(int_lit.token.literal, &int_lit.value);
+  bool ok = absl::SimpleAtoi(intl.token.literal, &intl.value);
   if (!ok) {
     const auto msg =
         fmt::format("could not parse {} as integer", curr_token_.literal);
@@ -227,32 +228,61 @@ ExprNode Parser::ParseIntLiteral() {
     return {};
   }
 
-  return int_lit;
+  return intl;
 }
 
 ExprNode Parser::ParseBoolLiteral() {
-  BoolLiteral bool_lit;
-  bool_lit.token = curr_token_;
-  bool_lit.value = IsCurrToken(TokenType::kTrue);
-  return bool_lit;
+  BoolLiteral booll;
+  booll.token = curr_token_;
+  booll.value = IsCurrToken(TokenType::kTrue);
+  return booll;
 }
 
 ExprNode Parser::ParseFuncLiteral() {
-  FuncLiteral fn_lit;
-  fn_lit.token = curr_token_;
+  FuncLiteral func;
+  func.token = curr_token_;
 
   if (!ExpectPeek(TokenType::kLParen)) {
     return {};
   }
 
-  fn_lit.params = ParseFuncParams();
+  func.params = ParseFuncParams();
 
   if (!ExpectPeek(TokenType::kLBrace)) {
     return {};
   }
 
-  fn_lit.body = ParseBlockStmt();
-  return fn_lit;
+  func.body = ParseBlockStmt();
+  return func;
+}
+
+ExprNode Parser::ParseHashLiteral() {
+  HashLiteral hash;
+  hash.token = curr_token_;
+
+  while (!IsPeekToken(TokenType::kRBrace)) {
+    NextToken();
+    auto key = ParseExpression(Precedence::kLowest);
+
+    if (!ExpectPeek(TokenType::kColon)) {
+      return {};
+    }
+
+    NextToken();
+    auto val = ParseExpression(Precedence::kLowest);
+
+    hash.pairs.push_back({key, val});
+
+    if (!IsPeekToken(TokenType::kRBrace) && !ExpectPeek(TokenType::kComma)) {
+      return {};
+    }
+  }
+
+  if (!ExpectPeek(TokenType::kRBrace)) {
+    return {};
+  }
+
+  return hash;
 }
 
 ExprNode Parser::ParseArrayLiteral() {
@@ -263,30 +293,30 @@ ExprNode Parser::ParseArrayLiteral() {
 }
 
 ExprNode Parser::ParseInfixExpr(const ExprNode& lhs) {
-  InfixExpr infx_expr;
-  infx_expr.token = curr_token_;
-  infx_expr.op = curr_token_.literal;
-  infx_expr.lhs = lhs;
+  InfixExpr infx;
+  infx.token = curr_token_;
+  infx.op = curr_token_.literal;
+  infx.lhs = lhs;
 
   const auto precedence = CurrPrecedence();
   NextToken();
-  infx_expr.rhs = ParseExpression(precedence);
-  return infx_expr;
+  infx.rhs = ParseExpression(precedence);
+  return infx;
 }
 
 ExprNode Parser::ParseIndexExpr(const ExprNode& expr) {
-  IndexExpr index_expr;
-  index_expr.token = curr_token_;
-  index_expr.lhs = expr;
+  IndexExpr index;
+  index.token = curr_token_;
+  index.lhs = expr;
 
   NextToken();
-  index_expr.index = ParseExpression(Precedence::kLowest);
+  index.index = ParseExpression(Precedence::kLowest);
 
   if (!ExpectPeek(TokenType::kRBracket)) {
     return {};
   }
 
-  return index_expr;
+  return index;
 }
 
 std::vector<ExprNode> Parser::ParseExprList(TokenType end_type) {
@@ -354,11 +384,11 @@ ExprNode Parser::ParseIfExpr() {
 }
 
 ExprNode Parser::PasrseCallExpr(const ExprNode& expr) {
-  CallExpr call_expr;
-  call_expr.token = curr_token_;
-  call_expr.func = expr;
-  call_expr.args = ParseExprList(TokenType::kRParen);
-  return call_expr;
+  CallExpr call;
+  call.token = curr_token_;
+  call.func = expr;
+  call.args = ParseExprList(TokenType::kRParen);
+  return call;
 }
 
 std::vector<Identifier> Parser::ParseFuncParams() {
@@ -393,14 +423,14 @@ std::vector<Identifier> Parser::ParseFuncParams() {
 }
 
 ExprNode Parser::ParsePrefixExpr() {
-  PrefixExpr prefix_expr;
-  prefix_expr.token = curr_token_;
-  prefix_expr.op = curr_token_.literal;
+  PrefixExpr prefix;
+  prefix.token = curr_token_;
+  prefix.op = curr_token_.literal;
 
   NextToken();
-  prefix_expr.rhs = ParseExpression(Precedence::kPrefix);
+  prefix.rhs = ParseExpression(Precedence::kPrefix);
 
-  return prefix_expr;
+  return prefix;
 }
 
 bool Parser::ExpectPeek(TokenType type) {

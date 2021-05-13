@@ -55,6 +55,7 @@ TEST(LexerTest, TestSimpleCode) {
     "foobar"
     "foo bar"
     [1, 2];
+    {"foo": "bar"}
   )raw";
 
   Lexer lexer(input);
@@ -94,7 +95,10 @@ TEST(LexerTest, TestSimpleCode) {
       {TokenType::kLBracket, "["},    {TokenType::kInt, "1"},
       {TokenType::kComma, ","},       {TokenType::kInt, "2"},
       {TokenType::kRBracket, "]"},    {TokenType::kSemicolon, ";"},
-      {TokenType::kEof, ""}};
+      {TokenType::kLBrace, "{"},      {TokenType::kStr, "foo"},
+      {TokenType::kColon, ":"},       {TokenType::kStr, "bar"},
+      {TokenType::kRBrace, "}"},      {TokenType::kEof, ""},
+  };
 
   for (const auto& true_token : true_tokens) {
     SCOPED_TRACE(true_token);

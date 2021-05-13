@@ -18,6 +18,7 @@ enum class NodeType {
   kBoolLiteral,
   kStrLiteral,
   kArrayLiteral,
+  kHashLiteral,
   kIndexExpr,
   kPrefixExpr,
   kInfixExpr,
@@ -204,6 +205,13 @@ struct IndexExpr final : public NodeBase {
 
   ExprNode lhs;
   ExprNode index;
+};
+
+struct HashLiteral final : public NodeBase {
+  HashLiteral() : NodeBase{NodeType::kHashLiteral} {}
+  std::string String() const override;
+
+  std::vector<std::pair<ExprNode, ExprNode>> pairs;
 };
 
 // Helper function to get the expression in ExprStmt

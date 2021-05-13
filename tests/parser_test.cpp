@@ -46,6 +46,12 @@ void CheckIntLiteral(const ExprNode& expr, int64_t value) {
   EXPECT_EQ(expr.PtrCast<IntLiteral>()->value, value);
 }
 
+void CheckStrLiteral(const ExprNode& expr, const std::string& value) {
+  ASSERT_EQ(expr.Type(), NodeType::kStrLiteral);
+  EXPECT_EQ(expr.TokenLiteral(), value);
+  EXPECT_EQ(expr.PtrCast<StrLiteral>()->value, value);
+}
+
 void CheckBoolLiteral(const ExprNode& expr, bool value) {
   ASSERT_EQ(expr.Type(), NodeType::kBoolLiteral);
   EXPECT_EQ(expr.TokenLiteral(), value ? "true" : "false");
@@ -363,6 +369,41 @@ TEST(ParserTest, TestParsingIndexExpression) {
   ASSERT_NE(ptr, nullptr);
   CheckIdentifier(ptr->lhs, "arr");
   CheckInfixExpr(ptr->index, 1, "+", 1);
+}
+
+TEST(ParserTest, TestParsingPairHashLietralsStrKeys) {
+  const std::string input = R"r({"one": 1, "two": 2, "three": 3})r";
+  Parser parser{input};
+  const auto program = parser.ParseProgram();
+  ASSERT_EQ(program.NumStatements(), 1);
+  const auto stmt = program.statements.front();
+  ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
+  const auto& expr = GetExpr(stmt);
+  ASSERT_EQ(expr.Type(), NodeType::kHashLiteral);
+  const auto* ptr = expr.PtrCast<HashLiteral>();
+  ASSERT_NE(ptr, nullptr);
+
+  ASSERT_EQ(ptr->pairs.size(), 3);
+  CheckStrLiteral(ptr->pairs[0].first, "one");
+  CheckIntLiteral(ptr->pairs[0].second, 1);
+  CheckStrLiteral(ptr->pairs[1].first, "two");
+  CheckIntLiteral(ptr->pairs[1].second, 2);
+  CheckStrLiteral(ptr->pairs[2].first, "three");
+  CheckIntLiteral(ptr->pairs[2].second, 3);
+}
+
+TEST(ParserTest, TestParsingEmptyHashLiteral) {
+  const std::string input = "{}";
+  Parser parser{input};
+  const auto program = parser.ParseProgram();
+  ASSERT_EQ(program.NumStatements(), 1);
+  const auto stmt = program.statements.front();
+  ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
+  const auto& expr = GetExpr(stmt);
+  ASSERT_EQ(expr.Type(), NodeType::kHashLiteral);
+  const auto* ptr = expr.PtrCast<HashLiteral>();
+  ASSERT_NE(ptr, nullptr);
+  EXPECT_EQ(ptr->pairs.size(), 0);
 }
 
 }  // namespace
