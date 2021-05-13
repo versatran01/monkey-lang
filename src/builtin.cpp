@@ -39,10 +39,68 @@ Object BuiltinFirst(const std::vector<Object>& args) {
   }
 
   const auto& arr = arg.Cast<Array>();
-  if (!arr.empty()) {
-    return arr.front();
+  if (arr.empty()) {
+    return NullObj();
   }
-  return NullObj();
+  return arr.front();
+}
+
+Object BuiltinLast(const std::vector<Object>& args) {
+  if (args.size() != 1) {
+    return ErrorObj(
+        fmt::format("{}. got={}, want=1", kWrongNumArgs, args.size()));
+  }
+
+  const auto& arg = args.front();
+  if (arg.Type() != ObjectType::kArray) {
+    return ErrorObj(
+        fmt::format("arguent to `last` must be ARRAY, got {}", arg.Type()));
+  }
+
+  const auto& arr = arg.Cast<Array>();
+  if (arr.empty()) {
+    return NullObj();
+  }
+  return arr.back();
+}
+
+Object BuiltinRest(const std::vector<Object>& args) {
+  if (args.size() != 1) {
+    return ErrorObj(
+        fmt::format("{}. got={}, want=1", kWrongNumArgs, args.size()));
+  }
+
+  const auto& arg = args.front();
+  if (arg.Type() != ObjectType::kArray) {
+    return ErrorObj(
+        fmt::format("arguent to `rest` must be ARRAY, got {}", arg.Type()));
+  }
+
+  const auto& arr = arg.Cast<Array>();
+  if (arr.empty()) {
+    return NullObj();
+  }
+
+  std::vector<Object> rest{arr.begin() + 1, arr.end()};
+  return ArrayObj(std::move(rest));
+}
+
+Object BuiltinPush(const std::vector<Object>& args) {
+  if (args.size() != 2) {
+    return ErrorObj(
+        fmt::format("{}. got={}, want=2", kWrongNumArgs, args.size()));
+  }
+
+  const auto& arg0 = args.front();
+  if (arg0.Type() != ObjectType::kArray) {
+    return ErrorObj(
+        fmt::format("arguent to `push` must be ARRAY, got {}", arg0.Type()));
+  }
+
+  const auto& arr = arg0.Cast<Array>();
+  std::vector<Object> copy{arr};
+  copy.push_back(args[1]);
+  return ArrayObj(std::move(copy));
 }
 
 }  // namespace
@@ -51,6 +109,9 @@ BuiltinMap MakeBuiltins() {
   BuiltinMap map;
   map["len"] = BuiltinFuncObj(BuiltinLen);
   map["first"] = BuiltinFuncObj(BuiltinFirst);
+  map["last"] = BuiltinFuncObj(BuiltinLast);
+  map["rest"] = BuiltinFuncObj(BuiltinRest);
+  map["push"] = BuiltinFuncObj(BuiltinPush);
   return map;
 }
 

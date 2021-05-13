@@ -46,6 +46,6 @@ target_link_libraries(
   monkey_evaluator
   PUBLIC monkey_ast
          monkey_object
-         monkey_environment
          monkey_builtin
+         monkey_environment
   PRIVATE absl::strings)
