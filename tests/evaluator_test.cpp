@@ -228,6 +228,7 @@ TEST(EvaluatorTest, TestClosures) {
     let addTwo = newAdder(2);
     addTwo(2);)raw";
 
+  SCOPED_TRACE(input);
   const auto obj = ParseAndEval(input);
   CheckIntObj(obj, 4);
 }
@@ -241,8 +242,8 @@ TEST(EvaluatorTest, TestStringLiteral) {
 
 TEST(EvaluatorTest, TestStringConcat) {
   const std::string input = R"raw("Hello" + " " + "World!")raw";
-  const auto obj = ParseAndEval(input);
   SCOPED_TRACE(input);
+  const auto obj = ParseAndEval(input);
   CheckStrObj(obj, "Hello World!");
 }
 
@@ -268,6 +269,50 @@ TEST(EvaluatorTest, TestBuiltinFunctions) {
         break;
       default:
         ASSERT_TRUE(false) << "Should not reach here";
+    }
+  }
+}
+
+TEST(EvaluatorTest, TestArrayLiterals) {
+  const std::string input = "[1, 2 * 2, 3 + 3]";
+  const auto obj = ParseAndEval(input);
+  SCOPED_TRACE(input);
+  ASSERT_EQ(obj.Type(), ObjectType::kArray);
+  const auto& array = obj.Cast<Array>();
+  ASSERT_EQ(array.size(), 3);
+  CheckIntObj(array[0], 1);
+  CheckIntObj(array[1], 4);
+  CheckIntObj(array[2], 6);
+}
+
+TEST(EvaluatorTest, TestArrayIndexExpression) {
+  using Value = absl::variant<void*, int64_t>;
+  const std::vector<InputExpected<Value>> tests = {
+      {"[1, 2, 3][0]", 1},
+      {"[1, 2, 3][1]", 2},
+      {"[1, 2, 3][2]", 3},
+      {"let i = 0; [1][i];", 1},
+      {"[1, 2, 3][1 + 1];", 3},
+      {"let myArray = [1, 2, 3]; myArray[2];", 3},
+      {"let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];", 6},
+      {"let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]", 2},
+      {"[1, 2, 3][3]", nullptr},
+      {"[1, 2, 3][-1]", nullptr},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.first);
+    const auto obj = ParseAndEval(test.first);
+
+    switch (test.second.index()) {
+      case 0:
+        EXPECT_EQ(obj.Type(), ObjectType::kNull);
+        break;
+      case 1:
+        CheckIntObj(obj, std::get<1>(test.second));
+        break;
+      default:
+        ASSERT_FALSE(true) << "Should not reach here";
     }
   }
 }

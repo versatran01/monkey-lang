@@ -25,6 +25,8 @@ class Evaluator {
   Object EvalInfixExpr(const Object& lhs,
                        const std::string& op,
                        const Object& rhs) const;
+  Object EvalIndexExpr(const Object& lhs, const Object& index) const;
+  Object EvalArrayIndexExpr(const Object& array, const Object& index) const;
   Object EvalStrInfixExpr(const Object& lhs,
                           const std::string& op,
                           const Object& rhs) const;

@@ -18,6 +18,7 @@ const auto gObjectTypeStrings = absl::flat_hash_map<ObjectType, std::string>{
     {ObjectType::kError, "ERROR"},
     {ObjectType::kFunc, "FUNCTION"},
     {ObjectType::kBuiltinFunc, "BUILTIN_FUNC"},
+    {ObjectType::kArray, "ARRAY"},
 };
 
 }  // namespace
@@ -55,6 +56,13 @@ std::string Object::Inspect() const {
       return Cast<FuncObject>().Inspect();
     case ObjectType::kBuiltinFunc:
       return "Builtin Function";
+    case ObjectType::kArray:
+      return fmt::format(
+          "[{}]",
+          absl::StrJoin(
+              Cast<Array>(), ", ", [](std::string* o, const Object& obj) {
+                o->append(obj.Inspect());
+              }));
     default:
       return fmt::format("Unknown type: {}", Type());
   }
@@ -82,5 +90,6 @@ Object FuncObj(FuncObject value) {
 Object BuiltinFuncObj(BuiltinFunc value) {
   return {ObjectType::kBuiltinFunc, std::move(value)};
 }
+Object ArrayObj(Array value) { return {ObjectType::kArray, std::move(value)}; }
 
 }  // namespace monkey

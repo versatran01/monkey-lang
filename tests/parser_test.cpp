@@ -219,7 +219,12 @@ TEST(ParserTest, TestParsingOperatorPrecedence) {
       {"a + add(b * c) + d", "((a + add((b * c))) + d)"},
       {"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
        "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))"},
-      {"add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))"}};
+      {"add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))"},
+      {"add(a * b[2], b[1], 2 * [1, 2][1])",
+       "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))"
+
+      },
+  };
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.first);
@@ -343,6 +348,21 @@ TEST(ParserTest, TestParsingArrayLiterals) {
   CheckIntLiteral(ptr->elements[0], 1);
   CheckInfixExpr(ptr->elements[1], 2, "*", 2);
   CheckInfixExpr(ptr->elements[2], 3, "+", 3);
+}
+
+TEST(ParserTest, TestParsingIndexExpression) {
+  const std::string input = "arr[1 + 1]";
+  Parser parser{input};
+  const auto program = parser.ParseProgram();
+  ASSERT_EQ(program.NumStatements(), 1);
+  const auto stmt = program.statements.front();
+  ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
+  const auto& expr = GetExpr(stmt);
+  ASSERT_EQ(expr.Type(), NodeType::kIndexExpr);
+  const auto* ptr = expr.PtrCast<IndexExpr>();
+  ASSERT_NE(ptr, nullptr);
+  CheckIdentifier(ptr->lhs, "arr");
+  CheckInfixExpr(ptr->index, 1, "+", 1);
 }
 
 }  // namespace

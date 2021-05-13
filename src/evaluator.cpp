@@ -5,6 +5,8 @@
 #include <fmt/ostream.h>
 #include <glog/logging.h>
 
+#include "monkey/builtin.h"
+
 namespace monkey {
 
 namespace {
@@ -12,31 +14,9 @@ namespace {
 const std::string kNotAFunc = "not a function";
 const std::string kUnknownOp = "unknown operator";
 const std::string kTypeMismatch = "type mismatch";
-const std::string kWrongNumArgs = "wrong number of arguments";
 const std::string kIdentNotFound = "identifier not found";
-
-// Builtins
-using BuiltinMap = absl::flat_hash_map<std::string, Object>;
-BuiltinMap MakeBuiltins() {
-  BuiltinMap map;
-  map["len"] = BuiltinFuncObj([](const std::vector<Object>& args) -> Object {
-    if (args.size() != 1) {
-      return ErrorObj(
-          fmt::format("{}. got={}, want=1", kWrongNumArgs, args.size()));
-    }
-
-    const auto& arg = args.front();
-    switch (arg.Type()) {
-      case ObjectType::kStr:
-        return IntObj(static_cast<int64_t>(arg.Cast<std::string>().size()));
-      default:
-        return ErrorObj(
-            fmt::format("argument to `len` not supported, got {}", arg.Type()));
-    }
-  });
-  return map;
-}
-const auto gBuiltins = MakeBuiltins();
+const std::string kIndexOpNotSupported = "index operator not supported";
+const BuiltinMap gBuiltins = MakeBuiltins();
 
 // Some const objects
 const Object kTrueObject = BoolObj(true);
@@ -143,6 +123,29 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
       return FuncObj(
           {fn_ptr->params, fn_ptr->body, std::make_shared<Environment>(env)});
     }
+    case NodeType::kArrayLiteral: {
+      const auto* arr_ptr = node.PtrCast<ArrayLiteral>();
+      auto elems = EvalExprs(arr_ptr->elements, env);
+
+      if (elems.size() == 1 && IsError(elems.front())) {
+        return elems.front();
+      }
+
+      return ArrayObj(std::move(elems));
+    }
+    case NodeType::kIndexExpr: {
+      const auto* index_expr = node.PtrCast<IndexExpr>();
+
+      const auto lhs = Evaluate(index_expr->lhs, env);
+      if (IsError(lhs)) {
+        return lhs;
+      }
+      const auto index = Evaluate(index_expr->index, env);
+      if (IsError(index)) {
+        return index;
+      }
+      return EvalIndexExpr(lhs, index);
+    }
     case NodeType::kCallExpr: {
       const auto* ce_ptr = node.PtrCast<CallExpr>();
 
@@ -224,6 +227,25 @@ Object Evaluator::EvalInfixExpr(const Object& lhs,
     return ErrorObj(
         fmt::format("{}: {} {} {}", kUnknownOp, lhs.Type(), op, rhs.Type()));
   }
+}
+
+Object Evaluator::EvalIndexExpr(const Object& lhs, const Object& index) const {
+  if (lhs.Type() == ObjectType::kArray && index.Type() == ObjectType::kInt) {
+    return EvalArrayIndexExpr(lhs, index);
+  } else {
+    return ErrorObj(fmt::format("{} {}", kIndexOpNotSupported, lhs.Type()));
+  }
+}
+
+Object Evaluator::EvalArrayIndexExpr(const Object& array,
+                                     const Object& index) const {
+  const auto& arr = array.Cast<Array>();
+  const auto idx = index.Cast<int64_t>();
+
+  if (idx < 0 || idx >= arr.size()) {
+    return kNullObject;
+  }
+  return arr[static_cast<size_t>(idx)];
 }
 
 Object Evaluator::EvalStrInfixExpr(const Object& lhs,

@@ -24,6 +24,7 @@ const auto gNodeTypeStrings = absl::flat_hash_map<NodeType, std::string>{
     {NodeType::kPrefixExpr, "PrefixExpr"},
     {NodeType::kInfixExpr, "InfixExpr"},
     {NodeType::kIfExpr, "IfExpr"},
+    {NodeType::kIndexExpr, "IndexExpr"},
     {NodeType::kFnLiteral, "FuncLiteral"},
     {NodeType::kCallExpr, "CallExpr"},
     {NodeType::kExprStmt, "ExprStmt"},
@@ -111,6 +112,10 @@ const ExprNode& GetExpr(const StmtNode& node) {
       throw std::runtime_error(
           "GetExpr can only be called on ExprStmt, LetStmt and ReturnStmt");
   }
+}
+
+std::string IndexExpr::String() const {
+  return fmt::format("({}[{}])", lhs.String(), index.String());
 }
 
 }  // namespace monkey

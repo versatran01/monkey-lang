@@ -7,6 +7,7 @@ example/repl.cpp
 example/rlpl.cpp
 example/rppl.cpp
 include/monkey/ast.h
+include/monkey/builtin.h
 include/monkey/environment.h
 include/monkey/evaluator.h
 include/monkey/lexer.h
@@ -15,6 +16,7 @@ include/monkey/parser.h
 include/monkey/token.h
 src/CMakeLists.txt
 src/ast.cpp
+src/builtin.cpp
 src/environment.cpp
 src/evaluator.cpp
 src/lexer.cpp

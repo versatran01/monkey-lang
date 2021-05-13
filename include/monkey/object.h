@@ -23,6 +23,7 @@ enum class ObjectType {
   kError,
   kFunc,
   kBuiltinFunc,
+  kArray,
 };
 
 std::ostream& operator<<(std::ostream& os, ObjectType type);
@@ -48,6 +49,7 @@ struct Object {
 };
 
 using BuiltinFunc = std::function<Object(std::vector<Object>)>;
+using Array = std::vector<Object>;
 
 struct FuncObject {
   std::string Inspect() const;
@@ -66,5 +68,6 @@ Object ErrorObj(std::string value);
 Object ReturnObj(Object value);
 Object FuncObj(FuncObject value);
 Object BuiltinFuncObj(BuiltinFunc value);
+Object ArrayObj(Array value);
 
 }  // namespace monkey

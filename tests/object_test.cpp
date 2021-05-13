@@ -23,5 +23,10 @@ TEST(ObjecTest, TestCast) {
   EXPECT_EQ(ErrorObj("error").Cast<std::string>(), "error");
 }
 
+TEST(ObjectTest, TestArray) {
+  const auto array = ArrayObj({IntObj(1), IntObj(2)});
+  EXPECT_EQ(array.Inspect(), "[1, 2]");
+}
+
 }  // namespace
 }  // namespace monkey

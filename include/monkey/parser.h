@@ -17,7 +17,8 @@ enum class Precedence {
   kSum,
   kProduct,
   kPrefix,
-  kCall
+  kCall,
+  kIndex
 };
 
 class Parser {
@@ -50,6 +51,7 @@ class Parser {
   ExprNode ParseGroupedExpr();
   ExprNode PasrseCallExpr(const ExprNode& expr);
   ExprNode ParseInfixExpr(const ExprNode& expr);
+  ExprNode ParseIndexExpr(const ExprNode& expr);
 
   std::vector<Identifier> ParseFuncParams();
   std::vector<ExprNode> ParseExprList(TokenType end_type);

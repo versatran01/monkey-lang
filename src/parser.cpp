@@ -22,7 +22,9 @@ absl::flat_hash_map<TokenType, Precedence> gTokenPrecedence = {
     {TokenType::kMinus, Precedence::kSum},
     {TokenType::kSlash, Precedence::kProduct},
     {TokenType::kAsterisk, Precedence::kProduct},
-    {TokenType::kLParen, Precedence::kCall}};
+    {TokenType::kLParen, Precedence::kCall},
+    {TokenType::kLBracket, Precedence::kIndex},
+};
 
 Precedence TokenPrecedence(TokenType type) {
   const auto it = gTokenPrecedence.find(type);
@@ -70,6 +72,8 @@ void Parser::RegisterParseFns() {
   RegisterInfix(TokenType::kGe, parse_infix);
   RegisterInfix(TokenType::kLParen,
                 [this](const auto& expr) { return PasrseCallExpr(expr); });
+  RegisterInfix(TokenType::kLBracket,
+                [this](const auto& expr) { return ParseIndexExpr(expr); });
 }
 
 void Parser::NextToken() {
@@ -268,6 +272,21 @@ ExprNode Parser::ParseInfixExpr(const ExprNode& lhs) {
   NextToken();
   infx_expr.rhs = ParseExpression(precedence);
   return infx_expr;
+}
+
+ExprNode Parser::ParseIndexExpr(const ExprNode& expr) {
+  IndexExpr index_expr;
+  index_expr.token = curr_token_;
+  index_expr.lhs = expr;
+
+  NextToken();
+  index_expr.index = ParseExpression(Precedence::kLowest);
+
+  if (!ExpectPeek(TokenType::kRBracket)) {
+    return {};
+  }
+
+  return index_expr;
 }
 
 std::vector<ExprNode> Parser::ParseExprList(TokenType end_type) {
