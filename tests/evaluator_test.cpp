@@ -317,5 +317,41 @@ TEST(EvaluatorTest, TestArrayIndexExpression) {
   }
 }
 
+TEST(EvaluatorTest, TestHashLiterals) {
+  const std::string input = R"r(
+    let two = "two";
+    {
+    "one": 10 - 9,
+    two: 1 + 1,
+    "thr" + "ee": 6 / 2,
+    4: 4,
+    true: 5,
+    false: 6
+    }
+    )r";
+
+  const absl::flat_hash_map<Object, int64_t> expected = {
+      {StrObj("one"), 1},
+      {StrObj("two"), 2},
+      {StrObj("three"), 3},
+      {IntObj(4), 4},
+      {BoolObj(true), 5},
+      {BoolObj(false), 6},
+  };
+
+  const auto obj = ParseAndEval(input);
+  ASSERT_EQ(obj.Type(), ObjectType::kDict);
+  const auto& dict = obj.Cast<Dict>();
+  ASSERT_EQ(dict.size(), expected.size());
+  for (const auto& [k, v] : expected) {
+    SCOPED_TRACE(k.Inspect());
+    const auto it = dict.find(k);
+    ASSERT_NE(it, dict.end());
+    const auto& io = it->second;
+    ASSERT_EQ(io.Type(), ObjectType::kInt);
+    EXPECT_EQ(io.Cast<int64_t>(), v);
+  }
+}
+
 }  // namespace
 }  // namespace monkey

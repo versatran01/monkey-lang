@@ -21,7 +21,7 @@ const auto gNodeTypeStrings = absl::flat_hash_map<NodeType, std::string>{
     {NodeType::kIntLiteral, "IntLiteral"},
     {NodeType::kBoolLiteral, "BoolLiteral"},
     {NodeType::kArrayLiteral, "ArrayLiteral"},
-    {NodeType::kHashLiteral, "HashLiteral"},
+    {NodeType::kDictLiteral, "DictLiteral"},
     {NodeType::kPrefixExpr, "PrefixExpr"},
     {NodeType::kInfixExpr, "InfixExpr"},
     {NodeType::kIfExpr, "IfExpr"},
@@ -119,7 +119,7 @@ std::string IndexExpr::String() const {
   return fmt::format("({}[{}])", lhs.String(), index.String());
 }
 
-std::string HashLiteral::String() const {
+std::string DictLiteral::String() const {
   const auto pf = absl::PairFormatter(NodeFmt(), ": ", NodeFmt());
   return fmt::format("{{{}}}", absl::StrJoin(pairs, ", ", pf));
 }

@@ -18,7 +18,7 @@ enum class NodeType {
   kBoolLiteral,
   kStrLiteral,
   kArrayLiteral,
-  kHashLiteral,
+  kDictLiteral,
   kIndexExpr,
   kPrefixExpr,
   kInfixExpr,
@@ -207,8 +207,8 @@ struct IndexExpr final : public NodeBase {
   ExprNode index;
 };
 
-struct HashLiteral final : public NodeBase {
-  HashLiteral() : NodeBase{NodeType::kHashLiteral} {}
+struct DictLiteral final : public NodeBase {
+  DictLiteral() : NodeBase{NodeType::kDictLiteral} {}
   std::string String() const override;
 
   std::vector<std::pair<ExprNode, ExprNode>> pairs;

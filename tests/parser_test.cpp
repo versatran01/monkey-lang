@@ -379,8 +379,8 @@ TEST(ParserTest, TestParsingPairHashLietralsStrKeys) {
   const auto stmt = program.statements.front();
   ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
   const auto& expr = GetExpr(stmt);
-  ASSERT_EQ(expr.Type(), NodeType::kHashLiteral);
-  const auto* ptr = expr.PtrCast<HashLiteral>();
+  ASSERT_EQ(expr.Type(), NodeType::kDictLiteral);
+  const auto* ptr = expr.PtrCast<DictLiteral>();
   ASSERT_NE(ptr, nullptr);
 
   ASSERT_EQ(ptr->pairs.size(), 3);
@@ -400,8 +400,8 @@ TEST(ParserTest, TestParsingEmptyHashLiteral) {
   const auto stmt = program.statements.front();
   ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
   const auto& expr = GetExpr(stmt);
-  ASSERT_EQ(expr.Type(), NodeType::kHashLiteral);
-  const auto* ptr = expr.PtrCast<HashLiteral>();
+  ASSERT_EQ(expr.Type(), NodeType::kDictLiteral);
+  const auto* ptr = expr.PtrCast<DictLiteral>();
   ASSERT_NE(ptr, nullptr);
   EXPECT_EQ(ptr->pairs.size(), 0);
 }

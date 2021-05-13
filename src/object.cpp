@@ -8,6 +8,12 @@ namespace monkey {
 
 namespace {
 
+struct ObjFmt {
+  void operator()(std::string* out, const Object& obj) const {
+    out->append(obj.Inspect());
+  }
+};
+
 const auto gObjectTypeStrings = absl::flat_hash_map<ObjectType, std::string>{
     {ObjectType::kInvalid, "INVALID"},
     {ObjectType::kNull, "NULL"},
@@ -19,6 +25,7 @@ const auto gObjectTypeStrings = absl::flat_hash_map<ObjectType, std::string>{
     {ObjectType::kFunc, "FUNCTION"},
     {ObjectType::kBuiltinFunc, "BUILTIN_FUNC"},
     {ObjectType::kArray, "ARRAY"},
+    {ObjectType::kDict, "DICT"},
 };
 
 }  // namespace
@@ -56,13 +63,12 @@ std::string Object::Inspect() const {
       return Cast<FuncObject>().Inspect();
     case ObjectType::kBuiltinFunc:
       return "Builtin Function";
+    case ObjectType::kDict: {
+      const auto pf = absl::PairFormatter(ObjFmt{}, ": ", ObjFmt{});
+      return fmt::format("{{{}}}", absl::StrJoin(Cast<Dict>(), ", ", pf));
+    }
     case ObjectType::kArray:
-      return fmt::format(
-          "[{}]",
-          absl::StrJoin(
-              Cast<Array>(), ", ", [](std::string* o, const Object& obj) {
-                o->append(obj.Inspect());
-              }));
+      return fmt::format("[{}]", absl::StrJoin(Cast<Array>(), ", ", ObjFmt{}));
     default:
       return fmt::format("Unknown type: {}", Type());
   }
@@ -91,5 +97,6 @@ Object BuiltinFuncObj(BuiltinFunc value) {
   return {ObjectType::kBuiltinFunc, std::move(value)};
 }
 Object ArrayObj(Array value) { return {ObjectType::kArray, std::move(value)}; }
+Object DictObject(Dict value) { return {ObjectType::kDict, std::move(value)}; }
 
 }  // namespace monkey

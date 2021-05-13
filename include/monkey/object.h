@@ -1,5 +1,7 @@
 #pragma once
 
+#include <absl/container/flat_hash_map.h>
+#include <absl/hash/hash.h>
 #include <absl/types/any.h>
 
 #include <functional>
@@ -24,6 +26,7 @@ enum class ObjectType {
   kFunc,
   kBuiltinFunc,
   kArray,
+  kDict,
 };
 
 std::ostream& operator<<(std::ostream& os, ObjectType type);
@@ -44,12 +47,38 @@ struct Object {
     return absl::any_cast<const T&>(value);
   }
 
+  // https://abseil.io/docs/cpp/guides/hash
+  template <typename H>
+  friend H AbslHashValue(H h, const Object& obj) {
+    const auto t = static_cast<int>(obj.Type());
+    switch (obj.Type()) {
+      case ObjectType::kBool:
+        return H::combine(std::move(h), t, absl::any_cast<bool>(obj.value));
+      case ObjectType::kInt:
+        return H::combine(std::move(h), t, absl::any_cast<int64_t>(obj.value));
+      case ObjectType::kStr:
+        return H::combine(
+            std::move(h), t, absl::any_cast<std::string>(obj.value));
+      default:
+        return H::combine(std::move(h), t, obj.Inspect());
+    }
+  }
+
+  friend bool operator==(const Object& lhs, const Object& rhs) {
+    return lhs.Type() == rhs.Type() && lhs.Inspect() == rhs.Inspect();
+  }
+
+  friend bool operator!=(const Object& lhs, const Object& rhs) {
+    return !(lhs == rhs);
+  }
+
   ObjectType type{ObjectType::kInvalid};
   absl::any value;
 };
 
-using BuiltinFunc = std::function<Object(std::vector<Object>)>;
 using Array = std::vector<Object>;
+using Dict = absl::flat_hash_map<Object, Object>;
+using BuiltinFunc = std::function<Object(std::vector<Object>)>;
 
 struct FuncObject {
   std::string Inspect() const;
@@ -69,5 +98,6 @@ Object ReturnObj(Object value);
 Object FuncObj(FuncObject value);
 Object BuiltinFuncObj(BuiltinFunc value);
 Object ArrayObj(Array value);
+Object DictObject(Dict value);
 
 }  // namespace monkey

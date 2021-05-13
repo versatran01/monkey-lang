@@ -257,7 +257,7 @@ ExprNode Parser::ParseFuncLiteral() {
 }
 
 ExprNode Parser::ParseHashLiteral() {
-  HashLiteral hash;
+  DictLiteral hash;
   hash.token = curr_token_;
 
   while (!IsPeekToken(TokenType::kRBrace)) {

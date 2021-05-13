@@ -1,5 +1,6 @@
 #include "monkey/object.h"
 
+#include <absl/hash/hash_testing.h>
 #include <gtest/gtest.h>
 
 namespace monkey {
@@ -26,6 +27,13 @@ TEST(ObjecTest, TestCast) {
 TEST(ObjectTest, TestArray) {
   const auto array = ArrayObj({IntObj(1), IntObj(2)});
   EXPECT_EQ(array.Inspect(), "[1, 2]");
+}
+
+TEST(ObjectTest, TestStringHashKey) {
+  const auto hello1 = StrObj("Hello World");
+  const auto hello2 = StrObj("Hello World");
+  EXPECT_TRUE(absl::VerifyTypeImplementsAbslHashCorrectly(
+      {StrObj("1"), IntObj(1), BoolObj(true)}));
 }
 
 }  // namespace

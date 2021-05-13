@@ -80,8 +80,7 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
       if (IsError(obj)) {
         return obj;
       }
-      const auto* ptr = node.PtrCast<LetStmt>();
-      return env.Set(ptr->name.String(), obj);
+      return env.Set(node.PtrCast<LetStmt>()->name.String(), obj);
     }
     case NodeType::kIntLiteral: {
       return IntObj(node.PtrCast<IntLiteral>()->value);
@@ -91,6 +90,9 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
     }
     case NodeType::kStrLiteral: {
       return StrObj(node.PtrCast<StrLiteral>()->value);
+    }
+    case NodeType::kDictLiteral: {
+      return EvalDictLiteral(*node.PtrCast<DictLiteral>(), env);
     }
     case NodeType::kPrefixExpr: {
       const auto* pe_ptr = node.PtrCast<PrefixExpr>();
@@ -274,6 +276,24 @@ Object Evaluator::EvalBlockStmt(const BlockStmt& block,
   }
 
   return obj;
+}
+
+Object Evaluator::EvalDictLiteral(const DictLiteral& expr,
+                                  Environment& env) const {
+  Dict dict;
+  for (const auto& [key_expr, val_expr] : expr.pairs) {
+    const auto key_obj = Evaluate(key_expr, env);
+    if (IsError(key_obj)) {
+      return key_obj;
+    }
+
+    const auto val_obj = Evaluate(val_expr, env);
+    if (IsError(val_obj)) {
+      return val_obj;
+    }
+    dict[key_obj] = val_obj;
+  }
+  return DictObject(std::move(dict));
 }
 
 std::vector<Object> Evaluator::EvalExprs(const std::vector<ExprNode>& exprs,

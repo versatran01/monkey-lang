@@ -16,6 +16,8 @@ class Evaluator {
   Object EvalIdentifier(const Identifier& ident, const Environment& env) const;
   Object EvalIfExpr(const IfExpr& expr, Environment& env) const;
   Object EvalBlockStmt(const BlockStmt& block, Environment& env) const;
+  Object EvalDictLiteral(const DictLiteral& expr, Environment& env) const;
+
   std::vector<Object> EvalExprs(const std::vector<ExprNode>& exprs,
                                 Environment& env) const;
 
