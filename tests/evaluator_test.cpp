@@ -288,7 +288,6 @@ TEST(EvaluatorTest, TestArrayLiterals) {
 }
 
 TEST(EvaluatorTest, TestArrayIndexExpression) {
-  using Value = absl::variant<void*, int64_t>;
   const std::vector<InputExpected<LiteralType>> tests = {
       {"[1, 2, 3][0]", 1},
       {"[1, 2, 3][1]", 2},

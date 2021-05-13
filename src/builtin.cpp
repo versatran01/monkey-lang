@@ -103,6 +103,13 @@ Object BuiltinPush(const std::vector<Object>& args) {
   return ArrayObj(std::move(copy));
 }
 
+Object BuiltinPuts(const std::vector<Object>& args) {
+  for (const auto& arg : args) {
+    fmt::print("{}\n", arg.Inspect());
+  }
+  return NullObj();
+}
+
 }  // namespace
 
 BuiltinMap MakeBuiltins() {
@@ -112,6 +119,7 @@ BuiltinMap MakeBuiltins() {
   map["last"] = BuiltinFuncObj(BuiltinLast);
   map["rest"] = BuiltinFuncObj(BuiltinRest);
   map["push"] = BuiltinFuncObj(BuiltinPush);
+  map["puts"] = BuiltinFuncObj(BuiltinPuts);
   return map;
 }
 
