@@ -1,6 +1,5 @@
 #pragma once
 
-#include <functional>
 #include <iosfwd>
 #include <memory>
 #include <string>
@@ -233,7 +232,7 @@ struct DictLiteral final : public NodeBase {
 const ExprNode& GetExpr(const StmtNode& node);
 
 // TODO: suspend for now
-using ModifyFunc = std::function<ExprNode(ExprNode)>;
-ExprNode Modify(const ExprNode& expr, const ModifyFunc& func);
+// using ModifyFunc = std::function<ExprNode(ExprNode)>;
+// ExprNode Modify(const ExprNode& expr, const ModifyFunc& func);
 
 }  // namespace monkey

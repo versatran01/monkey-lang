@@ -1,6 +1,6 @@
 CMakeLists.txt
 cmake/CompilerWarnings.cmake
-cmake/FindGMock.cmake
+cmake/SvHelpers.cmake
 example/CMakeLists.txt
 example/play.cpp
 example/repl.cpp

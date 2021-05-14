@@ -1,14 +1,36 @@
 additional_commands:
-  foo:
-    flags:
-      - BAR
-      - BAZ
+  catkin_package:
     kwargs:
+      INCLUDE_DIRS: "*"
+      LIBRARIES: "*"
+      CATKIN_DEPENDS: "*"
       DEPENDS: "*"
-      HEADERS: "*"
-      SOURCES: "*"
+  cc_library:
+    flags:
+      - INTERFACE
+    kwargs:
+      HDRS: "*"
+      SRCS: "*"
+      COPTS: "*"
+      DEFINES: "*"
+      LINKOPTS: "*"
+      DEPS: "*"
+      INCDIRS: "*"
+  cc_binary:
+    kwargs:
+      SRCS: "*"
+      COPTS: "*"
+      DEFINES: "*"
+      LINKOPTS: "*"
+      DEPS: "*"
+  cc_gtest:
+    kwargs:
+      SRCS: "*"
+      COPTS: "*"
+      DEFINES: "*"
+      LINKOPTS: "*"
+      DEPS: "*"
 dangle_parens: false
 line_ending: unix
 line_width: 80
 tab_size: 2
-max_pargs_hwrap: 3

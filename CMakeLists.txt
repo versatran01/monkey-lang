@@ -3,9 +3,9 @@ project(monkey)
 
 set(CMAKE_CXX_STANDARD 17)
 
-list(PREPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-include(cmake/CompilerWarnings.cmake)
+include(CompilerWarnings)
 add_library(monkey_warnings INTERFACE)
 set_project_warnings(monkey_warnings)
 
@@ -13,8 +13,13 @@ find_package(fmt REQUIRED)
 find_package(glog REQUIRED)
 find_package(absl REQUIRED)
 
+set(CC_TARGET_PREFIX "monkey")
+include(CMakeHelpers)
+
+include_directories(include)
 add_subdirectory(src)
 add_subdirectory(example)
 
 enable_testing()
+set(BUILD_TESTING On)
 add_subdirectory(tests)

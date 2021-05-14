@@ -1,57 +1,54 @@
-add_library(monkey_core INTERFACE)
-target_include_directories(monkey_core INTERFACE ../include)
-target_link_libraries(monkey_core INTERFACE fmt::fmt glog::glog monkey_warnings)
+cc_library(
+  NAME core
+  DEPS fmt::fmt glog::glog monkey_warnings
+  INTERFACE)
 
-add_library(monkey_timer timer.cpp)
-target_link_libraries(
-  monkey_timer
-  PUBLIC monkey_core
-         absl::time
-         absl::strings
-         absl::flat_hash_map)
+cc_library(
+  NAME timer
+  SRCS "timer.cpp"
+  DEPS absl::time absl::strings absl::flat_hash_map monkey::core)
 
-add_library(monkey_token token.cpp)
-target_link_libraries(
-  monkey_token
-  PUBLIC monkey_core
-  PRIVATE absl::flat_hash_map)
+cc_library(
+  NAME token
+  SRCS "token.cpp"
+  DEPS monkey::core
+  LINKOPTS absl::flat_hash_map)
 
-add_library(monkey_lexer lexer.cpp)
-target_link_libraries(monkey_lexer PUBLIC monkey_token)
+cc_library(
+  NAME lexer
+  SRCS "lexer.cpp"
+  DEPS monkey::token)
 
-add_library(monkey_ast ast.cpp)
-target_link_libraries(
-  monkey_ast
-  PUBLIC monkey_token
-  PRIVATE absl::strings absl::flat_hash_map)
+cc_library(
+  NAME ast
+  SRCS "ast.cpp"
+  DEPS monkey::token
+  LINKOPTS absl::strings absl::flat_hash_map)
 
-add_library(monkey_parser parser.cpp)
-target_link_libraries(
-  monkey_parser
-  PUBLIC monkey_ast
-         monkey_token
-         monkey_lexer
-         absl::flat_hash_map
-  PRIVATE absl::strings)
+cc_library(
+  NAME parser
+  SRCS "parser.cpp"
+  DEPS monkey::ast monkey::token monkey::lexer absl::flat_hash_map
+  LINKOPTS absl::strings)
 
-add_library(monkey_object object.cpp)
-target_link_libraries(monkey_object PUBLIC monkey_ast absl::hash
-                                           absl::flat_hash_map)
+cc_library(
+  NAME object
+  SRCS "object.cpp"
+  DEPS monkey::ast absl::hash absl::flat_hash_map)
 
-add_library(monkey_builtin builtin.cpp)
-target_link_libraries(monkey_builtin PUBLIC monkey_object)
+cc_library(
+  NAME builtin
+  SRCS "builtin.cpp"
+  DEPS monkey::object)
 
-add_library(monkey_environment environment.cpp)
-target_link_libraries(
-  monkey_environment
-  PUBLIC monkey_object absl::flat_hash_map
-  PRIVATE absl::strings)
+cc_library(
+  NAME environment
+  SRCS "environment.cpp"
+  DEPS monkey::object absl::flat_hash_map
+  LINKOPTS absl::strings)
 
-add_library(monkey_evaluator evaluator.cpp)
-target_link_libraries(
-  monkey_evaluator
-  PUBLIC monkey_ast
-         monkey_object
-         monkey_builtin
-         monkey_environment
-  PRIVATE absl::strings)
+cc_library(
+  NAME evaluator
+  SRCS "evaluator.cpp"
+  DEPS monkey::ast monkey::object monkey::builtin monkey::environment
+  LINKOPTS absl::strings)

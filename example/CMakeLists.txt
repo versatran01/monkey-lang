@@ -1,13 +1,14 @@
-add_executable(monkey_play play.cpp)
-target_link_libraries(monkey_play PRIVATE monkey_parser monkey_evaluator)
+cc_binary(
+  NAME rlpl
+  SRCS "rlpl.cpp"
+  DEPS monkey::lexer)
 
-add_executable(monkey_rlpl rlpl.cpp)
-target_link_libraries(monkey_rlpl PRIVATE monkey_lexer)
+cc_binary(
+  NAME rppl
+  SRCS "rppl.cpp"
+  DEPS monkey::parser)
 
-add_executable(monkey_rppl rppl.cpp)
-target_link_libraries(monkey_rppl PRIVATE monkey_parser)
-
-add_executable(monkey_repl repl.cpp)
-target_link_libraries(monkey_repl PRIVATE monkey_evaluator monkey_parser)
-
-
+cc_binary(
+  NAME repl
+  SRCS "repl.cpp"
+  DEPS monkey::parser monkey::evaluator)
