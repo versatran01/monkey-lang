@@ -3,8 +3,8 @@
 #include <absl/hash/hash_testing.h>
 #include <gtest/gtest.h>
 
-namespace monkey {
 namespace {
+using namespace monkey;
 
 TEST(ObjecTest, TestInspect) {
   EXPECT_EQ(NullObj().Inspect(), "Null");
@@ -37,4 +37,3 @@ TEST(ObjectTest, TestStringHashKey) {
 }
 
 }  // namespace
-}  // namespace monkey

@@ -6,8 +6,8 @@
 
 #include "monkey/parser.h"
 
-namespace monkey {
 namespace {
+using namespace monkey;
 
 template <typename T>
 using InputExpected = std::pair<std::string, T>;
@@ -362,5 +362,38 @@ TEST(EvaluatorTest, TestDictIndexExpression) {
   }
 }
 
+TEST(EvaluatorTest, TestQuote) {
+  const std::vector<InputExpected<std::string>> tests = {
+      {"quote(5)", "5"},
+      {"quote(5 + 8)", "(5 + 8)"},
+      {"quote(foobar)", "foobar"},
+      {"quote(foobar + barfoo)", "(foobar + barfoo)"},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.first);
+    const auto obj = ParseAndEval(test.first);
+    ASSERT_EQ(obj.Type(), ObjectType::kQuote);
+    const auto& expr = obj.Cast<ExprNode>();
+    EXPECT_EQ(expr.String(), test.second);
+  }
+}
+
+// TEST(EvaluatorTest, TestUnquote) {
+//  const std::vector<InputExpected<std::string>> tests = {
+//      {"quote(unquote(4))", "4"},
+//      {"quote(unquote(4 + 4))", "8"},
+//      {"quote(8 + unquote(4 + 4))", "(8 + 8)"},
+//      {"quote(unquote(4 + 4) + 8)", "(8 + 8)"},
+//  };
+
+//  for (const auto& test : tests) {
+//    SCOPED_TRACE(test.first);
+//    const auto obj = ParseAndEval(test.first);
+//    ASSERT_EQ(obj.Type(), ObjectType::kQuote);
+//    const auto& expr = obj.Cast<ExprNode>();
+//    EXPECT_EQ(expr.String(), test.second);
+//  }
+//}
+
 }  // namespace
-}  // namespace monkey

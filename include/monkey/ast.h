@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <iosfwd>
 #include <memory>
 #include <string>
@@ -71,11 +72,16 @@ class AstNode {
 
   std::string String() const { return self_->String(); }
   std::string TokenLiteral() const { return self_->TokenLiteral(); }
-  const NodeBase* Ptr() const noexcept { return self_.get(); }
 
   template <typename T>
   auto PtrCast() const noexcept {
     return dynamic_cast<const T*>(self_.get());
+  }
+
+  template <typename T>
+  auto MutPtrCast() const noexcept {
+    // This is probably a hack
+    return dynamic_cast<T*>(const_cast<NodeBase*>(self_.get()));
   }
 
  protected:
@@ -225,5 +231,9 @@ struct DictLiteral final : public NodeBase {
 
 // Helper function to get the expression in ExprStmt
 const ExprNode& GetExpr(const StmtNode& node);
+
+// TODO: suspend for now
+using ModifyFunc = std::function<ExprNode(ExprNode)>;
+ExprNode Modify(const ExprNode& expr, const ModifyFunc& func);
 
 }  // namespace monkey

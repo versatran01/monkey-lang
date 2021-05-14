@@ -3,8 +3,8 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
-namespace monkey {
 namespace {
+using namespace monkey;
 
 TEST(LexerTest, TestTokenTypeOstream) {
   auto tt = TokenType::kIllegal;
@@ -109,4 +109,3 @@ TEST(LexerTest, TestSimpleCode) {
 }
 
 }  // namespace
-}  // namespace monkey

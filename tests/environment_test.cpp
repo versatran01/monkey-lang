@@ -3,8 +3,8 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
-namespace monkey {
 namespace {
+using namespace monkey;
 
 TEST(EnvironmentTest, TestGetSet) {
   Environment env;
@@ -26,4 +26,3 @@ TEST(EnvironmentTest, TestOstream) {
 }
 
 }  // namespace
-}  // namespace monkey

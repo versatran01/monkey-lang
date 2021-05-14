@@ -26,6 +26,7 @@ const auto gObjectTypeStrings = absl::flat_hash_map<ObjectType, std::string>{
     {ObjectType::kBuiltinFunc, "BUILTIN_FUNC"},
     {ObjectType::kArray, "ARRAY"},
     {ObjectType::kDict, "DICT"},
+    {ObjectType::kQuote, "QUOTE"},
 };
 
 }  // namespace
@@ -69,6 +70,8 @@ std::string Object::Inspect() const {
     }
     case ObjectType::kArray:
       return fmt::format("[{}]", absl::StrJoin(Cast<Array>(), ", ", ObjFmt{}));
+    case ObjectType::kQuote:
+      return fmt::format("QUOTE({})", Cast<ExprNode>().String());
     default:
       return fmt::format("Unknown type: {}", Type());
   }
@@ -87,19 +90,14 @@ Object NullObj() { return Object{ObjectType::kNull}; }
 Object IntObj(IntType value) { return {ObjectType::kInt, value}; }
 Object StrObj(StrType value) { return {ObjectType::kStr, std::move(value)}; }
 Object BoolObj(BoolType value) { return {ObjectType::kBool, value}; }
-Object ErrorObj(std::string value) {
-  return {ObjectType::kError, std::move(value)};
+Object ErrorObj(const std::string& str) { return {ObjectType::kError, str}; }
+Object ReturnObj(const Object& value) { return {ObjectType::kReturn, value}; }
+Object FuncObj(const FuncObject& fn) { return {ObjectType::kFunc, fn}; }
+Object ArrayObj(const Array& arr) { return {ObjectType::kArray, arr}; }
+Object DictObj(const Dict& dict) { return {ObjectType::kDict, dict}; }
+Object QuoteObj(const ExprNode& expr) { return {ObjectType::kQuote, expr}; }
+Object BuiltinFuncObj(const BuiltinFunc& fn) {
+  return {ObjectType::kBuiltinFunc, fn};
 }
-Object ReturnObj(Object value) {
-  return {ObjectType::kReturn, std::move(value)};
-}
-Object FuncObj(FuncObject value) {
-  return {ObjectType::kFunc, std::move(value)};
-}
-Object BuiltinFuncObj(BuiltinFunc value) {
-  return {ObjectType::kBuiltinFunc, std::move(value)};
-}
-Object ArrayObj(Array value) { return {ObjectType::kArray, std::move(value)}; }
-Object DictObject(Dict value) { return {ObjectType::kDict, std::move(value)}; }
 
 }  // namespace monkey

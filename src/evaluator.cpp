@@ -118,13 +118,13 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
       return EvalIdentifier(*node.PtrCast<Identifier>(), env);
     }
     case NodeType::kFnLiteral: {
-      const auto* fn_ptr = node.PtrCast<FuncLiteral>();
+      const auto* ptr = node.PtrCast<FuncLiteral>();
       return FuncObj(
-          {fn_ptr->params, fn_ptr->body, std::make_shared<Environment>(env)});
+          {ptr->params, ptr->body, std::make_shared<Environment>(env)});
     }
     case NodeType::kArrayLiteral: {
-      const auto* arr_ptr = node.PtrCast<ArrayLiteral>();
-      auto elems = EvalExprs(arr_ptr->elements, env);
+      const auto* ptr = node.PtrCast<ArrayLiteral>();
+      auto elems = EvalExprs(ptr->elements, env);
 
       if (elems.size() == 1 && IsError(elems.front())) {
         return elems.front();
@@ -133,34 +133,39 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
       return ArrayObj(std::move(elems));
     }
     case NodeType::kIndexExpr: {
-      const auto* index_expr = node.PtrCast<IndexExpr>();
+      const auto* expr = node.PtrCast<IndexExpr>();
 
-      const auto lhs = Evaluate(index_expr->lhs, env);
+      const auto lhs = Evaluate(expr->lhs, env);
       if (IsError(lhs)) {
         return lhs;
       }
-      const auto index = Evaluate(index_expr->index, env);
+      const auto index = Evaluate(expr->index, env);
       if (IsError(index)) {
         return index;
       }
       return EvalIndexExpr(lhs, index);
     }
     case NodeType::kCallExpr: {
-      const auto* ce_ptr = node.PtrCast<CallExpr>();
-
-      const auto obj = Evaluate(ce_ptr->func, env);
-      if (IsError(obj)) {
-        return obj;
+      // Skip evaluation for quote
+      const auto* ptr = node.PtrCast<CallExpr>();
+      if (ptr->func.TokenLiteral() == "quote") {
+        CHECK_GT(ptr->args.size(), 0);
+        return QuoteObj(ptr->args.front());
       }
 
-      const auto args_obj = EvalExprs(ce_ptr->args, env);
+      const auto func = Evaluate(ptr->func, env);
+      if (IsError(func)) {
+        return func;
+      }
+
+      const auto args = EvalExprs(ptr->args, env);
 
       // Handle argument evaluation failure
-      if (args_obj.size() == 1 && IsError(args_obj.front())) {
-        return args_obj.front();
+      if (args.size() == 1 && IsError(args.front())) {
+        return args.front();
       }
 
-      return ApplyFunc(obj, args_obj);
+      return ApplyFunc(func, args);
     }
     default:
       return NullObj();
@@ -322,7 +327,7 @@ Object Evaluator::EvalDictLiteral(const DictLiteral& expr,
     }
     dict[key] = val;
   }
-  return DictObject(std::move(dict));
+  return DictObj(std::move(dict));
 }
 
 std::vector<Object> Evaluator::EvalExprs(const std::vector<ExprNode>& exprs,

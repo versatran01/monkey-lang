@@ -3,8 +3,8 @@
 #include <absl/types/variant.h>
 #include <gtest/gtest.h>
 
-namespace monkey {
 namespace {
+using namespace monkey;
 
 using LiteralType = absl::variant<bool, int, std::string>;
 
@@ -407,4 +407,3 @@ TEST(ParserTest, TestParsingEmptyHashLiteral) {
 }
 
 }  // namespace
-}  // namespace monkey

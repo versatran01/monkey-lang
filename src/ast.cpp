@@ -124,4 +124,6 @@ std::string DictLiteral::String() const {
   return fmt::format("{{{}}}", absl::StrJoin(pairs, ", ", pf));
 }
 
+ExprNode Modify(const ExprNode& expr, const ModifyFunc& func) { return {}; }
+
 }  // namespace monkey

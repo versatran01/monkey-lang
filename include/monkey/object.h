@@ -27,6 +27,7 @@ enum class ObjectType {
   kBuiltinFunc,
   kArray,
   kDict,
+  kQuote,
 };
 
 std::ostream& operator<<(std::ostream& os, ObjectType type);
@@ -94,11 +95,12 @@ Object NullObj();
 Object IntObj(IntType value);
 Object StrObj(StrType value);
 Object BoolObj(BoolType value);
-Object ErrorObj(std::string value);
-Object ReturnObj(Object value);
-Object FuncObj(FuncObject value);
-Object BuiltinFuncObj(BuiltinFunc value);
-Object ArrayObj(Array value);
-Object DictObject(Dict value);
+Object ErrorObj(const std::string& str);
+Object ReturnObj(const Object& obj);
+Object FuncObj(const FuncObject& fn);
+Object BuiltinFuncObj(const BuiltinFunc& fn);
+Object ArrayObj(const Array& arr);
+Object DictObj(const Dict& dict);
+Object QuoteObj(const ExprNode& expr);
 
 }  // namespace monkey

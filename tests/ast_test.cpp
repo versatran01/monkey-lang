@@ -3,8 +3,8 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
-namespace monkey {
 namespace {
+using namespace monkey;
 
 TEST(AstTest, TestAstNodeType) {
   EXPECT_EQ(Identifier().Type(), NodeType::kIdentifier);
@@ -100,5 +100,41 @@ TEST(AstTest, TestProgramString) {
   EXPECT_EQ(program.String(), "let v1 = v2;");
 }
 
+// TEST(AstTest, TestModify) {
+//  auto one = []() {
+//    IntLiteral l;
+//    l.value = 1;
+//    return l;
+//  };
+//  auto two = []() {
+//    IntLiteral l;
+//    l.value = 2;
+//    return l;
+//  };
+
+//  auto turn_one_into_two = [](const ExprNode& node) {
+//    if (node.Type() != NodeType::kIntLiteral) {
+//      return node;
+//    }
+
+//    auto* ptr = node.MutPtrCast<IntLiteral>();
+//    if (ptr->value != 1) {
+//      return node;
+//    }
+
+//    ptr->value = 2;
+//    return node;
+//  };
+
+//  const std::vector<std::pair<ExprNode, ExprNode>> tests = {
+//      {one(), two()},
+//  };
+
+//  for (const auto& test : tests) {
+//    SCOPED_TRACE(test.first.String());
+//    const auto mod = Modify(test.first, turn_one_into_two);
+//    EXPECT_EQ(mod.String(), test.second.String());
+//  }
+//}
+
 }  // namespace
-}  // namespace monkey
