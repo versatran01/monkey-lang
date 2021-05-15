@@ -10,7 +10,7 @@ namespace {
 using namespace monkey;
 using ::testing::ContainerEq;
 
-struct TestStruct {
+struct CompilerTest {
   std::string input;
   std::vector<Object> constants;
   std::vector<Instruction> inst_vec;
@@ -21,32 +21,22 @@ Program Parse(const std::string& input) {
   return parser.ParseProgram();
 }
 
-Instruction ConcatInstructions(const std::vector<Instruction>& inst_vec) {
-  Instruction out;
-  for (const auto& inst : inst_vec) {
-    out.insert(out.end(), inst.begin(), inst.end());
-  }
-  return out;
-}
-
-void CheckCompiler(const TestStruct& test) {
+void CheckCompiler(const CompilerTest& test) {
   const auto program = Parse(test.input);
 
   Compiler compiler;
   const auto bytecode = compiler.Compile(program);
   // Check instructions
   const auto expected = ConcatInstructions(test.inst_vec);
-  EXPECT_THAT(bytecode.intstruction, ContainerEq(expected));
-
-  EXPECT_THAT(bytecode.constants, ContainerEq(test.constants));
+  EXPECT_THAT(bytecode.inst.bytes, ContainerEq(expected.bytes));
+  EXPECT_THAT(bytecode.consts, ContainerEq(test.constants));
 }
 
 TEST(CompilerTest, TestIntArithmetic) {
-  const std::vector<TestStruct> tests = {
+  const std::vector<CompilerTest> tests = {
       {"1 + 2",
        {IntObj(1), IntObj(2)},
-       {MakeInstruction(Opcode::Const, {0}),
-        MakeInstruction(Opcode::Const, {1})}},
+       {Instruction(Opcode::Const, {0}), Instruction(Opcode::Const, {1})}},
   };
 
   for (const auto& test : tests) {

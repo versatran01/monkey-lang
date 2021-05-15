@@ -127,7 +127,6 @@ TEST(ParserTest, TestParsingReturnStatement) {
    )raw";
 
   Parser parser{input};
-
   auto program = parser.ParseProgram();
 
   ASSERT_EQ(program.NumStatements(), 3);

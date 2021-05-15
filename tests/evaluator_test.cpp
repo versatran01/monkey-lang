@@ -11,6 +11,7 @@ using namespace monkey;
 
 template <typename T>
 using InputExpected = std::pair<std::string, T>;
+using LiteralType = absl::variant<void*, IntType, StrType>;
 
 Object ParseAndEval(const std::string& input) {
   Parser parser{input};
@@ -39,8 +40,6 @@ void CheckErrorObj(const Object& obj, const std::string& msg) {
   ASSERT_EQ(obj.Type(), ObjectType::kError) << obj;
   EXPECT_EQ(obj.Inspect(), msg) << obj;
 }
-
-using LiteralType = absl::variant<void*, IntType, StrType>;
 
 void CheckLiteral(const Object& obj, const LiteralType& lit) {
   switch (lit.index()) {

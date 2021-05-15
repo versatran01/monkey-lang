@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iosfwd>
 #include <string>
 #include <vector>
 
@@ -15,7 +16,19 @@ inline constexpr Byte ToByte(Opcode op) noexcept {
 }
 
 using Bytes = std::vector<Byte>;
-using Instruction = Bytes;
+
+struct Instruction {
+  Instruction() = default;
+  Instruction(Opcode op, const std::vector<int>& operands);
+
+  Bytes bytes;
+
+  auto size() const noexcept { return bytes.size(); }
+  auto empty() const noexcept { return bytes.empty(); }
+  std::string String() const;
+  friend std::ostream& operator<<(std::ostream& os, const Instruction& inst);
+};
+
 using InstructionVec = std::vector<Instruction>;
 
 struct Definition {
@@ -25,6 +38,6 @@ struct Definition {
 
 Definition LookupDefinition(Opcode op);
 
-Instruction MakeInstruction(Opcode op, const std::vector<int>& operands);
+Instruction ConcatInstructions(const std::vector<Instruction>& inst_vec);
 
 }  // namespace monkey

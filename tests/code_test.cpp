@@ -20,9 +20,24 @@ TEST(CodeTest, TestMake) {
   };
 
   for (const auto& test : tests) {
-    const auto inst = MakeInstruction(test.op, test.operands);
+    const auto inst = Instruction(test.op, test.operands);
     ASSERT_EQ(inst.size(), test.expected.size());
-    EXPECT_THAT(inst, ContainerEq(test.expected));
+    EXPECT_THAT(inst.bytes, ContainerEq(test.expected));
+  }
+}
+
+TEST(CodeTest, TestInstructionString) {
+  const std::vector<Instruction> insts = {
+      Instruction(Opcode::Const, {1}),
+      Instruction(Opcode::Const, {2}),
+      Instruction(Opcode::Const, {65535}),
+  };
+
+  const std::vector<std::string> expected = {
+      "0000 OpConst 1", "0003 OpConst 2", "0006 OpConst 65535"};
+
+  for (size_t i = 0; i < insts.size(); ++i) {
+    //    EXPECT_EQ(ToString(insts[i]), expected[i]);
   }
 }
 

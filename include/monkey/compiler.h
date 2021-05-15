@@ -7,8 +7,8 @@
 namespace monkey {
 
 struct Bytecode {
-  Instruction intstruction;
-  std::vector<Object> constants;
+  Instruction inst;
+  std::vector<Object> consts;
 };
 
 class Compiler {
