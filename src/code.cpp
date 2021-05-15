@@ -17,7 +17,7 @@ const absl::flat_hash_map<Opcode, Definition> gOpcodeDefinitions = {
 
 Definition LookupDefinition(Opcode op) { return gOpcodeDefinitions.at(op); }
 
-Instruction MakeInstruction(Opcode op, const std::vector<int>& operands) {
+ByteVec MakeInstruction(Opcode op, const std::vector<int>& operands) {
   const auto it = gOpcodeDefinitions.find(op);
   if (it == gOpcodeDefinitions.end()) {
     return {};
@@ -27,7 +27,7 @@ Instruction MakeInstruction(Opcode op, const std::vector<int>& operands) {
   CHECK_EQ(def.widths.size(), operands.size());
   auto len = std::accumulate(def.widths.cbegin(), def.widths.cend(), 1);
 
-  Instruction inst(len);
+  ByteVec inst(len);
   inst[0] = ToByte(op);
 
   size_t offset = 1;

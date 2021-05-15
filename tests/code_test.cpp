@@ -12,7 +12,7 @@ TEST(CodeTest, TestMake) {
   struct TestStruct {
     Opcode op;
     std::vector<int> operands;
-    Instruction expected;
+    ByteVec expected;
   };
 
   const std::vector<TestStruct> tests = {

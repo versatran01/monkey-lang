@@ -12,6 +12,7 @@ data/map.mky
 include/monkey/ast.h
 include/monkey/builtin.h
 include/monkey/code.h
+include/monkey/compiler.h
 include/monkey/endian.h
 include/monkey/environment.h
 include/monkey/evaluator.h
@@ -27,6 +28,7 @@ src/CMakeLists.txt
 src/ast.cpp
 src/builtin.cpp
 src/code.cpp
+src/compiler.cpp
 src/environment.cpp
 src/evaluator.cpp
 src/lexer.cpp
@@ -37,6 +39,7 @@ src/token.cpp
 tests/CMakeLists.txt
 tests/ast_test.cpp
 tests/code_test.cpp
+tests/compiler_test.cpp
 tests/environment_test.cpp
 tests/evaluator_test.cpp
 tests/lexer_test.cpp

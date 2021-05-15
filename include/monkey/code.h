@@ -14,7 +14,7 @@ inline constexpr Byte ToByte(Opcode op) noexcept {
   return static_cast<Byte>(op);
 }
 
-using Instruction = std::vector<Byte>;
+using ByteVec = std::vector<Byte>;
 
 struct Definition {
   std::string name;
@@ -23,6 +23,6 @@ struct Definition {
 
 Definition LookupDefinition(Opcode op);
 
-Instruction MakeInstruction(Opcode op, const std::vector<int>& operands);
+ByteVec MakeInstruction(Opcode op, const std::vector<int>& operands);
 
 }  // namespace monkey
