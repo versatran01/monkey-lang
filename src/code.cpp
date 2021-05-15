@@ -17,7 +17,7 @@ const absl::flat_hash_map<Opcode, Definition> gOpcodeDefinitions = {
 
 Definition LookupDefinition(Opcode op) { return gOpcodeDefinitions.at(op); }
 
-ByteVec MakeInstruction(Opcode op, const std::vector<int>& operands) {
+Instruction MakeInstruction(Opcode op, const std::vector<int>& operands) {
   const auto it = gOpcodeDefinitions.find(op);
   if (it == gOpcodeDefinitions.end()) {
     return {};
@@ -27,8 +27,8 @@ ByteVec MakeInstruction(Opcode op, const std::vector<int>& operands) {
   CHECK_EQ(def.widths.size(), operands.size());
   auto len = std::accumulate(def.widths.cbegin(), def.widths.cend(), 1);
 
-  ByteVec inst(len);
-  inst[0] = ToByte(op);
+  Instruction instruction(len);
+  instruction[0] = ToByte(op);
 
   size_t offset = 1;
 
@@ -36,7 +36,7 @@ ByteVec MakeInstruction(Opcode op, const std::vector<int>& operands) {
     const auto width = def.widths[i];
     switch (width) {
       case 2:
-        PutUint16(&inst[offset], static_cast<uint16_t>(operands[i]));
+        PutUint16(&instruction[offset], static_cast<uint16_t>(operands[i]));
         break;
       default:
         break;
@@ -44,7 +44,7 @@ ByteVec MakeInstruction(Opcode op, const std::vector<int>& operands) {
     offset += width;
   }
 
-  return inst;
+  return instruction;
 }
 
 }  // namespace monkey

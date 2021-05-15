@@ -57,3 +57,8 @@ cc_library(
   NAME code
   SRCS "code.cpp"
   LINKOPTS absl::flat_hash_map monkey::base)
+
+cc_library(
+  NAME compiler
+  SRCS "compiler.cpp"
+  DEPS monkey::code monkey::ast monkey::object)

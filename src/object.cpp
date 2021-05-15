@@ -17,13 +17,13 @@ struct ObjFmt {
 const auto gObjectTypeStrings = absl::flat_hash_map<ObjectType, std::string>{
     {ObjectType::kInvalid, "INVALID"},
     {ObjectType::kNull, "NULL"},
-    {ObjectType::kInt, "INTEGER"},
-    {ObjectType::kBool, "BOOLEAN"},
-    {ObjectType::kStr, "STRING"},
+    {ObjectType::kInt, "INT"},
+    {ObjectType::kBool, "BOOL"},
+    {ObjectType::kStr, "STR"},
     {ObjectType::kReturn, "RETURN"},
     {ObjectType::kError, "ERROR"},
-    {ObjectType::kFunc, "FUNCTION"},
-    {ObjectType::kBuiltinFunc, "BUILTIN_FUNC"},
+    {ObjectType::kFunc, "FUNC"},
+    {ObjectType::kBuiltin, "BUILTIN"},
     {ObjectType::kArray, "ARRAY"},
     {ObjectType::kDict, "DICT"},
     {ObjectType::kQuote, "QUOTE"},
@@ -62,7 +62,7 @@ std::string Object::Inspect() const {
       return absl::any_cast<std::string>(value);
     case ObjectType::kFunc:
       return Cast<FuncObject>().Inspect();
-    case ObjectType::kBuiltinFunc:
+    case ObjectType::kBuiltin:
       return "Builtin Function";
     case ObjectType::kDict: {
       const auto pf = absl::PairFormatter(ObjFmt{}, ": ", ObjFmt{});
@@ -78,7 +78,7 @@ std::string Object::Inspect() const {
 }
 
 std::ostream& operator<<(std::ostream& os, const Object& obj) {
-  return os << fmt::format("Object({}, {})", obj.Type(), obj.Inspect());
+  return os << fmt::format("Obj({}, {})", obj.Type(), obj.Inspect());
 }
 
 bool IsObjectHashable(ObjectType type) {
@@ -96,8 +96,6 @@ Object FuncObj(const FuncObject& fn) { return {ObjectType::kFunc, fn}; }
 Object ArrayObj(const Array& arr) { return {ObjectType::kArray, arr}; }
 Object DictObj(const Dict& dict) { return {ObjectType::kDict, dict}; }
 Object QuoteObj(const ExprNode& expr) { return {ObjectType::kQuote, expr}; }
-Object BuiltinFuncObj(const BuiltinFunc& fn) {
-  return {ObjectType::kBuiltinFunc, fn};
-}
+Object BuiltinObj(const Builtin& fn) { return {ObjectType::kBuiltin, fn}; }
 
 }  // namespace monkey

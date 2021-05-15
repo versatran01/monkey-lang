@@ -419,8 +419,8 @@ Object Evaluator::ApplyFunc(const Object& obj,
       const auto ret_obj = EvalBlockStmt(fn_obj.body, fn_env);
       return UnwrapReturn(ret_obj);
     }
-    case ObjectType::kBuiltinFunc: {
-      const auto& fn_obj = obj.Cast<BuiltinFunc>();
+    case ObjectType::kBuiltin: {
+      const auto& fn_obj = obj.Cast<Builtin>();
       return fn_obj(args);
     }
     default:

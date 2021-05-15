@@ -170,19 +170,19 @@ TEST(EvaluatorTest, TestReturnStatements) {
 
 TEST(EvaluatorTest, TestErrorHandling) {
   const std::vector<InputExpected<std::string>> tests = {
-      {"5 + true;", "type mismatch: INTEGER + BOOLEAN"},
-      {"5 + true; 5;", "type mismatch: INTEGER + BOOLEAN"},
-      {"-true", "unknown operator: -BOOLEAN"},
-      {"true + false;", "unknown operator: BOOLEAN + BOOLEAN"},
-      {"5; true + false; 5", "unknown operator: BOOLEAN + BOOLEAN"},
-      {"if (10 > 1) { true + false; }", "unknown operator: BOOLEAN + BOOLEAN"},
-      {"if (true > 1) { true + 1; }", "type mismatch: BOOLEAN > INTEGER"},
-      {"return true + 1;", "type mismatch: BOOLEAN + INTEGER"},
+      {"5 + true;", "type mismatch: INT + BOOL"},
+      {"5 + true; 5;", "type mismatch: INT + BOOL"},
+      {"-true", "unknown operator: -BOOL"},
+      {"true + false;", "unknown operator: BOOL + BOOL"},
+      {"5; true + false; 5", "unknown operator: BOOL + BOOL"},
+      {"if (10 > 1) { true + false; }", "unknown operator: BOOL + BOOL"},
+      {"if (true > 1) { true + 1; }", "type mismatch: BOOL > INT"},
+      {"return true + 1;", "type mismatch: BOOL + INT"},
       {"if (10 > 1) { if (10 > 1) { return true + false; } return 1; }",
-       "unknown operator: BOOLEAN + BOOLEAN"},
+       "unknown operator: BOOL + BOOL"},
       {"foobar", "identifier not found: foobar"},
-      {R"r("Hello" - "World" )r", "unknown operator: STRING - STRING"},
-      {R"r({"name": "x"}[fn(x) { x }];)r", "unusable as dict key: FUNCTION"}};
+      {R"r("Hello" - "World" )r", "unknown operator: STR - STR"},
+      {R"r({"name": "x"}[fn(x) { x }];)r", "unusable as dict key: FUNC"}};
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.first);
@@ -265,7 +265,7 @@ TEST(EvaluatorTest, TestBuiltinFunctions) {
       {R"r(len(""))r", 0},
       {R"r(len("four"))r", 4},
       {R"r(len("hello world"))r", 11},
-      {R"r(len(1))r", "argument to `len` not supported, got INTEGER"},
+      {R"r(len(1))r", "argument to `len` not supported, got INT"},
       {R"r(len("one", "two"))r", "wrong number of arguments. got=2, want=1"}};
 
   for (const auto& test : tests) {
