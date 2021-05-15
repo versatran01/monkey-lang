@@ -5,6 +5,7 @@ additional_commands:
       LIBRARIES: "*"
       CATKIN_DEPENDS: "*"
       DEPENDS: "*"
+      CFG_EXTRAS: "*"
   cc_library:
     flags:
       - INTERFACE
@@ -24,6 +25,13 @@ additional_commands:
       LINKOPTS: "*"
       DEPS: "*"
   cc_gtest:
+    kwargs:
+      SRCS: "*"
+      COPTS: "*"
+      DEFINES: "*"
+      LINKOPTS: "*"
+      DEPS: "*"
+  cc_bench:
     kwargs:
       SRCS: "*"
       COPTS: "*"
