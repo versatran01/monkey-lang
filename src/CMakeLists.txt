@@ -1,17 +1,17 @@
 cc_library(
-  NAME core
+  NAME base
   DEPS fmt::fmt glog::glog monkey_warnings
   INTERFACE)
 
 cc_library(
   NAME timer
   SRCS "timer.cpp"
-  DEPS absl::time absl::strings absl::flat_hash_map monkey::core)
+  DEPS absl::time absl::strings absl::flat_hash_map monkey::base)
 
 cc_library(
   NAME token
   SRCS "token.cpp"
-  DEPS monkey::core
+  DEPS monkey::base
   LINKOPTS absl::flat_hash_map)
 
 cc_library(
@@ -52,3 +52,8 @@ cc_library(
   SRCS "evaluator.cpp"
   DEPS monkey::ast monkey::object monkey::builtin monkey::environment
   LINKOPTS absl::strings)
+
+cc_library(
+  NAME code
+  SRCS "code.cpp"
+  LINKOPTS absl::flat_hash_map monkey::base)

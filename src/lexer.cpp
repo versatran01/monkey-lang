@@ -91,7 +91,7 @@ Token Lexer::NextToken() {
     default:
       if (IsLetter(ch_)) {
         token.literal = ReadIdentifier();
-        token.type = LookupIdentifier(token.literal);
+        token.type = GetKeywordType(token.literal);
         return token;  // early return to prevent extra ReadChar();
       } else if (IsDigit(ch_)) {
         token.type = TokenType::kInt;

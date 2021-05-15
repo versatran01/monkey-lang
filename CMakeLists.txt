@@ -18,8 +18,8 @@ include(CMakeHelpers)
 
 include_directories(include)
 add_subdirectory(src)
-add_subdirectory(example)
+add_subdirectory(cli)
 
 enable_testing()
-set(BUILD_TESTING On)
+option(BUILD_TESTING "Build testing" On)
 add_subdirectory(tests)

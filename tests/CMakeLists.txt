@@ -1,4 +1,5 @@
 find_package(GTest REQUIRED)
+find_package(GMock REQUIRED)
 
 cc_gtest(
   NAME lexer_test
@@ -29,3 +30,8 @@ cc_gtest(
   NAME evaluator_test
   SRCS "evaluator_test.cpp"
   DEPS monkey::evaluator monkey::parser)
+
+cc_gtest(
+  NAME code_test
+  SRCS "code_test.cpp"
+  DEPS monkey::code GMock::GMock)

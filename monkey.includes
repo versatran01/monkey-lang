@@ -1,7 +1,4 @@
 include
-example
-src
-cmake
 include/monkey
-.
+src
 tests

@@ -44,14 +44,13 @@ enum class TokenType {
 std::ostream& operator<<(std::ostream& os, TokenType type);
 
 struct Token {
-  Token() noexcept = default;
-
   TokenType type{TokenType::kIllegal};
   std::string literal;
 
-  friend std::ostream& operator<<(std::ostream& os, Token token);
+  std::string Repr() const;
+  friend std::ostream& operator<<(std::ostream& os, const Token& token);
 };
 
-TokenType LookupIdentifier(const std::string& ident);
+TokenType GetKeywordType(const std::string& ident);
 
 }  // namespace monkey

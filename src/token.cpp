@@ -1,9 +1,7 @@
 #include "monkey/token.h"
 
 #include <absl/container/flat_hash_map.h>
-#include <fmt/core.h>
 #include <fmt/ostream.h>
-#include <glog/logging.h>
 
 #include <ostream>
 
@@ -42,7 +40,7 @@ const auto gTokenTypeStrings = absl::flat_hash_map<TokenType, std::string>{
 
 }  // namespace
 
-TokenType LookupIdentifier(const std::string& ident) {
+TokenType GetKeywordType(const std::string& ident) {
   const auto it = gKeywords.find(ident);
   if (it != gKeywords.cend()) {
     return it->second;
@@ -54,8 +52,12 @@ std::ostream& operator<<(std::ostream& os, TokenType type) {
   return os << gTokenTypeStrings.at(type);
 }
 
-std::ostream& operator<<(std::ostream& os, Token token) {
-  return os << fmt::format("Token({}, {})", token.type, token.literal);
+std::string Token::Repr() const {
+  return fmt::format("Token({}, {})", type, literal);
+}
+
+std::ostream& operator<<(std::ostream& os, const Token& token) {
+  return os << token.Repr();
 }
 
 }  // namespace monkey

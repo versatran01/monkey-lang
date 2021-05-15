@@ -26,7 +26,7 @@ class Lexer {
   std::string input_;
   std::size_t position_{0};       // current position in input (current char)
   std::size_t read_position_{0};  // current read position  (after current char)
-  char ch_;                       // current char under examination
+  char ch_{0};                    // current char under examination
 };
 
 }  // namespace monkey
