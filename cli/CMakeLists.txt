@@ -12,3 +12,8 @@ cc_binary(
   NAME repl
   SRCS "repl.cpp"
   DEPS monkey::parser monkey::evaluator)
+
+cc_binary(
+  NAME play
+  SRCS "play.cpp"
+  DEPS monkey::base)

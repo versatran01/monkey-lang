@@ -11,7 +11,7 @@ namespace monkey {
 using Byte = unsigned char;
 
 enum class Opcode : Byte {
-  Const,
+  kConst,
 };
 
 /// Convesion between Byte and Opcode
@@ -29,6 +29,8 @@ struct Instruction {
 
   auto size() const noexcept { return bytes.size(); }
   auto empty() const noexcept { return bytes.empty(); }
+  void Append(const Instruction& ins);
+
   std::string String() const;
   friend std::ostream& operator<<(std::ostream& os, const Instruction& ins);
 
@@ -42,7 +44,7 @@ struct Instruction {
   }
 };
 
-using InstructionVec = std::vector<Instruction>;
+Instruction ConcatInstructions(const std::vector<Instruction>& instrs);
 
 struct Definition {
   std::string name;
@@ -53,8 +55,6 @@ struct Definition {
 };
 
 Definition LookupDefinition(Opcode op);
-
-Instruction ConcatInstructions(const std::vector<Instruction>& instrs);
 
 struct Decoded {
   std::vector<int> operands;

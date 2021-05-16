@@ -9,7 +9,7 @@ namespace monkey {
 namespace {
 
 const absl::flat_hash_map<Opcode, Definition> gOpcodeDefinitions = {
-    {Opcode::Const, {"OpConst", {2}}},
+    {Opcode::kConst, {"OpConst", {2}}},
 
 };
 
@@ -43,6 +43,10 @@ std::string FormatInstruction(const Definition& def,
 
 Definition LookupDefinition(Opcode op) { return gOpcodeDefinitions.at(op); }
 
+void Instruction::Append(const Instruction& ins) {
+  bytes.insert(bytes.end(), ins.bytes.cbegin(), ins.bytes.cend());
+}
+
 std::string Instruction::String() const {
   std::string str;
 
@@ -63,7 +67,7 @@ std::ostream& operator<<(std::ostream& os, const Instruction& ins) {
 Instruction ConcatInstructions(const std::vector<Instruction>& instrs) {
   Instruction out;
   for (const auto& ins : instrs) {
-    out.bytes.insert(out.bytes.end(), ins.bytes.begin(), ins.bytes.end());
+    out.Append(ins);
   }
   return out;
 }

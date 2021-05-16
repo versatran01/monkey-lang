@@ -3,6 +3,7 @@
 #include <absl/container/flat_hash_map.h>
 #include <absl/strings/str_join.h>
 #include <fmt/ostream.h>
+#include <glog/logging.h>
 
 namespace monkey {
 
@@ -97,5 +98,10 @@ Object ArrayObj(const Array& arr) { return {ObjectType::kArray, arr}; }
 Object DictObj(const Dict& dict) { return {ObjectType::kDict, dict}; }
 Object QuoteObj(const ExprNode& expr) { return {ObjectType::kQuote, expr}; }
 Object BuiltinObj(const Builtin& fn) { return {ObjectType::kBuiltin, fn}; }
+
+Object IntObj(const AstNode& node) {
+  CHECK_EQ(node.Type(), NodeType::kIntLiteral);
+  return IntObj(node.PtrCast<IntLiteral>()->value);
+}
 
 }  // namespace monkey

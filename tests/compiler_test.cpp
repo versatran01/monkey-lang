@@ -26,18 +26,19 @@ void CheckCompiler(const CompilerTest& test) {
 
   Compiler compiler;
   const auto bytecode = compiler.Compile(program);
+  ASSERT_TRUE(bytecode.ok());
   // Check instructions
   const auto expected = ConcatInstructions(test.inst_vec);
-  EXPECT_EQ(bytecode.inst, expected);
-  EXPECT_THAT(bytecode.inst.bytes, ContainerEq(expected.bytes));
-  EXPECT_THAT(bytecode.consts, ContainerEq(test.constants));
+  EXPECT_EQ(bytecode->inst, expected);
+  EXPECT_THAT(bytecode->inst.bytes, ContainerEq(expected.bytes));
+  EXPECT_THAT(bytecode->consts, ContainerEq(test.constants));
 }
 
 TEST(CompilerTest, TestIntArithmetic) {
   const std::vector<CompilerTest> tests = {
       {"1 + 2",
        {IntObj(1), IntObj(2)},
-       {Encode(Opcode::Const, {0}), Encode(Opcode::Const, {1})}},
+       {Encode(Opcode::kConst, {0}), Encode(Opcode::kConst, {1})}},
   };
 
   for (const auto& test : tests) {

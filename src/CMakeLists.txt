@@ -61,4 +61,4 @@ cc_library(
 cc_library(
   NAME compiler
   SRCS "compiler.cpp"
-  DEPS monkey::code monkey::ast monkey::object)
+  DEPS monkey::code monkey::ast monkey::object absl::statusor)
