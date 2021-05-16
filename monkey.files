@@ -13,7 +13,6 @@ include/monkey/ast.h
 include/monkey/builtin.h
 include/monkey/code.h
 include/monkey/compiler.h
-include/monkey/endian.h
 include/monkey/environment.h
 include/monkey/evaluator.h
 include/monkey/lexer.h
