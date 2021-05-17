@@ -34,8 +34,10 @@ std::string FormatInstruction(const Definition& def,
 
 }  // namespace
 
+std::string ToString(Opcode op) { return gOpcodeDefinitions.at(op).name; }
+
 std::ostream& operator<<(std::ostream& os, Opcode op) {
-  return os << gOpcodeDefinitions.at(op).name;
+  return os << ToString(op);
 }
 
 Definition LookupDefinition(Opcode op) { return gOpcodeDefinitions.at(op); }

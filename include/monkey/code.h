@@ -16,6 +16,7 @@ enum class Opcode : Byte {
   kAdd,
 };
 
+std::string ToString(Opcode op);
 std::ostream& operator<<(std::ostream& os, Opcode op);
 
 /// Convesion between Byte and Opcode

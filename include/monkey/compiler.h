@@ -15,11 +15,11 @@ struct Bytecode {
 
 class Compiler {
  public:
-  absl::StatusOr<Bytecode> Compile(const AstNode& node);
-
-  absl::Status CompileImpl(const AstNode& node);
+  absl::StatusOr<Bytecode> Compile(const Program& program);
 
  private:
+  absl::Status CompileImpl(const AstNode& node);
+
   int AddConstant(const Object& obj);
   int AddInstruction(const Instruction& ins);
   int Emit(Opcode op, const std::vector<int>& operands = {});

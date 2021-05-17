@@ -4,10 +4,12 @@
 
 namespace monkey {
 
-absl::StatusOr<Bytecode> Compiler::Compile(const AstNode& node) {
-  auto status = CompileImpl(node);
-  if (!status.ok()) {
-    return status;
+absl::StatusOr<Bytecode> Compiler::Compile(const Program& program) {
+  for (const auto& stmt : program.statements) {
+    auto status = CompileImpl(stmt);
+    if (!status.ok()) {
+      return status;
+    }
   }
 
   return Bytecode{std::move(ins_), std::move(consts_)};

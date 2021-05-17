@@ -1,9 +1,10 @@
 #include "monkey/vm.h"
 
 #include <glog/logging.h>
+
 namespace monkey {
 
-void VirtualMachine::Run(const Bytecode& bc) {
+absl::Status VirtualMachine::Run(const Bytecode& bc) {
   for (size_t ip = 0; ip < bc.ins.NumBytes(); ++ip) {
     const auto op = ToOpcode(bc.ins.bytes[ip]);
 
@@ -22,10 +23,11 @@ void VirtualMachine::Run(const Bytecode& bc) {
         break;
       }
       default:
-        LOG(WARNING) << "Unhandled Opcode: " << op;
-        break;
+        return absl::InternalError("Unhandled Opcode: " + ToString(op));
     }
   }
+
+  return absl::OkStatus();
 }
 
 const Object& VirtualMachine::Top() const {

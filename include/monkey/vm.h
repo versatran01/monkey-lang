@@ -9,7 +9,7 @@ namespace monkey {
 
 class VirtualMachine {
  public:
-  void Run(const Bytecode& bc);
+  absl::Status Run(const Bytecode& bc);
   const Object& Top() const;
 
  private:
