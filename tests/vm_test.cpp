@@ -1,5 +1,6 @@
 #include "monkey/vm.h"
 
+#include <absl/types/variant.h>
 #include <gtest/gtest.h>
 
 #include "monkey/compiler.h"
@@ -9,9 +10,11 @@
 namespace {
 using namespace monkey;
 
+using Value = absl::variant<int>;
+
 struct VmTest {
   std::string input;
-  Object obj;
+  Value value;
 };
 
 Program Parse(const std::string& input) {
@@ -29,14 +32,30 @@ void CheckVm(const VmTest& test) {
   const auto status = vm.Run(bc.value());
   ASSERT_TRUE(status.ok()) << status;
 
-  EXPECT_EQ(vm.last(), test.obj);
+  switch (test.value.index()) {
+    case 0:
+      EXPECT_EQ(vm.last(), IntObj(std::get<0>(test.value)));
+      break;
+    default:
+      break;
+  }
 }
 
 TEST(VmTest, TestIntArithmetic) {
   const std::vector<VmTest> tests = {
-      {"1", IntObj(1)},
-      {"2", IntObj(2)},
-      {"1 + 2", IntObj(3)},
+      {"1", 1},
+      {"2", 2},
+      {"1 + 2", 3},
+      {"1 - 2", -1},
+      {"1 * 2", 2},
+      {"4 / 2", 2},
+      {"50 / 2 * 2 + 10 - 5", 55},
+      {"5 * (2 + 10)", 60},
+      {"5 + 5 + 5 + 5 - 10", 10},
+      {"2 * 2 * 2 * 2 * 2", 32},
+      {"5 * 2 + 10", 20},
+      {"5 + 2 * 10", 25},
+      {"5 * (2 + 10)", 60},
   };
 
   for (const auto& test : tests) {

@@ -13,8 +13,11 @@ using Byte = unsigned char;
 
 enum class Opcode : Byte {
   kConst,
-  kAdd,
   kPop,
+  kAdd,
+  kSub,
+  kMul,
+  kDiv,
 };
 
 std::string ToString(Opcode op);
@@ -55,7 +58,7 @@ Instruction ConcatInstructions(const std::vector<Instruction>& instrs);
 
 struct Definition {
   std::string name;
-  std::vector<size_t> operand_bytes;
+  std::vector<size_t> operand_bytes{};
 
   auto NumOperands() const noexcept { return operand_bytes.size(); }
   size_t SumOperandBytes() const;

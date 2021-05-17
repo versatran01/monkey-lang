@@ -26,7 +26,7 @@ void CheckCompiler(const CompilerTest& test) {
 
   Compiler compiler;
   const auto bc = compiler.Compile(program);
-  ASSERT_TRUE(bc.ok());
+  ASSERT_TRUE(bc.ok()) << bc.status();
   // Check instructions
   const auto expected = ConcatInstructions(test.inst_vec);
   //  EXPECT_EQ(bc->ins, expected);
@@ -47,6 +47,24 @@ TEST(CompilerTest, TestIntArithmetic) {
        {Encode(Opcode::kConst, {0}),
         Encode(Opcode::kPop),
         Encode(Opcode::kConst, {1}),
+        Encode(Opcode::kPop)}},
+      {"1 - 2",
+       {IntObj(1), IntObj(2)},
+       {Encode(Opcode::kConst, {0}),
+        Encode(Opcode::kConst, {1}),
+        Encode(Opcode::kSub),
+        Encode(Opcode::kPop)}},
+      {"1 * 2",
+       {IntObj(1), IntObj(2)},
+       {Encode(Opcode::kConst, {0}),
+        Encode(Opcode::kConst, {1}),
+        Encode(Opcode::kMul),
+        Encode(Opcode::kPop)}},
+      {"2 / 1",
+       {IntObj(2), IntObj(1)},
+       {Encode(Opcode::kConst, {0}),
+        Encode(Opcode::kConst, {1}),
+        Encode(Opcode::kDiv),
         Encode(Opcode::kPop)}},
   };
 

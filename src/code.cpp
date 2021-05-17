@@ -11,8 +11,11 @@ namespace {
 
 const absl::flat_hash_map<Opcode, Definition> gOpcodeDefinitions = {
     {Opcode::kConst, {"OpConst", {2}}},
-    {Opcode::kAdd, {"OpAdd", {}}},
-    {Opcode::kPop, {"OpPop", {}}},
+    {Opcode::kPop, {"OpPop"}},
+    {Opcode::kAdd, {"OpAdd"}},
+    {Opcode::kSub, {"OpSub"}},
+    {Opcode::kMul, {"OpMul"}},
+    {Opcode::kDiv, {"OpDiv"}},
 };
 
 std::string FormatInstruction(const Definition& def,

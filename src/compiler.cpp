@@ -17,6 +17,10 @@ absl::StatusOr<Bytecode> Compiler::Compile(const Program& program) {
   return Bytecode{std::move(ins_), std::move(consts_)};
 }
 
+absl::Status Compiler::Error(absl::string_view msg) {
+  return absl::InternalError(msg);
+}
+
 absl::Status Compiler::CompileImpl(const AstNode& node) {
   switch (node.Type()) {
     case (NodeType::kProgram): {
@@ -52,8 +56,14 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
 
       if (ptr->op == "+") {
         Emit(Opcode::kAdd);
+      } else if (ptr->op == "-") {
+        Emit(Opcode::kSub);
+      } else if (ptr->op == "*") {
+        Emit(Opcode::kMul);
+      } else if (ptr->op == "/") {
+        Emit(Opcode::kDiv);
       } else {
-        return absl::InternalError("Unknown operator " + ptr->op);
+        return Error("Unknown operator " + ptr->op);
       }
       return absl::OkStatus();
     }
@@ -65,7 +75,7 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
     default:
       CHECK(false) << "Should not reach here";
   }
-  return absl::InternalError("Internal Compiler Error: Invalid ast node");
+  return Error("Internal Compiler Error: Invalid ast node");
 }
 
 int Compiler::AddConstant(const Object& obj) {

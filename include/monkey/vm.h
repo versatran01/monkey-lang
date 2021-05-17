@@ -15,7 +15,12 @@ class VirtualMachine {
   const Object& last() const { return last_; }
 
  private:
+  absl::Status Error(absl::string_view msg);
+  absl::Status ExecBinaryOp(Opcode op);
+  absl::Status ExecIntBinaryOp(Opcode op, const Object& lhs, const Object& rhs);
+
   Object Pop();
+  void Push(Object obj);
 
   std::stack<Object> stack;
   Object last_{NullObj()};
