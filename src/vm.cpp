@@ -22,6 +22,10 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         stack.push(IntObj(lhs.Cast<IntType>() + rhs.Cast<IntType>()));
         break;
       }
+      case (Opcode::kPop): {
+        Pop();
+        break;
+      }
       default:
         return absl::InternalError("Unhandled Opcode: " + ToString(op));
     }
@@ -36,9 +40,9 @@ const Object& VirtualMachine::Top() const {
 }
 
 Object VirtualMachine::Pop() {
-  Object obj = Top();
+  last_ = Top();
   stack.pop();
-  return obj;
+  return last_;
 }
 
 }  // namespace monkey

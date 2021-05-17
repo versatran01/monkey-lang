@@ -40,7 +40,14 @@ TEST(CompilerTest, TestIntArithmetic) {
        {IntObj(1), IntObj(2)},
        {Encode(Opcode::kConst, {0}),
         Encode(Opcode::kConst, {1}),
-        Encode(Opcode::kAdd)}},
+        Encode(Opcode::kAdd),
+        Encode(Opcode::kPop)}},
+      {"1; 2",
+       {IntObj(1), IntObj(2)},
+       {Encode(Opcode::kConst, {0}),
+        Encode(Opcode::kPop),
+        Encode(Opcode::kConst, {1}),
+        Encode(Opcode::kPop)}},
   };
 
   for (const auto& test : tests) {

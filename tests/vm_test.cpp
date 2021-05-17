@@ -27,10 +27,9 @@ void CheckVm(const VmTest& test) {
   ASSERT_TRUE(bc.ok()) << bc.status();
   VirtualMachine vm;
   const auto status = vm.Run(bc.value());
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok()) << status;
 
-  const auto& top = vm.Top();
-  EXPECT_EQ(top, test.obj);
+  EXPECT_EQ(vm.last(), test.obj);
 }
 
 TEST(VmTest, TestIntArithmetic) {

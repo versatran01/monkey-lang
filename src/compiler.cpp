@@ -31,7 +31,11 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
     }
     case (NodeType::kExprStmt): {
       const auto* ptr = node.PtrCast<ExprStmt>();
-      return CompileImpl(ptr->expr);
+      const auto status = CompileImpl(ptr->expr);
+      if (status.ok()) {
+        Emit(Opcode::kPop);
+      }
+      return status;
     }
     case (NodeType::kInfixExpr): {
       const auto* ptr = node.PtrCast<InfixExpr>();

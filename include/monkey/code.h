@@ -14,6 +14,7 @@ using Byte = unsigned char;
 enum class Opcode : Byte {
   kConst,
   kAdd,
+  kPop,
 };
 
 std::string ToString(Opcode op);
