@@ -55,11 +55,12 @@ class Timer {
 /// This is similar to Ceres Solver's ExecutionSummary class, where we record
 /// execution statistics (mainly time). Instead of simply record the time, we
 /// store a bunch of other statistics using boost accumulator.
+using TimeStats = Stats<absl::Duration>;
+std::string ToString(const TimeStats& stats);
+std::ostream& operator<<(std::ostream& os, const TimeStats& stats);
+
 class TimerManager {
  public:
-  using TimeStats = Stats<absl::Duration>;
-  using StatsDict = absl::flat_hash_map<std::string, TimeStats>;
-
   /// A manual timer where user needs to call stop and commit explicitly
   /// Threads-safe
   class ManualTimer {
@@ -126,6 +127,8 @@ class TimerManager {
   std::string Report(absl::string_view timer_name) const;
 
  private:
+  using StatsDict = absl::flat_hash_map<std::string, TimeStats>;
+
   std::string name_;                 // name of the manager
   StatsDict stats_dict_;             // all stats
   mutable std::shared_mutex mutex_;  // reader-writer mutex

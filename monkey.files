@@ -46,4 +46,5 @@ tests/evaluator_test.cpp
 tests/lexer_test.cpp
 tests/object_test.cpp
 tests/parser_test.cpp
+tests/timer_test.cpp
 tests/vm_test.cpp

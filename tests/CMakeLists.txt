@@ -2,6 +2,11 @@ find_package(GTest REQUIRED)
 find_package(GMock REQUIRED)
 
 cc_gtest(
+  NAME timer_test
+  SRCS "timer_test.cpp"
+  DEPS monkey::timer)
+
+cc_gtest(
   NAME lexer_test
   SRCS "lexer_test.cpp"
   DEPS monkey::lexer)

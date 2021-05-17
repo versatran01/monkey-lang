@@ -16,22 +16,12 @@ struct NameFmt {
 };
 
 struct StatsFmt {
-  void operator()(std::string* out,
-                  const TimerManager::TimeStats& stats) const {
-    out->append(
-        fmt::format(" n: {:<8} | sum: {:<16} | min: {:<16} | max: {:<16} | "
-                    "mean: {:<16} | last: {:<16} |",
-                    stats.count(),
-                    stats.sum(),
-                    stats.min(),
-                    stats.max(),
-                    stats.mean(),
-                    stats.last()));
+  void operator()(std::string* out, const TimeStats& stats) const {
+    out->append(ToString(stats));
   }
 };
 
-std::string ReportFormat(absl::string_view timer_name,
-                         const TimerManager::TimeStats& stats) {
+std::string ReportFormat(absl::string_view timer_name, const TimeStats& stats) {
   std::string res;
   NameFmt{}(&res, timer_name);
   StatsFmt{}(&res, stats);
@@ -39,6 +29,18 @@ std::string ReportFormat(absl::string_view timer_name,
 }
 
 }  // namespace
+
+std::string ToString(const TimeStats& stats) {
+  return fmt::format(
+      " n: {:<8} | sum: {:<16} | min: {:<16} | max: {:<16} | "
+      "mean: {:<16} | last: {:<16} |",
+      stats.count(), stats.sum(), stats.min(), stats.max(), stats.mean(),
+      stats.last());
+}
+
+std::ostream& operator<<(std::ostream& os, const TimeStats& stats) {
+  return os << ToString(stats);
+}
 
 void Timer::Start() {
   running_ = true;
@@ -72,6 +74,7 @@ void TimerManager::ManualTimer::Stop() {
   CHECK(timer_.IsRunning()) << "Calling Stop() but timer is not running";
   timer_.Stop();
   stats_.Add(absl::Nanoseconds(timer_.Elapsed()));
+  //  stats_.Add(static_cast<double>(timer_.Elapsed()));
 }
 
 void TimerManager::ManualTimer::Commit() {
@@ -94,8 +97,8 @@ auto TimerManager::GetStats(absl::string_view timer_name) const -> TimeStats {
   if (it != stats_dict_.end()) {
     return it->second;
   }
-  LOG(WARNING) << fmt::format(
-      "Timer [{}] not in TimerManager [{}].", timer_name, name_);
+  LOG(WARNING) << fmt::format("Timer [{}] not in TimerManager [{}].",
+                              timer_name, name_);
   return {};
 }
 
@@ -105,10 +108,9 @@ std::string TimerManager::Report(absl::string_view timer_name) const {
 
 std::string TimerManager::ReportAll() const {
   return fmt::format(
-      "Timer Summary: {}\n{}",
-      name_,
-      absl::StrJoin(
-          stats_dict_, "\n", absl::PairFormatter(NameFmt{}, "", StatsFmt{})));
+      "Timer Summary: {}\n{}", name_,
+      absl::StrJoin(stats_dict_, "\n",
+                    absl::PairFormatter(NameFmt{}, "", StatsFmt{})));
 }
 
 }  // namespace monkey
