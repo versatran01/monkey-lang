@@ -17,11 +17,12 @@ TEST(CodeTest, TestEncode) {
 
   const std::vector<EncodeTest> tests = {
       {Opcode::kConst, {65534}, {ToByte(Opcode::kConst), 255, 254}},
+      {Opcode::kAdd, {}, {ToByte(Opcode::kAdd)}},
   };
 
   for (const auto& test : tests) {
-    const auto inst = Encode(test.op, test.operands);
-    EXPECT_THAT(inst.bytes, ContainerEq(test.expected));
+    const auto ins = Encode(test.op, test.operands);
+    EXPECT_THAT(ins.bytes, ContainerEq(test.expected));
   }
 }
 
@@ -34,6 +35,7 @@ TEST(CodeTest, TestDecode) {
 
   const std::vector<DecodeTest> tests = {
       {Opcode::kConst, {65535}, 2},
+      {Opcode::kAdd, {}, 0},
   };
 
   for (const auto& test : tests) {
@@ -47,20 +49,19 @@ TEST(CodeTest, TestDecode) {
 
 TEST(CodeTest, TestInstructionString) {
   const std::vector<Instruction> instrs = {
-      Encode(Opcode::kConst, {1}),
+      Encode(Opcode::kAdd),
       Encode(Opcode::kConst, {2}),
       Encode(Opcode::kConst, {65534}),
   };
 
   const std::vector<std::string> expected = {
-      "0000 OpConst 1", "0000 OpConst 2", "0000 OpConst 65534"};
+      "0000 OpAdd", "0000 OpConst 2", "0000 OpConst 65534"};
 
   for (size_t i = 0; i < instrs.size(); ++i) {
     EXPECT_EQ(instrs[i].String(), expected[i]);
   }
 
-  const std::string fullstr =
-      "0000 OpConst 1\n0003 OpConst 2\n0006 OpConst 65534";
+  const std::string fullstr = "0000 OpAdd\n0001 OpConst 2\n0004 OpConst 65534";
 
   const auto instr = ConcatInstructions(instrs);
   EXPECT_EQ(instr.String(), fullstr);

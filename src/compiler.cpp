@@ -31,6 +31,7 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
     }
     case (NodeType::kInfixExpr): {
       const auto* ptr = node.PtrCast<InfixExpr>();
+      CHECK_NOTNULL(ptr);
       auto status = CompileImpl(ptr->lhs);
       if (!status.ok()) {
         return status;
@@ -39,6 +40,12 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
       status.Update(CompileImpl(ptr->rhs));
       if (!status.ok()) {
         return status;
+      }
+
+      if (ptr->op == "+") {
+        Emit(Opcode::kAdd);
+      } else {
+        return absl::InternalError("Unknown operator " + ptr->op);
       }
       return absl::OkStatus();
     }

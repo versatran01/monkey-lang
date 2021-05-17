@@ -16,6 +16,7 @@ const std::string kUnknownOp = "unknown operator";
 const std::string kTypeMismatch = "type mismatch";
 const std::string kIdentNotFound = "identifier not found";
 const std::string kIndexOpNotSupported = "index operator not supported";
+
 const BuiltinMap gBuiltins = MakeBuiltins();
 
 // Some const objects

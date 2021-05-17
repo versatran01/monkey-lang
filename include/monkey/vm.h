@@ -9,10 +9,12 @@ namespace monkey {
 
 class VirtualMachine {
  public:
-  const Object& top() const { return stack.top(); }
   void Run(const Bytecode& bc);
+  const Object& Top() const;
 
  private:
+  Object Pop();
+
   std::stack<Object> stack;
 };
 

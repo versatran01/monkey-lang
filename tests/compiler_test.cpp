@@ -25,20 +25,22 @@ void CheckCompiler(const CompilerTest& test) {
   const auto program = Parse(test.input);
 
   Compiler compiler;
-  const auto bytecode = compiler.Compile(program);
-  ASSERT_TRUE(bytecode.ok());
+  const auto bc = compiler.Compile(program);
+  ASSERT_TRUE(bc.ok());
   // Check instructions
   const auto expected = ConcatInstructions(test.inst_vec);
-  EXPECT_EQ(bytecode->ins, expected);
-  EXPECT_THAT(bytecode->ins.bytes, ContainerEq(expected.bytes));
-  EXPECT_THAT(bytecode->consts, ContainerEq(test.constants));
+  //  EXPECT_EQ(bc->ins, expected);
+  EXPECT_EQ(bc->ins.String(), expected.String());
+  EXPECT_THAT(bc->consts, ContainerEq(test.constants));
 }
 
 TEST(CompilerTest, TestIntArithmetic) {
   const std::vector<CompilerTest> tests = {
       {"1 + 2",
        {IntObj(1), IntObj(2)},
-       {Encode(Opcode::kConst, {0}), Encode(Opcode::kConst, {1})}},
+       {Encode(Opcode::kConst, {0}),
+        Encode(Opcode::kConst, {1}),
+        Encode(Opcode::kAdd)}},
   };
 
   for (const auto& test : tests) {

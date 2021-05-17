@@ -28,13 +28,15 @@ void CheckVm(const VmTest& test) {
   VirtualMachine vm;
   vm.Run(*bc);
 
-  const auto& top = vm.top();
+  const auto& top = vm.Top();
   EXPECT_EQ(top, test.obj);
 }
 
 TEST(VmTest, TestIntArithmetic) {
   const std::vector<VmTest> tests = {
-      {"1", IntObj(1)}, {"2", IntObj(2)}, {"1 + 2", IntObj(2)},  // FIXME
+      {"1", IntObj(1)},
+      {"2", IntObj(2)},
+      {"1 + 2", IntObj(3)},
   };
 
   for (const auto& test : tests) {

@@ -22,7 +22,7 @@ class Compiler {
  private:
   int AddConstant(const Object& obj);
   int AddInstruction(const Instruction& ins);
-  int Emit(Opcode op, const std::vector<int>& operands);
+  int Emit(Opcode op, const std::vector<int>& operands = {});
 
   Instruction ins_;
   std::vector<Object> consts_;

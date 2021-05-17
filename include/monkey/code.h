@@ -13,7 +13,10 @@ using Byte = unsigned char;
 
 enum class Opcode : Byte {
   kConst,
+  kAdd,
 };
+
+std::ostream& operator<<(std::ostream& os, Opcode op);
 
 /// Convesion between Byte and Opcode
 inline constexpr Byte ToByte(Opcode op) noexcept {
@@ -63,7 +66,7 @@ struct Decoded {
   size_t nbytes{0};
 };
 
-Instruction Encode(Opcode op, const std::vector<int>& operands);
+Instruction Encode(Opcode op, const std::vector<int>& operands = {});
 Decoded Decode(const Definition& def,
                const Instruction& ins,
                size_t offset = 0);

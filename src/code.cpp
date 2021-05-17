@@ -11,6 +11,7 @@ namespace {
 
 const absl::flat_hash_map<Opcode, Definition> gOpcodeDefinitions = {
     {Opcode::kConst, {"OpConst", {2}}},
+    {Opcode::kAdd, {"OpAdd", {}}},
 
 };
 
@@ -20,6 +21,8 @@ std::string FormatInstruction(const Definition& def,
   CHECK_EQ(num_operands, def.NumOperands());
 
   switch (num_operands) {
+    case 0:
+      return def.name;
     case 1:
       return fmt::format("{} {}", def.name, operands[0]);
     default:
@@ -30,6 +33,10 @@ std::string FormatInstruction(const Definition& def,
 }
 
 }  // namespace
+
+std::ostream& operator<<(std::ostream& os, Opcode op) {
+  return os << gOpcodeDefinitions.at(op).name;
+}
 
 Definition LookupDefinition(Opcode op) { return gOpcodeDefinitions.at(op); }
 

@@ -79,7 +79,7 @@ std::string Object::Inspect() const {
 }
 
 std::ostream& operator<<(std::ostream& os, const Object& obj) {
-  return os << fmt::format("Obj({}, {})", obj.Type(), obj.Inspect());
+  return os << fmt::format("Obj({}={})", obj.Type(), obj.Inspect());
 }
 
 bool IsObjectHashable(ObjectType type) {
