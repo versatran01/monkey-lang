@@ -1,6 +1,7 @@
 #include "monkey/code.h"
 
 #include <absl/container/flat_hash_map.h>
+#include <absl/strings/str_join.h>
 #include <fmt/core.h>
 #include <glog/logging.h>
 
@@ -12,17 +13,6 @@ const absl::flat_hash_map<Opcode, Definition> gOpcodeDefinitions = {
     {Opcode::kConst, {"OpConst", {2}}},
 
 };
-
-void PutUint16(uint8_t* dst, uint16_t n) {
-  n = (n >> 8) | (n << 8);
-  std::memcpy(dst, &n, sizeof(uint16_t));
-}
-
-uint16_t ReadUint16(const uint8_t* src) {
-  uint16_t n = *reinterpret_cast<const uint16_t*>(src);
-  n = (n >> 8) | (n << 8);
-  return n;
-}
 
 std::string FormatInstruction(const Definition& def,
                               const std::vector<int>& operands) {
@@ -45,19 +35,22 @@ Definition LookupDefinition(Opcode op) { return gOpcodeDefinitions.at(op); }
 
 void Instruction::Append(const Instruction& ins) {
   bytes.insert(bytes.end(), ins.bytes.cbegin(), ins.bytes.cend());
+  ++num_ops;
 }
 
 std::string Instruction::String() const {
-  std::string str;
+  std::vector<std::string> strs;
+  strs.reserve(NumOps());
 
   size_t i = 0;
   while (i < bytes.size()) {
     const auto def = LookupDefinition(ToOpcode(bytes[i]));
     const auto dec = Decode(def, *this, i + 1);  // +1 is to skip the opcode
-    str += fmt::format("{:04d} {}\n", i, FormatInstruction(def, dec.operands));
-    i += 1 + dec.nbytes;  // opcode (1) + num bytes
+    strs.push_back(
+        fmt::format("{:04d} {}", i, FormatInstruction(def, dec.operands)));
+    i += size_t{1} + dec.nbytes;  // opcode (1) + num bytes
   }
-  return str;
+  return absl::StrJoin(strs, "\n");
 }
 
 std::ostream& operator<<(std::ostream& os, const Instruction& ins) {
@@ -84,6 +77,7 @@ Instruction Encode(Opcode op, const std::vector<int>& operands) {
   const auto total_bytes = def.SumOperandBytes() + 1;
 
   Instruction ins;
+  ins.num_ops = 1;
   ins.bytes.resize(total_bytes);
   ins.bytes[0] = ToByte(op);
 
@@ -104,22 +98,22 @@ Instruction Encode(Opcode op, const std::vector<int>& operands) {
   return ins;
 }
 
-Decoded Decode(const Definition& def, const Instruction& ins, int offset) {
+Decoded Decode(const Definition& def, const Instruction& ins, size_t offset) {
   Decoded dec;
   dec.operands.reserve(def.NumOperands());
 
-  for (const auto& width : def.operand_bytes) {
+  for (const auto& nbytes : def.operand_bytes) {
     const auto start = dec.nbytes + offset;
-    CHECK_LE(start + width, ins.size());
+    CHECK_LE(start + nbytes, ins.NumBytes());
 
-    switch (width) {
+    switch (nbytes) {
       case 2:
         dec.operands.push_back(ReadUint16(&ins.bytes[dec.nbytes + offset]));
         break;
       default:
         CHECK(false) << "Should not reach here";
     }
-    dec.nbytes += width;
+    dec.nbytes += nbytes;
   }
 
   return dec;

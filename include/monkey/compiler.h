@@ -9,7 +9,7 @@
 namespace monkey {
 
 struct Bytecode {
-  Instruction inst;
+  Instruction ins;
   std::vector<Object> consts;
 };
 

@@ -21,6 +21,7 @@ include/monkey/parser.h
 include/monkey/stats.h
 include/monkey/timer.h
 include/monkey/token.h
+include/monkey/vm.h
 monkey.cflags
 monkey.cxxflags
 src/CMakeLists.txt
@@ -35,6 +36,7 @@ src/object.cpp
 src/parser.cpp
 src/timer.cpp
 src/token.cpp
+src/vm.cpp
 tests/CMakeLists.txt
 tests/ast_test.cpp
 tests/code_test.cpp
@@ -44,3 +46,4 @@ tests/evaluator_test.cpp
 tests/lexer_test.cpp
 tests/object_test.cpp
 tests/parser_test.cpp
+tests/vm_test.cpp

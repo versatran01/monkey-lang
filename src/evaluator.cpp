@@ -80,13 +80,13 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
       return env.Set(node.PtrCast<LetStmt>()->name.String(), obj);
     }
     case NodeType::kIntLiteral: {
-      return IntObj(node.PtrCast<IntLiteral>()->value);
+      return ToIntObj(node);
     }
     case NodeType::kBoolLiteral: {
-      return node.PtrCast<BoolLiteral>()->value ? kTrueObject : kFalseObject;
+      return ToBoolObj(node);
     }
     case NodeType::kStrLiteral: {
-      return StrObj(node.PtrCast<StrLiteral>()->value);
+      return ToStrObj(node);
     }
     case NodeType::kDictLiteral: {
       return EvalDictLiteral(*node.PtrCast<DictLiteral>(), env);

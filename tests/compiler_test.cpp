@@ -29,8 +29,8 @@ void CheckCompiler(const CompilerTest& test) {
   ASSERT_TRUE(bytecode.ok());
   // Check instructions
   const auto expected = ConcatInstructions(test.inst_vec);
-  EXPECT_EQ(bytecode->inst, expected);
-  EXPECT_THAT(bytecode->inst.bytes, ContainerEq(expected.bytes));
+  EXPECT_EQ(bytecode->ins, expected);
+  EXPECT_THAT(bytecode->ins.bytes, ContainerEq(expected.bytes));
   EXPECT_THAT(bytecode->consts, ContainerEq(test.constants));
 }
 

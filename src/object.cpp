@@ -99,9 +99,19 @@ Object DictObj(const Dict& dict) { return {ObjectType::kDict, dict}; }
 Object QuoteObj(const ExprNode& expr) { return {ObjectType::kQuote, expr}; }
 Object BuiltinObj(const Builtin& fn) { return {ObjectType::kBuiltin, fn}; }
 
-Object IntObj(const AstNode& node) {
-  CHECK_EQ(node.Type(), NodeType::kIntLiteral);
-  return IntObj(node.PtrCast<IntLiteral>()->value);
+Object ToIntObj(const ExprNode& expr) {
+  CHECK_EQ(expr.Type(), NodeType::kIntLiteral);
+  return IntObj(expr.PtrCast<IntLiteral>()->value);
+}
+
+Object ToBoolObj(const ExprNode& expr) {
+  CHECK_EQ(expr.Type(), NodeType::kBoolLiteral);
+  return BoolObj(expr.PtrCast<BoolLiteral>()->value);
+}
+
+Object ToStrObj(const ExprNode& expr) {
+  CHECK_EQ(expr.Type(), NodeType::kStrLiteral);
+  return StrObj(expr.PtrCast<StrLiteral>()->value);
 }
 
 }  // namespace monkey

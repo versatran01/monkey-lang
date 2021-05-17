@@ -104,6 +104,8 @@ Object DictObj(const Dict& dict);
 Object QuoteObj(const ExprNode& expr);
 
 // Directly create object from ast node
-Object IntObj(const AstNode& node);
+Object ToIntObj(const ExprNode& expr);
+Object ToBoolObj(const ExprNode& expr);
+Object ToStrObj(const ExprNode& expr);
 
 }  // namespace monkey

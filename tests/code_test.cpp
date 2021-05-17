@@ -9,13 +9,13 @@ using namespace monkey;
 using ::testing::ContainerEq;
 
 TEST(CodeTest, TestEncode) {
-  struct Test {
+  struct EncodeTest {
     Opcode op;
     std::vector<int> operands;
     Bytes expected;
   };
 
-  const std::vector<Test> tests = {
+  const std::vector<EncodeTest> tests = {
       {Opcode::kConst, {65534}, {ToByte(Opcode::kConst), 255, 254}},
   };
 
@@ -26,13 +26,13 @@ TEST(CodeTest, TestEncode) {
 }
 
 TEST(CodeTest, TestDecode) {
-  struct Test {
+  struct DecodeTest {
     Opcode op;
     std::vector<int> operands;
     int nbytes;
   };
 
-  const std::vector<Test> tests = {
+  const std::vector<DecodeTest> tests = {
       {Opcode::kConst, {65535}, 2},
   };
 
@@ -53,14 +53,14 @@ TEST(CodeTest, TestInstructionString) {
   };
 
   const std::vector<std::string> expected = {
-      "0000 OpConst 1\n", "0000 OpConst 2\n", "0000 OpConst 65534\n"};
+      "0000 OpConst 1", "0000 OpConst 2", "0000 OpConst 65534"};
 
   for (size_t i = 0; i < instrs.size(); ++i) {
     EXPECT_EQ(instrs[i].String(), expected[i]);
   }
 
   const std::string fullstr =
-      "0000 OpConst 1\n0003 OpConst 2\n0006 OpConst 65534\n";
+      "0000 OpConst 1\n0003 OpConst 2\n0006 OpConst 65534";
 
   const auto instr = ConcatInstructions(instrs);
   EXPECT_EQ(instr.String(), fullstr);

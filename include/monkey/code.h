@@ -2,6 +2,7 @@
 
 #include <absl/types/span.h>
 
+#include <cstring>
 #include <iosfwd>
 #include <string>
 #include <vector>
@@ -26,9 +27,10 @@ using Bytes = std::vector<Byte>;
 
 struct Instruction {
   Bytes bytes;
+  size_t num_ops{0};
 
-  auto size() const noexcept { return bytes.size(); }
-  auto empty() const noexcept { return bytes.empty(); }
+  auto NumOps() const noexcept { return num_ops; }
+  auto NumBytes() const noexcept { return bytes.size(); }
   void Append(const Instruction& ins);
 
   std::string String() const;
@@ -48,7 +50,7 @@ Instruction ConcatInstructions(const std::vector<Instruction>& instrs);
 
 struct Definition {
   std::string name;
-  std::vector<int> operand_bytes;
+  std::vector<size_t> operand_bytes;
 
   auto NumOperands() const noexcept { return operand_bytes.size(); }
   size_t SumOperandBytes() const;
@@ -58,10 +60,27 @@ Definition LookupDefinition(Opcode op);
 
 struct Decoded {
   std::vector<int> operands;
-  int nbytes{0};
+  size_t nbytes{0};
 };
 
 Instruction Encode(Opcode op, const std::vector<int>& operands);
-Decoded Decode(const Definition& def, const Instruction& ins, int offset = 0);
+Decoded Decode(const Definition& def,
+               const Instruction& ins,
+               size_t offset = 0);
+
+// Helper functions
+inline uint16_t SwapUint16Bytes(uint16_t n) {
+  return static_cast<uint16_t>((n >> 8) | (n << 8));
+}
+
+inline void PutUint16(uint8_t* dst, uint16_t n) {
+  n = SwapUint16Bytes(n);
+  std::memcpy(dst, &n, sizeof(uint16_t));
+}
+
+inline uint16_t ReadUint16(const uint8_t* src) {
+  uint16_t n = *reinterpret_cast<const uint16_t*>(src);
+  return SwapUint16Bytes(n);
+}
 
 }  // namespace monkey

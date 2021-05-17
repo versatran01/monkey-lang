@@ -40,3 +40,8 @@ cc_gtest(
   NAME compiler_test
   SRCS "compiler_test.cpp"
   DEPS monkey::compiler monkey::parser GMock::GMock)
+
+cc_gtest(
+  NAME vm_test
+  SRCS "vm_test.cpp"
+  DEPS monkey::vm monkey::parser)

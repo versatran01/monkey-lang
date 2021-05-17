@@ -5,7 +5,7 @@
 namespace monkey {
 
 absl::StatusOr<Bytecode> Compiler::Compile(const AstNode& node) {
-  const auto status = CompileImpl(node);
+  auto status = CompileImpl(node);
   if (!status.ok()) {
     return status;
   }
@@ -18,7 +18,7 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
     case (NodeType::kProgram): {
       const auto* ptr = node.PtrCast<Program>();
       for (const auto& stmt : ptr->statements) {
-        const auto status = CompileImpl(stmt);
+        auto status = CompileImpl(stmt);
         if (!status.ok()) {
           return status;
         }
@@ -36,21 +36,21 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
         return status;
       }
 
-      status = CompileImpl(ptr->rhs);
+      status.Update(CompileImpl(ptr->rhs));
       if (!status.ok()) {
         return status;
       }
       return absl::OkStatus();
     }
     case (NodeType::kIntLiteral): {
-      const auto obj = IntObj(node);
+      const auto obj = ToIntObj(node);
       Emit(Opcode::kConst, {AddConstant(obj)});
       return absl::OkStatus();
     }
     default:
       CHECK(false) << "Should not reach here";
   }
-  return absl::InternalError("Should not reach here");
+  return absl::InternalError("Internal Compiler Error: Invalid ast node");
 }
 
 int Compiler::AddConstant(const Object& obj) {
@@ -59,7 +59,7 @@ int Compiler::AddConstant(const Object& obj) {
 }
 
 int Compiler::AddInstruction(const Instruction& ins) {
-  const auto pos = static_cast<int>(ins_.size());
+  const auto pos = static_cast<int>(ins_.NumBytes());
   ins_.Append(ins);
   return pos;
 }
