@@ -32,7 +32,7 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         break;
       }
       default:
-        return Error("Unhandled Opcode: " + ToString(op));
+        return MakeError("Unhandled Opcode: " + ToString(op));
     }
   }
 
@@ -47,9 +47,9 @@ absl::Status VirtualMachine::ExecBinaryOp(Opcode op) {
     return ExecIntBinaryOp(op, lhs, rhs);
   }
 
-  return Error(fmt::format("Unsupported types for binary operations: {} {}",
-                           lhs.Type(),
-                           rhs.Type()));
+  return MakeError(fmt::format("Unsupported types for binary operations: {} {}",
+                               lhs.Type(),
+                               rhs.Type()));
 }
 
 absl::Status VirtualMachine::ExecIntBinaryOp(Opcode op,
@@ -73,7 +73,7 @@ absl::Status VirtualMachine::ExecIntBinaryOp(Opcode op,
       res = lv / rv;
       break;
     default:
-      return Error("Unknown integer operator: " + ToString(op));
+      return MakeError("Unknown integer operator: " + ToString(op));
   }
 
   Push(IntObj(res));
@@ -83,10 +83,6 @@ absl::Status VirtualMachine::ExecIntBinaryOp(Opcode op,
 const Object& VirtualMachine::Top() const {
   CHECK(!stack.empty()) << "Top called when stack is empty";
   return stack.top();
-}
-
-absl::Status VirtualMachine::Error(absl::string_view msg) {
-  return absl::InternalError(msg);
 }
 
 Object VirtualMachine::Pop() {

@@ -9,6 +9,10 @@
 
 namespace monkey {
 
+inline absl::Status MakeError(absl::string_view msg) {
+  return absl::InternalError(msg);
+}
+
 struct Bytecode {
   Instruction ins;
   std::vector<Object> consts;
@@ -21,7 +25,6 @@ class Compiler {
   const auto& timers() const noexcept { return timers_; }
 
  private:
-  absl::Status Error(absl::string_view msg);
   absl::Status CompileImpl(const AstNode& node);
 
   int AddConstant(const Object& obj);
