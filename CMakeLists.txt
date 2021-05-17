@@ -14,7 +14,7 @@ find_package(glog REQUIRED)
 find_package(absl REQUIRED)
 
 set(CC_TARGET_PREFIX "monkey")
-include(CMakeHelpers)
+include(BazelHelpers)
 
 include_directories(include)
 add_subdirectory(src)

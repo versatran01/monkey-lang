@@ -1,5 +1,6 @@
 #include <absl/flags/flag.h>
 #include <absl/flags/parse.h>
+#include <fmt/color.h>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <glog/logging.h>
@@ -12,6 +13,7 @@
 #include "monkey/vm.h"
 
 ABSL_FLAG(bool, eval, true, "Run evaluator.");
+ABSL_FLAG(bool, print_stats, true, "Print timing stats.");
 
 namespace monkey {
 
@@ -22,7 +24,7 @@ void StartReplComp() {
   Compiler comp;
 
   while (true) {
-    fmt::print(kPrompt);
+    fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::red), kPrompt);
     std::getline(std::cin, line);
 
     Parser parser{line};
@@ -47,6 +49,9 @@ void StartReplComp() {
     }
 
     fmt::print("{}\n", vm.Top().Inspect());
+    if (absl::GetFlag(FLAGS_print_stats)) {
+      fmt::print("{}\n", comp.timers().ReportAll());
+    }
   }
 }
 
@@ -56,7 +61,7 @@ void StartReplEval() {
   Environment env;
 
   while (true) {
-    fmt::print(kPrompt);
+    fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::green), kPrompt);
     std::getline(std::cin, line);
 
     Parser parser{line};
@@ -70,6 +75,10 @@ void StartReplEval() {
     const auto obj = eval.Evaluate(program, env);
     if (obj.Ok()) {
       fmt::print("{}\n", obj.Inspect());
+    }
+
+    if (absl::GetFlag(FLAGS_print_stats)) {
+      fmt::print("{}\n", eval.timers().ReportAll());
     }
   }
 }

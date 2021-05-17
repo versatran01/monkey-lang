@@ -24,7 +24,7 @@ additional_commands:
       DEFINES: "*"
       LINKOPTS: "*"
       DEPS: "*"
-  cc_gtest:
+  cc_test:
     kwargs:
       SRCS: "*"
       COPTS: "*"

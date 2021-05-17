@@ -51,6 +51,7 @@ cc_library(
   NAME evaluator
   SRCS "evaluator.cpp"
   DEPS monkey::ast monkey::object monkey::builtin monkey::environment
+       monkey::timer
   LINKOPTS absl::strings)
 
 cc_library(
@@ -61,9 +62,10 @@ cc_library(
 cc_library(
   NAME compiler
   SRCS "compiler.cpp"
-  DEPS monkey::code monkey::ast monkey::object absl::statusor)
+  DEPS monkey::code monkey::ast monkey::object absl::statusor
+  LINKOPTS monkey::timer)
 
 cc_library(
   NAME vm
   SRCS "vm.cpp"
-  DEPS monkey::compiler monkey::object)
+  DEPS monkey::compiler monkey::object monkey::timer)

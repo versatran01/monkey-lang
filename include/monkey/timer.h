@@ -35,13 +35,14 @@ class Timer {
   bool IsStopped() const noexcept { return !running_; }
   int64_t NowNs() const { return absl::GetCurrentTimeNanos(); }
 
-  /// Start timer
+  /// Start timer, repeated calls to Start() will update the start time
   void Start();
 
-  /// Stop timer
+  /// Stop timer, repeated calls to Stop( have no effect after the 1st
   void Stop();
 
-  /// Resume timer, keep counting from the latest Start()
+  /// Resume timer, keep counting from the latest Stop(), repeated calls to
+  /// Resume() have no effect
   void Resume();
 
   /// Return elapsed time as duration, will not stop timer
@@ -52,13 +53,14 @@ class Timer {
   bool running_{false};
 };
 
-/// This is similar to Ceres Solver's ExecutionSummary class, where we record
-/// execution statistics (mainly time). Instead of simply record the time, we
-/// store a bunch of other statistics using boost accumulator.
+/// Time statistics
 using TimeStats = Stats<absl::Duration>;
 std::string ToString(const TimeStats& stats);
 std::ostream& operator<<(std::ostream& os, const TimeStats& stats);
 
+/// This is similar to Ceres Solver's ExecutionSummary class, where we record
+/// execution statistics (mainly time). Instead of simply record the time, we
+/// store a bunch of other statistics using boost accumulator.
 class TimerManager {
  public:
   /// A manual timer where user needs to call stop and commit explicitly
@@ -83,7 +85,8 @@ class TimerManager {
     /// Stop and record the elapsed time after Start
     void Stop();
 
-    /// Commit changes to manager
+    /// Commit changes to manager, potentially expensive since it needs to
+    /// acquire a lock
     void Commit();
 
    private:
@@ -102,7 +105,7 @@ class TimerManager {
 
   explicit TimerManager(std::string name = "timers") : name_{std::move(name)} {}
 
-  std::string name() const noexcept { return name_; }
+  const std::string& name() const noexcept { return name_; }
   auto size() const noexcept { return stats_dict_.size(); }
   bool empty() const noexcept { return size() == 0; }
 

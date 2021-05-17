@@ -57,6 +57,7 @@ Object UnwrapReturn(const Object& obj) {
 }  // namespace
 
 Object Evaluator::Evaluate(const Program& program, Environment& env) const {
+  auto _ = timers_.Scoped("EvaluateProgram");
   return EvalProgram(program, env);
 }
 

@@ -3,6 +3,7 @@
 #include "monkey/ast.h"
 #include "monkey/environment.h"
 #include "monkey/object.h"
+#include "monkey/timer.h"
 
 namespace monkey {
 
@@ -10,6 +11,8 @@ class Evaluator {
  public:
   Object Evaluate(const Program& program, Environment& env) const;
   Object Evaluate(const AstNode& node, Environment& env) const;
+
+  const auto& timers() const noexcept { return timers_; }
 
  private:
   Object EvalProgram(const Program& program, Environment& env) const;
@@ -40,6 +43,8 @@ class Evaluator {
                            const std::string& op,
                            const Object& rhs) const;
   Object ApplyFunc(const Object& fobj, const std::vector<Object>& args) const;
+
+  mutable TimerManager timers_{"evaluator"};
 };
 
 }  // namespace monkey

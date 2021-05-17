@@ -5,6 +5,8 @@
 namespace monkey {
 
 absl::StatusOr<Bytecode> Compiler::Compile(const Program& program) {
+  auto _ = timers_.Scoped("CompileProgram");
+
   for (const auto& stmt : program.statements) {
     auto status = CompileImpl(stmt);
     if (!status.ok()) {
