@@ -48,7 +48,7 @@ void StartReplComp() {
       continue;
     }
 
-    fmt::print("{}\n", vm.last().Inspect());
+    fmt::print("{}\n", vm.Last().Inspect());
     if (absl::GetFlag(FLAGS_print_stats)) {
       fmt::print("{}\n", comp.timers().ReportAll());
     }

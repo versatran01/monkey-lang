@@ -175,16 +175,27 @@ absl::Status VirtualMachine::ExecMinusOp() {
 }
 
 const Object& VirtualMachine::Top() const {
-  CHECK(!stack.empty()) << "Top called when stack is empty";
-  return stack.top();
+  CHECK_GT(sp, 0) << "Calling Top() when Stack is empty";
+  return stack[sp - 1];
 }
+
+const Object& VirtualMachine::Last() const { return stack.at(sp); }
 
 Object VirtualMachine::Pop() {
-  last_ = Top();
-  stack.pop();
-  return last_;
+  Object o = Top();  // Will check empty stack in Top();
+  --sp;
+  return o;
 }
 
-void VirtualMachine::Push(Object obj) { stack.push(std::move(obj)); }
+void VirtualMachine::Push(Object obj) {
+  if (sp == stack.size()) {
+    stack.push_back(std::move(obj));
+  } else {
+    stack[sp] = std::move(obj);
+  }
+
+  ++sp;
+  CHECK_LE(sp, stack.size());
+}
 
 }  // namespace monkey

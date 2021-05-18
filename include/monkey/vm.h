@@ -1,5 +1,6 @@
 #pragma once
 
+#include <deque>
 #include <stack>
 
 #include "monkey/compiler.h"
@@ -11,8 +12,7 @@ class VirtualMachine {
  public:
   absl::Status Run(const Bytecode& bc);
   const Object& Top() const;
-
-  const Object& last() const { return last_; }
+  const Object& Last() const;
 
  private:
   absl::Status ExecBinaryOp(Opcode op);
@@ -27,8 +27,8 @@ class VirtualMachine {
   Object Pop();
   void Push(Object obj);
 
-  std::stack<Object> stack;
-  Object last_{NullObj()};
+  size_t sp{0};
+  std::deque<Object> stack;
 };
 
 }  // namespace monkey

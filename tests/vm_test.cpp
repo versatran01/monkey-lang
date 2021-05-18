@@ -34,10 +34,10 @@ void CheckVm(const VmTest& test) {
 
   switch (test.value.index()) {
     case 0:
-      EXPECT_EQ(vm.last(), IntObj(std::get<0>(test.value)));
+      EXPECT_EQ(vm.Last(), IntObj(std::get<0>(test.value)));
       break;
     case 1:
-      EXPECT_EQ(vm.last(), BoolObj(std::get<1>(test.value)));
+      EXPECT_EQ(vm.Last(), BoolObj(std::get<1>(test.value)));
       break;
     default:
       ASSERT_FALSE(true) << "Unhandeld type";

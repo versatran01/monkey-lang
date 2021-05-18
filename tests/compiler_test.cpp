@@ -130,4 +130,29 @@ TEST(CompilerTest, TestBooleanExpression) {
   }
 }
 
+TEST(CompilerTest, TestConditional) {
+  const std::vector<CompilerTest> tests = {
+      {"if (true) { 10 }; 3333;",
+       {IntObj(10), IntObj(3333)},
+       {
+           // 0000
+           Encode(Opcode::kTrue),
+           // 0001
+           Encode(Opcode::kJumpNotTrue, {7}),
+           // 0004
+           Encode(Opcode::kConst, {0}),
+           // 0007
+           Encode(Opcode::kPop),
+           // 0008
+           Encode(Opcode::kConst, {1}),
+           // 0011
+           Encode(Opcode::kPop),
+       }}};
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckCompiler(test);
+  }
+}
+
 }  // namespace

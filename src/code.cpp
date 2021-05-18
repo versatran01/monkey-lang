@@ -23,6 +23,8 @@ const absl::flat_hash_map<Opcode, Definition> gOpcodeDefinitions = {
     {Opcode::kGt, {"OpGt"}},
     {Opcode::kMinus, {"OpMinus"}},
     {Opcode::kBang, {"OpBang"}},
+    {Opcode::kJumpNotTrue, {"OpJumpNotTrue", {2}}},
+    {Opcode::kJump, {"OpJump", {2}}},
 };
 
 std::string FormatInstruction(const Definition& def,
@@ -83,11 +85,6 @@ Instruction ConcatInstructions(const std::vector<Instruction>& instrs) {
 }
 
 Instruction Encode(Opcode op, const std::vector<int>& operands) {
-  //  const auto it = gOpcodeDefinitions.find(op);
-  //  if (it == gOpcodeDefinitions.end()) {
-  //    return {};
-  //  }
-  //  const auto& def = it->second;
   const auto def = LookupDefinition(op);
 
   CHECK_EQ(def.NumOperands(), operands.size());
