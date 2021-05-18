@@ -9,6 +9,8 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
   for (size_t ip = 0; ip < bc.ins.NumBytes(); ++ip) {
     const auto op = ToOpcode(bc.ins.bytes[ip]);
 
+    auto status = absl::OkStatus();
+
     switch (op) {
       case Opcode::kConst: {
         const auto const_index = ReadUint16(&bc.ins.bytes[ip + 1]);
@@ -21,9 +23,7 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
       case Opcode::kSub:
       case Opcode::kMul:
       case Opcode::kDiv: {
-        auto status = ExecBinaryOp(op);
-        if (!status.ok()) return status;
-
+        status = ExecBinaryOp(op);
         break;
       }
       case Opcode::kTrue:
@@ -35,18 +35,15 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
       case Opcode::kEq:
       case Opcode::kNe:
       case Opcode::kGt: {
-        auto status = ExecComparison(op);
-        if (!status.ok()) return status;
+        status = ExecComparison(op);
         break;
       }
       case Opcode::kBang: {
-        auto status = ExecBangOp();
-        if (!status.ok()) return status;
+        status = ExecBangOp();
         break;
       }
       case Opcode::kMinus: {
-        auto status = ExecMinusOp();
-        if (!status.ok()) return status;
+        status = ExecMinusOp();
         break;
       }
       case Opcode::kPop: {
@@ -56,6 +53,9 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
       default:
         return MakeError("Unhandled Opcode: " + Repr(op));
     }
+
+    // Check status and early return
+    if (!status.ok()) return status;
   }
 
   return absl::OkStatus();

@@ -16,15 +16,9 @@ absl::StatusOr<Bytecode> Compiler::Compile(const Program& program) {
 }
 
 absl::Status Compiler::CompileImpl(const AstNode& node) {
+  CHECK_NE(node.Type(), NodeType::kProgram);
+
   switch (node.Type()) {
-    case NodeType::kProgram: {
-      const auto* ptr = node.PtrCast<Program>();
-      for (const auto& stmt : ptr->statements) {
-        auto status = CompileImpl(stmt);
-        if (!status.ok()) return status;
-      }
-      break;
-    }
     case NodeType::kExprStmt: {
       const auto* ptr = node.PtrCast<ExprStmt>();
       auto status = CompileImpl(ptr->expr);
