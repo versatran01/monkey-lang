@@ -1,6 +1,7 @@
 #pragma once
 
 #include <absl/container/flat_hash_map.h>
+#include <absl/strings/string_view.h>
 
 #include <iosfwd>
 
@@ -12,8 +13,8 @@ class Environment {
  public:
   explicit Environment(Environment* outer = nullptr) : outer_{outer} {}
 
-  Object Get(const std::string& name) const;
-  Object& Set(const std::string& name, const Object& obj);
+  Object Get(absl::string_view name) const;
+  Object& Set(absl::string_view name, Object obj);
 
   auto size() const noexcept { return store_.size(); }
   auto empty() const noexcept { return store_.empty(); }

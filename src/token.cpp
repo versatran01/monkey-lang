@@ -40,16 +40,18 @@ const auto gTokenTypeStrings = absl::flat_hash_map<TokenType, std::string>{
 
 }  // namespace
 
-TokenType GetKeywordType(const std::string& ident) {
+std::string Repr(TokenType type) { return gTokenTypeStrings.at(type); }
+
+std::ostream& operator<<(std::ostream& os, TokenType type) {
+  return os << Repr(type);
+}
+
+TokenType GetKeywordType(absl::string_view ident) {
   const auto it = gKeywords.find(ident);
   if (it != gKeywords.cend()) {
     return it->second;
   }
   return TokenType::kIdent;
-}
-
-std::ostream& operator<<(std::ostream& os, TokenType type) {
-  return os << gTokenTypeStrings.at(type);
 }
 
 std::string Token::Repr() const {

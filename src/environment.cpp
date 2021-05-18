@@ -9,7 +9,7 @@
 
 namespace monkey {
 
-Object Environment::Get(const std::string& name) const {
+Object Environment::Get(absl::string_view name) const {
   const auto it = store_.find(name);
   // Found
   if (it != store_.end()) {
@@ -24,8 +24,8 @@ Object Environment::Get(const std::string& name) const {
   return Object{};
 }
 
-Object& Environment::Set(const std::string& name, const Object& obj) {
-  return store_[name] = obj;
+Object& Environment::Set(absl::string_view name, Object obj) {
+  return store_[name] = std::move(obj);
 }
 
 Environment MakeEnclosedEnv(Environment* env) { return Environment{env}; }

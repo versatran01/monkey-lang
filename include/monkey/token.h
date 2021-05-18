@@ -1,5 +1,7 @@
 #pragma once
 
+#include <absl/strings/string_view.h>
+
 #include <iosfwd>
 #include <string>
 
@@ -41,6 +43,7 @@ enum class TokenType {
   kColon
 };
 
+std::string Repr(TokenType type);
 std::ostream& operator<<(std::ostream& os, TokenType type);
 
 struct Token {
@@ -51,6 +54,6 @@ struct Token {
   friend std::ostream& operator<<(std::ostream& os, const Token& token);
 };
 
-TokenType GetKeywordType(const std::string& ident);
+TokenType GetKeywordType(absl::string_view ident);
 
 }  // namespace monkey

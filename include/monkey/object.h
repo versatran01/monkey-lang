@@ -96,7 +96,7 @@ Object NullObj();
 Object IntObj(IntType value);
 Object StrObj(StrType value);
 Object BoolObj(BoolType value);
-Object ErrorObj(const std::string& str);
+Object ErrorObj(StrType str);
 Object ReturnObj(const Object& obj);
 Object FuncObj(const FuncObject& fn);
 Object BuiltinObj(const Builtin& fn);

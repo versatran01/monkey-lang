@@ -113,10 +113,10 @@ class TimerManager {
   /// Elapsed time will automatically added to the stats when stoppped.
   /// After stop one can just call timer.Start() to restart.
   /// Need to call Commit() to aggregate stats
-  ManualTimer Manual(const std::string& name) { return {name, this}; }
+  ManualTimer Manual(std::string name) { return {std::move(name), this}; }
 
   /// Returns a ScopedTimer (already started) and will stop when out of scope
-  ScopedTimer Scoped(const std::string& name) { return {name, this}; }
+  ScopedTimer Scoped(std::string name) { return {std::move(name), this}; }
 
   /// Thread-safe update, aggregate stats
   void Update(absl::string_view timer_name, const TimeStats& stats);

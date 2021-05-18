@@ -24,7 +24,7 @@ enum class Precedence {
 class Parser {
  public:
   explicit Parser(Lexer lexer);
-  explicit Parser(const std::string& input) : Parser{Lexer{input}} {}
+  explicit Parser(std::string input) : Parser{Lexer{std::move(input)}} {}
 
   Program ParseProgram();
   std::string ErrorMsg() const;

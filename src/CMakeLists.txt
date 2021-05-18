@@ -11,7 +11,7 @@ cc_library(
 cc_library(
   NAME token
   SRCS "token.cpp"
-  DEPS monkey::base
+  DEPS monkey::base absl::strings
   LINKOPTS absl::flat_hash_map)
 
 cc_library(

@@ -93,7 +93,7 @@ Object NullObj() { return Object{ObjectType::kNull}; }
 Object IntObj(IntType value) { return {ObjectType::kInt, value}; }
 Object StrObj(StrType value) { return {ObjectType::kStr, std::move(value)}; }
 Object BoolObj(BoolType value) { return {ObjectType::kBool, value}; }
-Object ErrorObj(const std::string& str) { return {ObjectType::kError, str}; }
+Object ErrorObj(StrType str) { return {ObjectType::kError, std::move(str)}; }
 Object ReturnObj(const Object& value) { return {ObjectType::kReturn, value}; }
 Object FuncObj(const FuncObject& fn) { return {ObjectType::kFunc, fn}; }
 Object ArrayObj(const Array& arr) { return {ObjectType::kArray, arr}; }
