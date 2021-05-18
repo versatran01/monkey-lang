@@ -30,6 +30,7 @@ enum class ObjectType {
   kQuote,
 };
 
+std::string Repr(ObjectType type);
 std::ostream& operator<<(std::ostream& os, ObjectType type);
 
 struct Object {
@@ -107,5 +108,11 @@ Object QuoteObj(const ExprNode& expr);
 Object ToIntObj(const ExprNode& expr);
 Object ToBoolObj(const ExprNode& expr);
 Object ToStrObj(const ExprNode& expr);
+
+// Check if objects are the same type
+template <typename... Args>
+bool ObjOfSameType(ObjectType op, Args const&... args) {
+  return ((args.Type() == op) && ... && true);
+}
 
 }  // namespace monkey

@@ -19,7 +19,7 @@ absl::StatusOr<Bytecode> Compiler::Compile(const Program& program) {
 
 absl::Status Compiler::CompileImpl(const AstNode& node) {
   switch (node.Type()) {
-    case (NodeType::kProgram): {
+    case NodeType::kProgram: {
       const auto* ptr = node.PtrCast<Program>();
       for (const auto& stmt : ptr->statements) {
         auto status = CompileImpl(stmt);
@@ -29,7 +29,7 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
       }
       break;
     }
-    case (NodeType::kExprStmt): {
+    case NodeType::kExprStmt: {
       const auto* ptr = node.PtrCast<ExprStmt>();
       const auto status = CompileImpl(ptr->expr);
       if (!status.ok()) {
@@ -38,9 +38,19 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
       Emit(Opcode::kPop);
       break;
     }
-    case (NodeType::kInfixExpr): {
+    case NodeType::kInfixExpr: {
       const auto* ptr = node.PtrCast<InfixExpr>();
       CHECK_NOTNULL(ptr);
+
+      // Reorder < to >, by creating a new expr
+      InfixExpr infix;
+      if (ptr->op == "<") {
+        infix.op = ">";
+        infix.lhs = ptr->rhs;
+        infix.rhs = ptr->lhs;
+        ptr = &infix;
+      }
+
       auto status = CompileImpl(ptr->lhs);
       if (!status.ok()) {
         return status;
@@ -59,17 +69,23 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
         Emit(Opcode::kMul);
       } else if (ptr->op == "/") {
         Emit(Opcode::kDiv);
+      } else if (ptr->op == ">") {
+        Emit(Opcode::kGt);
+      } else if (ptr->op == "==") {
+        Emit(Opcode::kEq);
+      } else if (ptr->op == "!=") {
+        Emit(Opcode::kNe);
       } else {
         return MakeError("Unknown operator " + ptr->op);
       }
       break;
     }
-    case (NodeType::kIntLiteral): {
+    case NodeType::kIntLiteral: {
       const auto obj = ToIntObj(node);
       Emit(Opcode::kConst, {AddConstant(obj)});
       break;
     }
-    case (NodeType::kBoolLiteral): {
+    case NodeType::kBoolLiteral: {
       const auto* ptr = node.PtrCast<BoolLiteral>();
       if (ptr->value) {
         Emit(Opcode::kTrue);

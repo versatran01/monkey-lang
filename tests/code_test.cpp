@@ -58,13 +58,13 @@ TEST(CodeTest, TestInstructionString) {
       "0000 OpAdd", "0000 OpConst 2", "0000 OpConst 65534"};
 
   for (size_t i = 0; i < instrs.size(); ++i) {
-    EXPECT_EQ(instrs[i].String(), expected[i]);
+    EXPECT_EQ(instrs[i].Repr(), expected[i]);
   }
 
   const std::string fullstr = "0000 OpAdd\n0001 OpConst 2\n0004 OpConst 65534";
 
   const auto instr = ConcatInstructions(instrs);
-  EXPECT_EQ(instr.String(), fullstr);
+  EXPECT_EQ(instr.Repr(), fullstr);
 }
 
 }  // namespace

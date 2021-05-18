@@ -30,7 +30,7 @@ void CheckCompiler(const CompilerTest& test) {
   // Check instructions
   const auto expected = ConcatInstructions(test.inst_vec);
   //  EXPECT_EQ(bc->ins, expected);
-  EXPECT_EQ(bc->ins.String(), expected.String());
+  EXPECT_EQ(bc->ins.Repr(), expected.Repr());
   EXPECT_THAT(bc->consts, ContainerEq(test.constants));
 }
 
@@ -66,8 +66,54 @@ TEST(CompilerTest, TestIntArithmetic) {
         Encode(Opcode::kConst, {1}),
         Encode(Opcode::kDiv),
         Encode(Opcode::kPop)}},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckCompiler(test);
+  }
+}
+
+TEST(CompilerTest, TestBooleanExpression) {
+  const std::vector<CompilerTest> tests = {
       {"true", {}, {Encode(Opcode::kTrue), Encode(Opcode::kPop)}},
       {"false", {}, {Encode(Opcode::kFalse), Encode(Opcode::kPop)}},
+      {"1 > 2",
+       {IntObj(1), IntObj(2)},
+       {Encode(Opcode::kConst, {0}),
+        Encode(Opcode::kConst, {1}),
+        Encode(Opcode::kGt),
+        Encode(Opcode::kPop)}},
+      {"1 < 2",
+       {IntObj(2), IntObj(1)},
+       {Encode(Opcode::kConst, {0}),
+        Encode(Opcode::kConst, {1}),
+        Encode(Opcode::kGt),
+        Encode(Opcode::kPop)}},
+      {"1 == 2",
+       {IntObj(1), IntObj(2)},
+       {Encode(Opcode::kConst, {0}),
+        Encode(Opcode::kConst, {1}),
+        Encode(Opcode::kEq),
+        Encode(Opcode::kPop)}},
+      {"1 != 2",
+       {IntObj(1), IntObj(2)},
+       {Encode(Opcode::kConst, {0}),
+        Encode(Opcode::kConst, {1}),
+        Encode(Opcode::kNe),
+        Encode(Opcode::kPop)}},
+      {"true == false",
+       {},
+       {Encode(Opcode::kTrue),
+        Encode(Opcode::kFalse),
+        Encode(Opcode::kEq),
+        Encode(Opcode::kPop)}},
+      {"true != false",
+       {},
+       {Encode(Opcode::kTrue),
+        Encode(Opcode::kFalse),
+        Encode(Opcode::kNe),
+        Encode(Opcode::kPop)}},
   };
 
   for (const auto& test : tests) {

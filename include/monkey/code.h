@@ -20,9 +20,12 @@ enum class Opcode : Byte {
   kDiv,
   kTrue,
   kFalse,
+  kEq,
+  kNe,
+  kGt,
 };
 
-std::string ToString(Opcode op);
+std::string Repr(Opcode op);
 std::ostream& operator<<(std::ostream& os, Opcode op);
 
 /// Convesion between Byte and Opcode
@@ -43,7 +46,7 @@ struct Instruction {
   auto NumBytes() const noexcept { return bytes.size(); }
   void Append(const Instruction& ins);
 
-  std::string String() const;
+  std::string Repr() const;
   friend std::ostream& operator<<(std::ostream& os, const Instruction& ins);
 
   friend bool operator==(const Instruction& lhs, const Instruction& rhs) {

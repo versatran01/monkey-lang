@@ -17,7 +17,7 @@ struct NameFmt {
 
 struct StatsFmt {
   void operator()(std::string* out, const TimeStats& stats) const {
-    out->append(ToString(stats));
+    out->append(Repr(stats));
   }
 };
 
@@ -30,7 +30,7 @@ std::string ReportFormat(absl::string_view timer_name, const TimeStats& stats) {
 
 }  // namespace
 
-std::string ToString(const TimeStats& stats) {
+std::string Repr(const TimeStats& stats) {
   return fmt::format(
       " n: {:<8} | sum: {:<16} | min: {:<16} | max: {:<16} | "
       "mean: {:<16} | last: {:<16} |",
@@ -43,7 +43,7 @@ std::string ToString(const TimeStats& stats) {
 }
 
 std::ostream& operator<<(std::ostream& os, const TimeStats& stats) {
-  return os << ToString(stats);
+  return os << Repr(stats);
 }
 
 void Timer::Start() {

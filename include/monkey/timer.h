@@ -55,7 +55,7 @@ class Timer {
 
 /// Time statistics
 using TimeStats = Stats<absl::Duration>;
-std::string ToString(const TimeStats& stats);
+std::string Repr(const TimeStats& stats);
 std::ostream& operator<<(std::ostream& os, const TimeStats& stats);
 
 /// This is similar to Ceres Solver's ExecutionSummary class, where we record

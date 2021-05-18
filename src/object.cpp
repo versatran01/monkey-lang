@@ -32,8 +32,10 @@ const auto gObjectTypeStrings = absl::flat_hash_map<ObjectType, std::string>{
 
 }  // namespace
 
+std::string Repr(ObjectType type) { return gObjectTypeStrings.at(type); }
+
 std::ostream& operator<<(std::ostream& os, ObjectType type) {
-  return os << gObjectTypeStrings.at(type);
+  return os << Repr(type);
 }
 
 std::string FuncObject::Inspect() const {

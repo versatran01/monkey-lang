@@ -18,6 +18,9 @@ const absl::flat_hash_map<Opcode, Definition> gOpcodeDefinitions = {
     {Opcode::kDiv, {"OpDiv"}},
     {Opcode::kTrue, {"OpTrue"}},
     {Opcode::kFalse, {"OpFalse"}},
+    {Opcode::kEq, {"OpEq"}},
+    {Opcode::kNe, {"OpNe"}},
+    {Opcode::kGt, {"OpGt"}},
 };
 
 std::string FormatInstruction(const Definition& def,
@@ -39,11 +42,9 @@ std::string FormatInstruction(const Definition& def,
 
 }  // namespace
 
-std::string ToString(Opcode op) { return gOpcodeDefinitions.at(op).name; }
+std::string Repr(Opcode op) { return gOpcodeDefinitions.at(op).name; }
 
-std::ostream& operator<<(std::ostream& os, Opcode op) {
-  return os << ToString(op);
-}
+std::ostream& operator<<(std::ostream& os, Opcode op) { return os << Repr(op); }
 
 Definition LookupDefinition(Opcode op) { return gOpcodeDefinitions.at(op); }
 
@@ -52,7 +53,7 @@ void Instruction::Append(const Instruction& ins) {
   ++num_ops;
 }
 
-std::string Instruction::String() const {
+std::string Instruction::Repr() const {
   std::vector<std::string> strs;
   strs.reserve(NumOps());
 
@@ -68,7 +69,7 @@ std::string Instruction::String() const {
 }
 
 std::ostream& operator<<(std::ostream& os, const Instruction& ins) {
-  return os << ins.String();
+  return os << ins.Repr();
 }
 
 Instruction ConcatInstructions(const std::vector<Instruction>& instrs) {

@@ -36,4 +36,11 @@ TEST(ObjectTest, TestStringHashKey) {
       {StrObj("1"), IntObj(1), BoolObj(true)}));
 }
 
+TEST(ObjectTest, TestSameType) {
+  EXPECT_TRUE(ObjOfSameType(ObjectType::kInt, IntObj(1)));
+  EXPECT_TRUE(ObjOfSameType(ObjectType::kInt, IntObj(1), IntObj(2)));
+  EXPECT_FALSE(ObjOfSameType(ObjectType::kInt, BoolObj(true)));
+  EXPECT_FALSE(ObjOfSameType(ObjectType::kInt, IntObj(1), BoolObj(true)));
+}
+
 }  // namespace
