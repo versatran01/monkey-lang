@@ -13,13 +13,16 @@ find_package(fmt REQUIRED)
 find_package(glog REQUIRED)
 find_package(absl REQUIRED)
 
-set(CC_TARGET_PREFIX "monkey")
+set(CC_TARGET_PREFIX ${PROJECT_NAME})
 include(BazelHelpers)
+include(Cache)
+
+option(BUILD_SHARED_LIBS "Build shared libraries" On)
+option(BUILD_TESTING "Build testing" On)
 
 include_directories(include)
 add_subdirectory(src)
 add_subdirectory(cli)
 
 enable_testing()
-option(BUILD_TESTING "Build testing" On)
 add_subdirectory(tests)

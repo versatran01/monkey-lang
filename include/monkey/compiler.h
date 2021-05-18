@@ -25,6 +25,7 @@ class Compiler {
   const auto& timers() const noexcept { return timers_; }
 
  private:
+  void Reset();
   absl::Status CompileImpl(const AstNode& node);
 
   int AddConstant(const Object& obj);

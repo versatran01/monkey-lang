@@ -12,19 +12,53 @@ absl::StatusOr<Bytecode> Compiler::Compile(const Program& program) {
     if (!status.ok()) return status;
   }
 
-  return Bytecode{std::move(ins_), std::move(consts_)};
+  Bytecode bc{std::move(ins_), std::move(consts_)};
+  Reset();
+  return bc;
+}
+
+void Compiler::Reset() {
+  ins_ = Instruction{};
+  consts_.clear();
 }
 
 absl::Status Compiler::CompileImpl(const AstNode& node) {
   CHECK_NE(node.Type(), NodeType::kProgram);
 
   switch (node.Type()) {
+    case NodeType::kBlockStmt: {
+      const auto* ptr = node.PtrCast<BlockStmt>();
+      CHECK_NOTNULL(ptr);
+
+      for (const auto& stmt : ptr->statements) {
+        auto status = CompileImpl(stmt);
+        if (!status.ok()) return status;
+      }
+
+      break;
+    }
     case NodeType::kExprStmt: {
       const auto* ptr = node.PtrCast<ExprStmt>();
+      CHECK_NOTNULL(ptr);
+
       auto status = CompileImpl(ptr->expr);
       if (!status.ok()) return status;
 
       Emit(Opcode::kPop);
+      break;
+    }
+    case NodeType::kIfExpr: {
+      const auto* ptr = node.PtrCast<IfExpr>();
+      CHECK_NOTNULL(ptr);
+      auto status = CompileImpl(ptr->cond);
+      if (!status.ok()) return status;
+
+      // Emit an `OpJumpNotTruthy` with a bogus value
+      Emit(Opcode::kJumpNotTrue, {9999});
+
+      status.Update(CompileImpl(ptr->true_block));
+      if (!status.ok()) return status;
+
       break;
     }
     case NodeType::kPrefixExpr: {
