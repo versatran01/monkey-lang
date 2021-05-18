@@ -27,6 +27,14 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         }
         break;
       }
+      case (Opcode::kTrue): {
+        Push(BoolObj(true));
+        break;
+      }
+      case (Opcode::kFalse): {
+        Push(BoolObj(false));
+        break;
+      }
       case (Opcode::kPop): {
         Pop();
         break;

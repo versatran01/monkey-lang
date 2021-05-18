@@ -16,6 +16,8 @@ const absl::flat_hash_map<Opcode, Definition> gOpcodeDefinitions = {
     {Opcode::kSub, {"OpSub"}},
     {Opcode::kMul, {"OpMul"}},
     {Opcode::kDiv, {"OpDiv"}},
+    {Opcode::kTrue, {"OpTrue"}},
+    {Opcode::kFalse, {"OpFalse"}},
 };
 
 std::string FormatInstruction(const Definition& def,

@@ -66,6 +66,8 @@ TEST(CompilerTest, TestIntArithmetic) {
         Encode(Opcode::kConst, {1}),
         Encode(Opcode::kDiv),
         Encode(Opcode::kPop)}},
+      {"true", {}, {Encode(Opcode::kTrue), Encode(Opcode::kPop)}},
+      {"false", {}, {Encode(Opcode::kFalse), Encode(Opcode::kPop)}},
   };
 
   for (const auto& test : tests) {

@@ -27,15 +27,16 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
           return status;
         }
       }
-      return absl::OkStatus();
+      break;
     }
     case (NodeType::kExprStmt): {
       const auto* ptr = node.PtrCast<ExprStmt>();
       const auto status = CompileImpl(ptr->expr);
-      if (status.ok()) {
-        Emit(Opcode::kPop);
+      if (!status.ok()) {
+        return status;
       }
-      return status;
+      Emit(Opcode::kPop);
+      break;
     }
     case (NodeType::kInfixExpr): {
       const auto* ptr = node.PtrCast<InfixExpr>();
@@ -61,17 +62,26 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
       } else {
         return MakeError("Unknown operator " + ptr->op);
       }
-      return absl::OkStatus();
+      break;
     }
     case (NodeType::kIntLiteral): {
       const auto obj = ToIntObj(node);
       Emit(Opcode::kConst, {AddConstant(obj)});
-      return absl::OkStatus();
+      break;
+    }
+    case (NodeType::kBoolLiteral): {
+      const auto* ptr = node.PtrCast<BoolLiteral>();
+      if (ptr->value) {
+        Emit(Opcode::kTrue);
+      } else {
+        Emit(Opcode::kFalse);
+      }
+      break;
     }
     default:
-      CHECK(false) << "Should not reach here";
+      return MakeError("Internal Compiler Error: Invalid ast node");
   }
-  return MakeError("Internal Compiler Error: Invalid ast node");
+  return absl::OkStatus();
 }
 
 int Compiler::AddConstant(const Object& obj) {

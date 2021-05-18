@@ -18,6 +18,8 @@ enum class Opcode : Byte {
   kSub,
   kMul,
   kDiv,
+  kTrue,
+  kFalse,
 };
 
 std::string ToString(Opcode op);
