@@ -36,6 +36,7 @@ enum class NodeType {
   kBlockStmt
 };
 
+std::string Repr(NodeType type);
 std::ostream& operator<<(std::ostream& os, NodeType type);
 
 /// Base Node

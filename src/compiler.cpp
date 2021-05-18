@@ -9,9 +9,7 @@ absl::StatusOr<Bytecode> Compiler::Compile(const Program& program) {
 
   for (const auto& stmt : program.statements) {
     auto status = CompileImpl(stmt);
-    if (!status.ok()) {
-      return status;
-    }
+    if (!status.ok()) return status;
   }
 
   return Bytecode{std::move(ins_), std::move(consts_)};
@@ -23,19 +21,33 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
       const auto* ptr = node.PtrCast<Program>();
       for (const auto& stmt : ptr->statements) {
         auto status = CompileImpl(stmt);
-        if (!status.ok()) {
-          return status;
-        }
+        if (!status.ok()) return status;
       }
       break;
     }
     case NodeType::kExprStmt: {
       const auto* ptr = node.PtrCast<ExprStmt>();
-      const auto status = CompileImpl(ptr->expr);
-      if (!status.ok()) {
-        return status;
-      }
+      auto status = CompileImpl(ptr->expr);
+      if (!status.ok()) return status;
+
       Emit(Opcode::kPop);
+      break;
+    }
+    case NodeType::kPrefixExpr: {
+      const auto* ptr = node.PtrCast<PrefixExpr>();
+      CHECK_NOTNULL(ptr);
+
+      auto status = CompileImpl(ptr->rhs);
+      if (!status.ok()) return status;
+
+      if (ptr->op == "!") {
+        Emit(Opcode::kBang);
+      } else if (ptr->op == "-") {
+        Emit(Opcode::kMinus);
+      } else {
+        return MakeError("Unknown operator: " + ptr->op);
+      }
+
       break;
     }
     case NodeType::kInfixExpr: {
@@ -52,14 +64,10 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
       }
 
       auto status = CompileImpl(ptr->lhs);
-      if (!status.ok()) {
-        return status;
-      }
+      if (!status.ok()) return status;
 
       status.Update(CompileImpl(ptr->rhs));
-      if (!status.ok()) {
-        return status;
-      }
+      if (!status.ok()) return status;
 
       if (ptr->op == "+") {
         Emit(Opcode::kAdd);
@@ -95,8 +103,10 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
       break;
     }
     default:
-      return MakeError("Internal Compiler Error: Invalid ast node");
+      return MakeError("Internal Compiler Error: Unhandled ast node: " +
+                       Repr(node.Type()));
   }
+
   return absl::OkStatus();
 }
 

@@ -23,6 +23,8 @@ enum class Opcode : Byte {
   kEq,
   kNe,
   kGt,
+  kMinus,
+  kBang,
 };
 
 std::string Repr(Opcode op);

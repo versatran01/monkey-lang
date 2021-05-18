@@ -21,6 +21,8 @@ class VirtualMachine {
   absl::Status ExecIntComparison(const Object& lhs,
                                  Opcode op,
                                  const Object& rhs);
+  absl::Status ExecBangOp();
+  absl::Status ExecMinusOp();
 
   Object Pop();
   void Push(Object obj);

@@ -21,10 +21,9 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
       case Opcode::kSub:
       case Opcode::kMul:
       case Opcode::kDiv: {
-        const auto status = ExecBinaryOp(op);
-        if (!status.ok()) {
-          return status;
-        }
+        auto status = ExecBinaryOp(op);
+        if (!status.ok()) return status;
+
         break;
       }
       case Opcode::kTrue:
@@ -36,10 +35,18 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
       case Opcode::kEq:
       case Opcode::kNe:
       case Opcode::kGt: {
-        const auto status = ExecComparison(op);
-        if (!status.ok()) {
-          return status;
-        }
+        auto status = ExecComparison(op);
+        if (!status.ok()) return status;
+        break;
+      }
+      case Opcode::kBang: {
+        auto status = ExecBangOp();
+        if (!status.ok()) return status;
+        break;
+      }
+      case Opcode::kMinus: {
+        auto status = ExecMinusOp();
+        if (!status.ok()) return status;
         break;
       }
       case Opcode::kPop: {
@@ -103,6 +110,7 @@ absl::Status VirtualMachine::ExecComparison(Opcode op) {
     return ExecIntComparison(lhs, op, rhs);
   }
 
+  // Otherwise must be bool
   CHECK(ObjOfSameType(ObjectType::kBool, lhs, rhs));
   switch (op) {
     case Opcode::kEq:
@@ -141,6 +149,28 @@ absl::Status VirtualMachine::ExecIntComparison(const Object& lhs,
   }
 
   Push(BoolObj(res));
+  return absl::OkStatus();
+}
+
+absl::Status VirtualMachine::ExecBangOp() {
+  const auto obj = Pop();
+
+  if (obj.Type() == ObjectType::kBool && !obj.Cast<BoolType>()) {
+    Push(BoolObj(true));
+  } else {
+    Push(BoolObj(false));
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status VirtualMachine::ExecMinusOp() {
+  const auto obj = Pop();
+  if (obj.Type() != ObjectType::kInt) {
+    return MakeError("Unsupported type for negation: " + Repr(obj.Type()));
+  }
+
+  Push(IntObj(-obj.Cast<IntType>()));
   return absl::OkStatus();
 }
 

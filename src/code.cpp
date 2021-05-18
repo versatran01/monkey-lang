@@ -21,6 +21,8 @@ const absl::flat_hash_map<Opcode, Definition> gOpcodeDefinitions = {
     {Opcode::kEq, {"OpEq"}},
     {Opcode::kNe, {"OpNe"}},
     {Opcode::kGt, {"OpGt"}},
+    {Opcode::kMinus, {"OpMinus"}},
+    {Opcode::kBang, {"OpBang"}},
 };
 
 std::string FormatInstruction(const Definition& def,

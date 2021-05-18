@@ -66,6 +66,11 @@ TEST(CompilerTest, TestIntArithmetic) {
         Encode(Opcode::kConst, {1}),
         Encode(Opcode::kDiv),
         Encode(Opcode::kPop)}},
+      {"-1",
+       {IntObj(1)},
+       {Encode(Opcode::kConst, {0}),
+        Encode(Opcode::kMinus),
+        Encode(Opcode::kPop)}},
   };
 
   for (const auto& test : tests) {
@@ -114,6 +119,9 @@ TEST(CompilerTest, TestBooleanExpression) {
         Encode(Opcode::kFalse),
         Encode(Opcode::kNe),
         Encode(Opcode::kPop)}},
+      {"!true",
+       {},
+       {Encode(Opcode::kTrue), Encode(Opcode::kBang), Encode(Opcode::kPop)}},
   };
 
   for (const auto& test : tests) {

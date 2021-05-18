@@ -34,8 +34,10 @@ const auto gNodeTypeStrings = absl::flat_hash_map<NodeType, std::string>{
     {NodeType::kBlockStmt, "BlockStmt"}};
 }  // namespace
 
+std::string Repr(NodeType type) { return gNodeTypeStrings.at(type); }
+
 std::ostream& operator<<(std::ostream& os, NodeType type) {
-  return os << gNodeTypeStrings.at(type);
+  return os << Repr(type);
 }
 
 std::string Program::TokenLiteral() const {

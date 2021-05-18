@@ -219,12 +219,11 @@ Object Evaluator::EvalPrefixExpr(const std::string& op,
 Object Evaluator::EvalInfixExpr(const Object& lhs,
                                 const std::string& op,
                                 const Object& rhs) const {
-  if (lhs.Type() == ObjectType::kInt && rhs.Type() == ObjectType::kInt) {
+  if (ObjOfSameType(ObjectType::kInt, lhs, rhs)) {
     return EvalIntInfixExpr(lhs, op, rhs);
-  } else if (lhs.Type() == ObjectType::kBool &&
-             rhs.Type() == ObjectType::kBool) {
+  } else if (ObjOfSameType(ObjectType::kBool, lhs, rhs)) {
     return EvalBoolInfixExpr(lhs, op, rhs);
-  } else if (lhs.Type() == ObjectType::kStr && rhs.Type() == ObjectType::kStr) {
+  } else if (ObjOfSameType(ObjectType::kStr, lhs, rhs)) {
     return EvalStrInfixExpr(lhs, op, rhs);
   } else if (lhs.Type() != rhs.Type()) {
     return ErrorObj(
