@@ -23,6 +23,8 @@ TEST(CodeTest, TestEncode) {
   for (const auto& test : tests) {
     const auto ins = Encode(test.op, test.operands);
     EXPECT_THAT(ins.bytes, ContainerEq(test.expected));
+    EXPECT_EQ(ins.NumOps(), 1);
+    EXPECT_EQ(ins.NumBytes(), test.expected.size());
   }
 }
 
@@ -30,7 +32,7 @@ TEST(CodeTest, TestDecode) {
   struct DecodeTest {
     Opcode op;
     std::vector<int> operands;
-    int nbytes;
+    size_t nbytes;
   };
 
   const std::vector<DecodeTest> tests = {

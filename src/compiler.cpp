@@ -1,8 +1,11 @@
 #include "monkey/compiler.h"
 
+#include <fmt/ostream.h>
 #include <glog/logging.h>
 
 namespace monkey {
+
+static constexpr int kPlaceHolder = 0;
 
 absl::StatusOr<Bytecode> Compiler::Compile(const Program& program) {
   auto _ = timers_.Scoped("CompileProgram");
@@ -54,10 +57,17 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
       if (!status.ok()) return status;
 
       // Emit an `OpJumpNotTruthy` with a bogus value
-      Emit(Opcode::kJumpNotTrue, {9999});
+      auto tmp_jmp_pos = Emit(Opcode::kJumpNotTrue, {kPlaceHolder});
 
       status.Update(CompileImpl(ptr->true_block));
       if (!status.ok()) return status;
+
+      if (curr_.op == Opcode::kPop) {
+        RemoveLastOp(Opcode::kPop);
+      }
+
+      auto new_jump_pos = ins_.NumBytes();
+      ChangeOperand(tmp_jmp_pos, new_jump_pos);
 
       break;
     }
@@ -118,7 +128,7 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
     }
     case NodeType::kIntLiteral: {
       const auto obj = ToIntObj(node);
-      Emit(Opcode::kConst, {AddConstant(obj)});
+      Emit(Opcode::kConst, {static_cast<int>(AddConstant(obj))});
       break;
     }
     case NodeType::kBoolLiteral: {
@@ -138,20 +148,49 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
   return absl::OkStatus();
 }
 
-int Compiler::AddConstant(const Object& obj) {
+size_t Compiler::AddConstant(const Object& obj) {
   consts_.push_back(obj);
-  return static_cast<int>(consts_.size()) - 1;
+  return consts_.size() - 1;
 }
 
-int Compiler::AddInstruction(const Instruction& ins) {
-  const auto pos = static_cast<int>(ins_.NumBytes());
+size_t Compiler::AddInstruction(const Instruction& ins) {
+  const auto pos = ins_.NumBytes();
   ins_.Append(ins);
   return pos;
 }
 
-int Compiler::Emit(Opcode op, const std::vector<int>& operands) {
-  const auto ins = Encode(op, operands);
-  return AddInstruction(ins);
+size_t Compiler::Emit(Opcode op, const std::vector<int>& operands) {
+  const auto pos = AddInstruction(Encode(op, operands));
+  SetEmitted(op, pos);
+  return pos;
+}
+
+void Compiler::SetEmitted(Opcode op, size_t pos) {
+  prev_ = curr_;
+  curr_.op = op;
+  curr_.pos = pos;
+}
+
+void Compiler::RemoveLastOp(Opcode expected) {
+  auto op = ToOpcode(ins_.PopBack());
+  CHECK_EQ(op, expected);
+  curr_ = prev_;
+}
+
+void Compiler::ReplaceInstruction(size_t pos, const Instruction& ins) {
+  CHECK_LE(pos + ins.NumBytes(), ins_.NumBytes());
+  // Also check the opcode are the same
+  CHECK_EQ(ToOpcode(ins_.bytes[pos]), ToOpcode(ins.bytes[0]))
+      << "Replacing instruction with different types is not allowed";
+  for (size_t i = 0; i < ins.NumBytes(); ++i) {
+    ins_.bytes[pos + i] = ins.bytes[i];
+  }
+}
+
+void Compiler::ChangeOperand(size_t pos, int operand) {
+  auto op = ToOpcode(ins_.bytes.at(pos));
+  auto new_ins = Encode(op, {operand});
+  ReplaceInstruction(pos, new_ins);
 }
 
 }  // namespace monkey

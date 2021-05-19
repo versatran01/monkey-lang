@@ -49,6 +49,7 @@ struct Instruction {
   auto NumOps() const noexcept { return num_ops; }
   auto NumBytes() const noexcept { return bytes.size(); }
   void Append(const Instruction& ins);
+  Byte PopBack();
 
   std::string Repr() const;
   friend std::ostream& operator<<(std::ostream& os, const Instruction& ins);

@@ -13,6 +13,11 @@ inline absl::Status MakeError(absl::string_view msg) {
   return absl::InternalError(msg);
 }
 
+struct Emitted {
+  Opcode op;
+  size_t pos{};
+};
+
 struct Bytecode {
   Instruction ins;
   std::vector<Object> consts;
@@ -28,12 +33,21 @@ class Compiler {
   void Reset();
   absl::Status CompileImpl(const AstNode& node);
 
-  int AddConstant(const Object& obj);
-  int AddInstruction(const Instruction& ins);
-  int Emit(Opcode op, const std::vector<int>& operands = {});
+  /// Returns the index of the added object
+  size_t AddConstant(const Object& obj);
+  /// Returns the index of the added instruction
+  size_t AddInstruction(const Instruction& ins);
+  /// Returns the index of the added instruction
+  size_t Emit(Opcode op, const std::vector<int>& operands = {});
+
+  void SetEmitted(Opcode op, size_t pos);
+  void RemoveLastOp(Opcode expected);
+  void ReplaceInstruction(size_t pos, const Instruction& ins);
+  void ChangeOperand(size_t pos, int operand);
 
   Instruction ins_;
   std::vector<Object> consts_;
+  Emitted curr_, prev_;
 
   mutable TimerManager timers_;
 };

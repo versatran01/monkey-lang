@@ -57,6 +57,13 @@ void Instruction::Append(const Instruction& ins) {
   ++num_ops;
 }
 
+Byte Instruction::PopBack() {
+  auto byte = bytes.back();
+  bytes.pop_back();
+  --num_ops;
+  return byte;
+}
+
 std::string Instruction::Repr() const {
   std::vector<std::string> strs;
   strs.reserve(NumOps());
