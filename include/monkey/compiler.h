@@ -45,6 +45,14 @@ class Compiler {
   void ReplaceInstruction(size_t pos, const Instruction& ins);
   void ChangeOperand(size_t pos, int operand);
 
+  /// Compile expression
+  absl::Status CompileIfExpr(const ExprNode& expr);
+  absl::Status CompileInfixExpr(const ExprNode& expr);
+  absl::Status CompilePrefixExpr(const ExprNode& expr);
+  /// Compile statment
+  absl::Status CompileExprStmt(const StmtNode& stmt);
+  absl::Status CompileBlockStmt(const StmtNode& stmt);
+
   Instruction ins_;
   std::vector<Object> consts_;
   Emitted curr_, prev_;
