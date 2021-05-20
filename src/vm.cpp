@@ -13,6 +13,7 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
 
     switch (op) {
       case Opcode::kConst: {
+        CHECK_LT(ip + 1, bc.ins.NumBytes());
         const auto const_index = ReadUint16(&bc.ins.bytes[ip + 1]);
         ip += 2;
 
@@ -48,6 +49,20 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
       }
       case Opcode::kPop: {
         Pop();
+        break;
+      }
+      case Opcode::kJump: {
+        CHECK_LT(ip + 1, bc.ins.NumBytes());
+        size_t pos = ReadUint16(&bc.ins.bytes[ip + 1]);
+        ip = pos - 1;  // the loop will increment ip, so -1
+        break;
+      }
+      case Opcode::kJumpNotTrue: {
+        CHECK_LT(ip + 1, bc.ins.NumBytes());
+        size_t pos = ReadUint16(&bc.ins.bytes[ip + 1]);
+        ip += 2;
+        const auto cond = Pop();
+        if (!IsObjTruthy(cond)) ip = pos - 1;
         break;
       }
       default:

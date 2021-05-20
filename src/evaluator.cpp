@@ -24,17 +24,6 @@ const Object kTrueObject = BoolObj(true);
 const Object kFalseObject = BoolObj(false);
 const Object kNullObject = NullObj();
 
-bool IsTruthy(const Object& obj) {
-  switch (obj.Type()) {
-    case ObjectType::kNull:
-      return false;
-    case ObjectType::kBool:
-      return obj.Cast<bool>();
-    default:
-      return true;
-  }
-}
-
 bool IsError(const Object& obj) noexcept {
   return obj.Type() == ObjectType::kError;
 }
@@ -69,16 +58,12 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
       return EvalBlockStmt(*node.PtrCast<BlockStmt>(), env);
     case NodeType::kReturnStmt: {
       auto obj = Evaluate(GetExpr(node), env);
-      if (IsError(obj)) {
-        return obj;
-      }
+      if (IsError(obj)) return obj;
       return ReturnObj(std::move(obj));
     }
     case NodeType::kLetStmt: {
       const auto obj = Evaluate(GetExpr(node), env);
-      if (IsError(obj)) {
-        return obj;
-      }
+      if (IsError(obj)) return obj;
       return env.Set(node.PtrCast<LetStmt>()->name.String(), obj);
     }
     case NodeType::kIntLiteral: {
@@ -96,21 +81,17 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
     case NodeType::kPrefixExpr: {
       const auto* pe_ptr = node.PtrCast<PrefixExpr>();
       const auto rhs = Evaluate(pe_ptr->rhs, env);
-      if (IsError(rhs)) {
-        return rhs;
-      }
+      if (IsError(rhs)) return rhs;
       return EvalPrefixExpr(pe_ptr->op, rhs);
     }
     case NodeType::kInfixExpr: {
       const auto* ie_ptr = node.PtrCast<InfixExpr>();
       const auto lhs = Evaluate(ie_ptr->lhs, env);
-      if (IsError(lhs)) {
-        return lhs;
-      }
+      if (IsError(lhs)) return lhs;
+
       const auto rhs = Evaluate(ie_ptr->rhs, env);
-      if (IsError(rhs)) {
-        return rhs;
-      }
+      if (IsError(rhs)) return rhs;
+
       return EvalInfixExpr(lhs, ie_ptr->op, rhs);
     }
     case NodeType::kIfExpr: {
@@ -138,13 +119,11 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
       const auto* expr = node.PtrCast<IndexExpr>();
 
       const auto lhs = Evaluate(expr->lhs, env);
-      if (IsError(lhs)) {
-        return lhs;
-      }
+      if (IsError(lhs)) return lhs;
+
       const auto index = Evaluate(expr->index, env);
-      if (IsError(index)) {
-        return index;
-      }
+      if (IsError(index)) return index;
+
       return EvalIndexExpr(lhs, index);
     }
     case NodeType::kCallExpr: {
@@ -156,9 +135,7 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
       }
 
       const auto func = Evaluate(ptr->func, env);
-      if (IsError(func)) {
-        return func;
-      }
+      if (IsError(func)) return func;
 
       const auto args = EvalExprs(ptr->args, env);
 
@@ -263,7 +240,7 @@ Object Evaluator::EvalDictIndexExpr(const Object& obj,
   CHECK_EQ(obj.Type(), ObjectType::kDict);
   const auto& dict = obj.Cast<Dict>();
 
-  if (!IsObjectHashable(key.Type())) {
+  if (!IsObjHashable(key.Type())) {
     return ErrorObj(fmt::format("unusable as dict key: {}", key.Type()));
   }
 
@@ -313,19 +290,16 @@ Object Evaluator::EvalDictLiteral(const DictLiteral& expr,
   for (const auto& [k, v] : expr.pairs) {
     const auto key = Evaluate(k, env);
 
-    if (IsError(key)) {
-      return key;
-    }
+    if (IsError(key)) return key;
 
     // Check if key is valid
-    if (!IsObjectHashable(key.Type())) {
+    if (!IsObjHashable(key.Type())) {
       return ErrorObj(fmt::format("unusable as dict key: {}", key.Type()));
     }
 
     const auto val = Evaluate(v, env);
-    if (IsError(val)) {
-      return val;
-    }
+    if (IsError(val)) return val;
+
     dict[key] = val;
   }
   return DictObj(std::move(dict));
@@ -337,9 +311,8 @@ std::vector<Object> Evaluator::EvalExprs(const std::vector<ExprNode>& exprs,
 
   for (const auto& expr : exprs) {
     auto obj = Evaluate(expr, env);
-    if (IsError(obj)) {
-      return {obj};
-    }
+    if (IsError(obj)) return {obj};
+
     objs.push_back(std::move(obj));
   }
 
@@ -431,11 +404,9 @@ Object Evaluator::ApplyFunc(const Object& obj,
 
 Object Evaluator::EvalIfExpr(const IfExpr& expr, Environment& env) const {
   const auto cond = Evaluate(expr.cond, env);
-  if (IsError(cond)) {
-    return cond;
-  }
+  if (IsError(cond)) return cond;
 
-  if (IsTruthy(cond)) {
+  if (IsObjTruthy(cond)) {
     return EvalBlockStmt(expr.true_block, env);
   } else if (!expr.false_block.empty()) {
     return EvalBlockStmt(expr.false_block, env);

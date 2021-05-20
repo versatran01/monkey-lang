@@ -84,7 +84,7 @@ std::ostream& operator<<(std::ostream& os, const Object& obj) {
   return os << fmt::format("Obj({}={})", obj.Type(), obj.Inspect());
 }
 
-bool IsObjectHashable(ObjectType type) {
+bool IsObjHashable(ObjectType type) {
   return type == ObjectType::kBool || type == ObjectType::kInt ||
          type == ObjectType::kStr;
 }
@@ -114,6 +114,17 @@ Object ToBoolObj(const ExprNode& expr) {
 Object ToStrObj(const ExprNode& expr) {
   CHECK_EQ(expr.Type(), NodeType::kStrLiteral);
   return StrObj(expr.PtrCast<StrLiteral>()->value);
+}
+
+bool IsObjTruthy(const Object& obj) {
+  switch (obj.Type()) {
+    case ObjectType::kNull:
+      return false;
+    case ObjectType::kBool:
+      return obj.Cast<bool>();
+    default:
+      return true;
+  }
 }
 
 }  // namespace monkey
