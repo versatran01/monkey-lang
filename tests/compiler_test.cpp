@@ -147,7 +147,28 @@ TEST(CompilerTest, TestConditional) {
            Encode(Opcode::kConst, {1}),
            // 0011
            Encode(Opcode::kPop),
-       }}};
+       }},
+      {"if (true) { 10 } else { 20 }; 3333;",
+       {IntObj(10), IntObj(20), IntObj(3333)},
+       {
+           // 0000
+           Encode(Opcode::kTrue),
+           // 0001
+           Encode(Opcode::kJumpNotTrue, {10}),
+           // 0004
+           Encode(Opcode::kConst, {0}),
+           // 0007
+           Encode(Opcode::kJump, {13}),
+           // 0010
+           Encode(Opcode::kConst, {1}),
+           // 0013
+           Encode(Opcode::kPop),
+           // 0014
+           Encode(Opcode::kConst, {2}),
+           // 0017
+           Encode(Opcode::kPop),
+       }},
+  };
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.input);
