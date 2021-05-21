@@ -20,6 +20,9 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         Push(bc.consts[const_index]);
         break;
       }
+      case Opcode::kNull:
+        Push(NullObj());
+        break;
       case Opcode::kAdd:
       case Opcode::kSub:
       case Opcode::kMul:
@@ -170,7 +173,9 @@ absl::Status VirtualMachine::ExecIntComparison(const Object& lhs,
 absl::Status VirtualMachine::ExecBangOp() {
   const auto obj = Pop();
 
-  if (obj.Type() == ObjectType::kBool && !obj.Cast<BoolType>()) {
+  if (obj.Type() == ObjectType::kBool) {
+    Push(BoolObj(!obj.Cast<BoolType>()));
+  } else if (obj.Type() == ObjectType::kNull) {
     Push(BoolObj(true));
   } else {
     Push(BoolObj(false));

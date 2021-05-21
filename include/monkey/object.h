@@ -33,6 +33,12 @@ enum class ObjectType {
 std::string Repr(ObjectType type);
 std::ostream& operator<<(std::ostream& os, ObjectType type);
 
+// Check if objects are the same type
+template <typename... Args>
+bool ObjOfSameType(ObjectType op, Args const&... args) {
+  return ((args.Type() == op) && ... && true);
+}
+
 struct Object {
   Object() = default;
   explicit Object(ObjectType type) : type{type} {}
@@ -65,9 +71,7 @@ struct Object {
     }
   }
 
-  friend bool operator==(const Object& lhs, const Object& rhs) {
-    return lhs.Type() == rhs.Type() && lhs.Inspect() == rhs.Inspect();
-  }
+  friend bool operator==(const Object& lhs, const Object& rhs);
 
   friend bool operator!=(const Object& lhs, const Object& rhs) {
     return !(lhs == rhs);
@@ -110,11 +114,5 @@ Object QuoteObj(const ExprNode& expr);
 Object ToIntObj(const ExprNode& expr);
 Object ToBoolObj(const ExprNode& expr);
 Object ToStrObj(const ExprNode& expr);
-
-// Check if objects are the same type
-template <typename... Args>
-bool ObjOfSameType(ObjectType op, Args const&... args) {
-  return ((args.Type() == op) && ... && true);
-}
 
 }  // namespace monkey

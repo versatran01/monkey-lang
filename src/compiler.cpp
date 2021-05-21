@@ -128,20 +128,20 @@ absl::Status Compiler::CompileIfExpr(const ExprNode& expr) {
 
   if (curr_.op == Opcode::kPop) RemoveLastOp(Opcode::kPop);
 
-  if (ptr->false_block.empty()) {
-    ChangeOperand(jnt_pos, ins_.NumBytes());
-  } else {
-    // Emit an `OpJump` with a bogus value
-    const auto jmp_pos = Emit(Opcode::kJump, {kPlaceHolder});
-    ChangeOperand(jnt_pos, ins_.NumBytes());
+  // Emit an `OpJump` with a bogus value
+  const auto jmp_pos = Emit(Opcode::kJump, {kPlaceHolder});
+  ChangeOperand(jnt_pos, ins_.NumBytes());
 
+  if (ptr->false_block.empty()) {
+    Emit(Opcode::kNull);
+  } else {
     status.Update(CompileImpl(ptr->false_block));
     if (!status.ok()) return status;
 
     if (curr_.op == Opcode::kPop) RemoveLastOp(Opcode::kPop);
-    ChangeOperand(jmp_pos, ins_.NumBytes());
   }
 
+  ChangeOperand(jmp_pos, ins_.NumBytes());
   return absl::OkStatus();
 }
 

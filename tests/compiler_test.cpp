@@ -138,14 +138,18 @@ TEST(CompilerTest, TestConditional) {
            // 0000
            Encode(Opcode::kTrue),
            // 0001
-           Encode(Opcode::kJumpNotTrue, {7}),
+           Encode(Opcode::kJumpNotTrue, {10}),
            // 0004
            Encode(Opcode::kConst, {0}),
            // 0007
-           Encode(Opcode::kPop),
-           // 0008
-           Encode(Opcode::kConst, {1}),
+           Encode(Opcode::kJump, {11}),
+           // 0010
+           Encode(Opcode::kNull),
            // 0011
+           Encode(Opcode::kPop),
+           // 0012
+           Encode(Opcode::kConst, {1}),
+           // 0015
            Encode(Opcode::kPop),
        }},
       {"if (true) { 10 } else { 20 }; 3333;",

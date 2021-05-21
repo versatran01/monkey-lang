@@ -14,6 +14,14 @@ TEST(ObjecTest, TestInspect) {
   EXPECT_EQ(ErrorObj("error").Inspect(), "error");
 }
 
+TEST(ObjecTest, TestCompare) {
+  EXPECT_EQ(NullObj(), NullObj());
+  EXPECT_NE(NullObj(), BoolObj(true));
+  EXPECT_EQ(BoolObj(true), BoolObj(true));
+  EXPECT_NE(BoolObj(true), BoolObj(false));
+  EXPECT_EQ(IntObj(1), IntObj(1));
+}
+
 TEST(ObjecTest, TestCast) {
   EXPECT_THROW(NullObj().Cast<bool>(), absl::bad_any_cast);
   EXPECT_THROW(IntObj(1).Cast<bool>(), absl::bad_any_cast);

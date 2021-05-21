@@ -121,10 +121,24 @@ bool IsObjTruthy(const Object& obj) {
     case ObjectType::kNull:
       return false;
     case ObjectType::kBool:
-      return obj.Cast<bool>();
+      return obj.Cast<BoolType>();
     default:
       return true;
   }
+}
+
+bool operator==(const Object& lhs, const Object& rhs) {
+  // If not same type return false
+  if (lhs.Type() != rhs.Type()) return false;
+  // All nulls are the same
+  if (lhs.Type() == ObjectType::kNull) return true;
+  if (lhs.Type() == ObjectType::kBool) {
+    return lhs.Cast<BoolType>() == rhs.Cast<BoolType>();
+  }
+  if (lhs.Type() == ObjectType::kInt) {
+    return lhs.Cast<IntType>() == rhs.Cast<IntType>();
+  }
+  return lhs.Inspect() == rhs.Inspect();
 }
 
 }  // namespace monkey

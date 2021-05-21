@@ -10,7 +10,7 @@
 namespace {
 using namespace monkey;
 
-using Value = absl::variant<int, bool>;
+using Value = absl::variant<int, bool, void*>;
 
 struct VmTest {
   std::string input;
@@ -38,6 +38,9 @@ void CheckVm(const VmTest& test) {
       break;
     case 1:
       EXPECT_EQ(vm.Last(), BoolObj(std::get<1>(test.value)));
+      break;
+    case 2:
+      EXPECT_EQ(vm.Last(), NullObj());
       break;
     default:
       ASSERT_FALSE(true) << "Unhandeld type";
@@ -98,6 +101,7 @@ TEST(VmTest, TestBooleanExpression) {
       {"!!true", true},
       {"!!false", false},
       {"!!5", true},
+      {"!(if (false) { 5; })", true},
   };
 
   for (const auto& test : tests) {
@@ -115,7 +119,9 @@ TEST(VmTest, TestConditional) {
       {"if (1 < 2) { 10 }", 10},
       {"if (1 < 2) { 10 } else { 20 }", 10},
       {"if (1 > 2) { 10 } else { 20 }", 20},
-  };
+      {"if (1 > 2) { 10 }", nullptr},
+      {"if (false) { 10 }", nullptr},
+      {"if ((if (false) { 10 })) { 10 } else { 20 }", 20}};
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.input);
