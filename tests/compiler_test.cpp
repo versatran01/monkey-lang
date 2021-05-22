@@ -180,4 +180,73 @@ TEST(CompilerTest, TestConditional) {
   }
 }
 
+TEST(CompilerTest, TestGlobalLetStatement) {
+  const std::vector<CompilerTest> tests = {
+      {"let one = 1; let two = 2;",
+       {IntObj(1), IntObj(2)},
+       {Encode(Opcode::kConst, {0}),
+        Encode(Opcode::kSetGlobal, {0}),
+        Encode(Opcode::kConst, {1}),
+        Encode(Opcode::kSetGlobal, {1})}},
+      {"let one = 1; one;",
+       {IntObj(1)},
+       {Encode(Opcode::kConst, {0}),
+        Encode(Opcode::kSetGlobal, {0}),
+        Encode(Opcode::kGetGlobal, {0}),
+        Encode(Opcode::kPop)}},
+      {"let one = 1; two = one;",
+       {IntObj(1)},
+       {Encode(Opcode::kConst, {0}),
+        Encode(Opcode::kSetGlobal, {0}),
+        Encode(Opcode::kGetGlobal, {0}),
+        Encode(Opcode::kSetGlobal, {1}),
+        Encode(Opcode::kGetGlobal, {1}),
+        Encode(Opcode::kPop)}},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckCompiler(test);
+  }
+}
+
+TEST(CompilerTest, TestSymbolDefine) {
+  const SymbolDict tests = {
+      {"a", {"a", kGlobalScope, 0}},
+      {"b", {"b", kGlobalScope, 1}},
+  };
+
+  SymbolTable global;
+  auto a = global.Define("a");
+  EXPECT_EQ(a, tests.at("a"));
+  EXPECT_EQ(global.NumDefs(), 1);
+
+  auto b = global.Define("b");
+  EXPECT_EQ(b, tests.at("b"));
+  EXPECT_EQ(global.NumDefs(), 2);
+}
+
+TEST(CompilerTest, TestSymbolResolve) {
+  const std::vector<Symbol> tests = {
+      {"a", kGlobalScope, 0},
+      {"b", kGlobalScope, 1},
+  };
+
+  SymbolTable global;
+  global.Define("a");
+  global.Define("b");
+  EXPECT_EQ(global.NumDefs(), 2);
+
+  auto a = global.Resolve("a");
+  ASSERT_TRUE(a.has_value());
+  EXPECT_EQ(*a, tests[0]);
+
+  auto b = global.Resolve("b");
+  ASSERT_TRUE(b.has_value());
+  EXPECT_EQ(*b, tests[1]);
+
+  auto c = global.Resolve("c");
+  EXPECT_FALSE(c.has_value());
+}
+
 }  // namespace

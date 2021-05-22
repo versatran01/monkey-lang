@@ -28,6 +28,8 @@ enum class Opcode : Byte {
   kJumpNotTrue,
   kJump,
   kNull,
+  kGetGlobal,
+  kSetGlobal,
 };
 
 std::string Repr(Opcode op);

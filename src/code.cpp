@@ -26,6 +26,8 @@ const absl::flat_hash_map<Opcode, Definition> gOpcodeDefinitions = {
     {Opcode::kJumpNotTrue, {"OpJumpNotTrue", {2}}},
     {Opcode::kJump, {"OpJump", {2}}},
     {Opcode::kNull, {"OpNull"}},
+    {Opcode::kGetGlobal, {"OpGetGlobal", {2}}},
+    {Opcode::kSetGlobal, {"OpSetGlobal", {2}}},
 };
 
 std::string FormatInstruction(const Definition& def,

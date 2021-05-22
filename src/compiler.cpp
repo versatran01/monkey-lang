@@ -35,6 +35,9 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
     case NodeType::kExprStmt: {
       return CompileExprStmt(node);
     }
+    case NodeType::kLetStmt: {
+      return CompileLetStmt(node);
+    }
     case NodeType::kIfExpr: {
       return CompileIfExpr(node);
     }
@@ -203,6 +206,10 @@ absl::Status Compiler::CompilePrefixExpr(const ExprNode& expr) {
   return absl::OkStatus();
 }
 
+absl::Status Compiler::CompileLetStmt(const StmtNode& stmt) {
+  return MakeError("TODO");
+}
+
 absl::Status Compiler::CompileExprStmt(const StmtNode& stmt) {
   const auto* ptr = stmt.PtrCast<ExprStmt>();
   CHECK_NOTNULL(ptr);
@@ -224,6 +231,24 @@ absl::Status Compiler::CompileBlockStmt(const StmtNode& stmt) {
   }
 
   return absl::OkStatus();
+}
+
+std::string Symbol::Repr() const {
+  return fmt::format("Symbol(name={}, scope={}, ind={})", name, scope, index);
+}
+
+std::ostream& operator<<(std::ostream& os, const Symbol& symbol) {
+  return os << symbol.Repr();
+}
+
+Symbol& SymbolTable::Define(const std::string& name) {
+  return store_[name] = {name, kGlobalScope, num_defs_++};
+}
+
+absl::optional<Symbol> SymbolTable::Resolve(const std::string& name) const {
+  const auto it = store_.find(name);
+  if (it == store_.end()) return absl::nullopt;
+  return it->second;
 }
 
 }  // namespace monkey
