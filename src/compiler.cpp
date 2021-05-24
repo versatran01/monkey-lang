@@ -51,8 +51,7 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
       return CompileInfixExpr(node);
     }
     case NodeType::kIntLiteral: {
-      const auto obj = ToIntObj(node);
-      Emit(Opcode::kConst, {static_cast<int>(AddConstant(obj))});
+      Emit(Opcode::kConst, static_cast<int>(AddConstant(ToIntObj(node))));
       break;
     }
     case NodeType::kBoolLiteral: {
@@ -62,6 +61,10 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
       } else {
         Emit(Opcode::kFalse);
       }
+      break;
+    }
+    case NodeType::kStrLiteral: {
+      Emit(Opcode::kConst, static_cast<int>(AddConstant(ToStrObj(node))));
       break;
     }
     default:
@@ -132,7 +135,7 @@ absl::Status Compiler::CompileIfExpr(const ExprNode& expr) {
   if (!status.ok()) return status;
 
   // Emit an `OpJumpNotTruthy` with a bogus value
-  const auto jnt_pos = Emit(Opcode::kJumpNotTrue, {kPlaceHolder});
+  const auto jnt_pos = Emit(Opcode::kJumpNotTrue, kPlaceHolder);
 
   // Compile true block
   status.Update(CompileImpl(ptr->true_block));
@@ -141,7 +144,7 @@ absl::Status Compiler::CompileIfExpr(const ExprNode& expr) {
   if (curr_.op == Opcode::kPop) RemoveLastOp(Opcode::kPop);
 
   // Emit an `OpJump` with a bogus value
-  const auto jmp_pos = Emit(Opcode::kJump, {kPlaceHolder});
+  const auto jmp_pos = Emit(Opcode::kJump, kPlaceHolder);
   ChangeOperand(jnt_pos, static_cast<int>(ins_.NumBytes()));
 
   if (ptr->false_block.empty()) {
@@ -232,7 +235,7 @@ absl::Status Compiler::CompileLetStmt(const StmtNode& stmt) {
   if (!status.ok()) return status;
   // Add to symbol table
   const auto& symbol = stable_.Define(ptr->name.value);
-  Emit(Opcode::kSetGlobal, {symbol.index});
+  Emit(Opcode::kSetGlobal, symbol.index);
   return absl::OkStatus();
 }
 
@@ -251,8 +254,8 @@ absl::Status Compiler::CompileBlockStmt(const StmtNode& stmt) {
   const auto* ptr = stmt.PtrCast<BlockStmt>();
   CHECK_NOTNULL(ptr);
 
-  for (const auto& stmt : ptr->statements) {
-    auto status = CompileImpl(stmt);
+  for (const auto& st : ptr->statements) {
+    auto status = CompileImpl(st);
     if (!status.ok()) return status;
   }
 

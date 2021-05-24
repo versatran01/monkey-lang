@@ -10,11 +10,11 @@
 namespace {
 using namespace monkey;
 
-using Value = absl::variant<int, bool, void*>;
+using LiteralType = absl::variant<void*, int, bool, std::string>;
 
 struct VmTest {
   std::string input;
-  Value value;
+  LiteralType value;
 };
 
 Program Parse(const std::string& input) {
@@ -34,13 +34,16 @@ void CheckVm(const VmTest& test) {
 
   switch (test.value.index()) {
     case 0:
-      EXPECT_EQ(vm.Last(), IntObj(std::get<0>(test.value)));
+      EXPECT_EQ(vm.Last(), NullObj());
       break;
     case 1:
-      EXPECT_EQ(vm.Last(), BoolObj(std::get<1>(test.value)));
+      EXPECT_EQ(vm.Last(), IntObj(std::get<1>(test.value)));
       break;
     case 2:
-      EXPECT_EQ(vm.Last(), NullObj());
+      EXPECT_EQ(vm.Last(), BoolObj(std::get<2>(test.value)));
+      break;
+    case 3:
+      EXPECT_EQ(vm.Last(), StrObj(std::get<3>(test.value)));
       break;
     default:
       ASSERT_FALSE(true) << "Unhandeld type";
@@ -134,6 +137,19 @@ TEST(VmTest, TestGlobalLetStatement) {
       {"let one = 1; one", 1},
       {"let one = 1; let two = 2; one + two", 3},
       {"let one = 1; let two = one + one; one + two", 3},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckVm(test);
+  }
+}
+
+TEST(VmTest, TestStringExpression) {
+  const std::vector<VmTest> tests = {
+      {R"r("monkey")r", "monkey"},
+      {R"r("mon" + "key")r", "monkey"},
+      {R"r("mon" + "key" + "banana")r", "monkeybanana"},
   };
 
   for (const auto& test : tests) {

@@ -103,17 +103,23 @@ Object BuiltinObj(const Builtin& fn) { return {ObjectType::kBuiltin, fn}; }
 
 Object ToIntObj(const ExprNode& expr) {
   CHECK_EQ(expr.Type(), NodeType::kIntLiteral);
-  return IntObj(expr.PtrCast<IntLiteral>()->value);
+  const auto* ptr = expr.PtrCast<IntLiteral>();
+  CHECK_NOTNULL(ptr);
+  return IntObj(ptr->value);
 }
 
 Object ToBoolObj(const ExprNode& expr) {
   CHECK_EQ(expr.Type(), NodeType::kBoolLiteral);
-  return BoolObj(expr.PtrCast<BoolLiteral>()->value);
+  const auto* ptr = expr.PtrCast<BoolLiteral>();
+  CHECK_NOTNULL(ptr);
+  return BoolObj(ptr->value);
 }
 
 Object ToStrObj(const ExprNode& expr) {
   CHECK_EQ(expr.Type(), NodeType::kStrLiteral);
-  return StrObj(expr.PtrCast<StrLiteral>()->value);
+  const auto* ptr = expr.PtrCast<StrLiteral>();
+  CHECK_NOTNULL(ptr);
+  return StrObj(ptr->value);
 }
 
 bool IsObjTruthy(const Object& obj) {
