@@ -1,5 +1,7 @@
 #pragma once
 
+#include <absl/container/flat_hash_map.h>
+
 #include <deque>
 #include <stack>
 
@@ -27,8 +29,9 @@ class VirtualMachine {
   Object Pop();
   void Push(Object obj);
 
-  size_t sp{0};
-  std::deque<Object> stack;
+  size_t sp_{0};
+  std::deque<Object> stack_;
+  absl::flat_hash_map<int, Object> globals_;
 };
 
 }  // namespace monkey

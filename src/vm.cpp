@@ -68,6 +68,18 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         if (!IsObjTruthy(cond)) ip = pos - 1;
         break;
       }
+      case Opcode::kSetGlobal: {
+        auto index = ReadUint16(&bc.ins.bytes[ip + 1]);
+        ip += 2;
+        globals_[index] = Pop();
+        break;
+      }
+      case Opcode::kGetGlobal: {
+        auto index = ReadUint16(&bc.ins.bytes[ip + 1]);
+        ip += 2;
+        Push(globals_.at(index));
+        break;
+      }
       default:
         return MakeError("Unhandled Opcode: " + Repr(op));
     }
@@ -195,27 +207,27 @@ absl::Status VirtualMachine::ExecMinusOp() {
 }
 
 const Object& VirtualMachine::Top() const {
-  CHECK_GT(sp, 0) << "Calling Top() when Stack is empty";
-  return stack[sp - 1];
+  CHECK_GT(sp_, 0) << "Calling Top() when Stack is empty";
+  return stack_[sp_ - 1];
 }
 
-const Object& VirtualMachine::Last() const { return stack.at(sp); }
+const Object& VirtualMachine::Last() const { return stack_.at(sp_); }
 
 Object VirtualMachine::Pop() {
-  Object o = Top();  // Will check empty stack in Top();
-  --sp;
+  Object o = Top();  // Will check empty in Top();
+  --sp_;
   return o;
 }
 
 void VirtualMachine::Push(Object obj) {
-  if (sp == stack.size()) {
-    stack.push_back(std::move(obj));
+  if (sp_ == stack_.size()) {
+    stack_.push_back(std::move(obj));
   } else {
-    stack[sp] = std::move(obj);
+    stack_[sp_] = std::move(obj);
   }
 
-  ++sp;
-  CHECK_LE(sp, stack.size());
+  ++sp_;
+  CHECK_LE(sp_, stack_.size());
 }
 
 }  // namespace monkey

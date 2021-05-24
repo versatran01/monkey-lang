@@ -129,4 +129,17 @@ TEST(VmTest, TestConditional) {
   }
 }
 
+TEST(VmTest, TestGlobalLetStatement) {
+  const std::vector<VmTest> tests = {
+      {"let one = 1; one", 1},
+      {"let one = 1; let two = 2; one + two", 3},
+      {"let one = 1; let two = one + one; one + two", 3},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckVm(test);
+  }
+}
+
 }  // namespace

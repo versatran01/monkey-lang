@@ -22,6 +22,7 @@ const std::string kPrompt = ">> ";
 void StartReplComp() {
   std::string line;
   Compiler comp;
+  VirtualMachine vm;
 
   while (true) {
     fmt::print(fmt::emphasis::bold | fmt::fg(fmt::color::red), kPrompt);
@@ -41,7 +42,6 @@ void StartReplComp() {
       continue;
     }
 
-    VirtualMachine vm;
     const auto status = vm.Run(*bc);
     if (!status.ok()) {
       fmt::print("Executing bytecode failed:\n{}\n", status);

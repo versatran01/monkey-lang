@@ -96,10 +96,9 @@ class Compiler {
   absl::Status CompileBlockStmt(const StmtNode& stmt);
 
   Instruction ins_;
-  std::vector<Object> consts_;
   Emitted curr_, prev_;
   SymbolTable stable_;
-
+  std::vector<Object> consts_;
   mutable TimerManager timers_;
 };
 
