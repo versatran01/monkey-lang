@@ -38,6 +38,9 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
     case NodeType::kLetStmt: {
       return CompileLetStmt(node);
     }
+    case NodeType::kIdentifier: {
+      return CompileIdentifier(node);
+    }
     case NodeType::kIfExpr: {
       return CompileIfExpr(node);
     }
@@ -86,6 +89,12 @@ size_t Compiler::Emit(Opcode op, const std::vector<int>& operands) {
   return pos;
 }
 
+size_t Compiler::Emit(Opcode op, int operand) {
+  const auto pos = AddInstruction(Encode(op, operand));
+  SetEmitted(op, pos);
+  return pos;
+}
+
 void Compiler::SetEmitted(Opcode op, size_t pos) {
   prev_ = curr_;
   curr_.op = op;
@@ -110,7 +119,7 @@ void Compiler::ReplaceInstruction(size_t pos, const Instruction& ins) {
 
 void Compiler::ChangeOperand(size_t pos, int operand) {
   const auto op = ToOpcode(ins_.bytes.at(pos));
-  const auto new_ins = Encode(op, {operand});
+  const auto new_ins = Encode(op, operand);
   ReplaceInstruction(pos, new_ins);
 }
 
@@ -133,7 +142,7 @@ absl::Status Compiler::CompileIfExpr(const ExprNode& expr) {
 
   // Emit an `OpJump` with a bogus value
   const auto jmp_pos = Emit(Opcode::kJump, {kPlaceHolder});
-  ChangeOperand(jnt_pos, ins_.NumBytes());
+  ChangeOperand(jnt_pos, static_cast<int>(ins_.NumBytes()));
 
   if (ptr->false_block.empty()) {
     Emit(Opcode::kNull);
@@ -144,7 +153,7 @@ absl::Status Compiler::CompileIfExpr(const ExprNode& expr) {
     if (curr_.op == Opcode::kPop) RemoveLastOp(Opcode::kPop);
   }
 
-  ChangeOperand(jmp_pos, ins_.NumBytes());
+  ChangeOperand(jmp_pos, static_cast<int>(ins_.NumBytes()));
   return absl::OkStatus();
 }
 
@@ -203,6 +212,16 @@ absl::Status Compiler::CompilePrefixExpr(const ExprNode& expr) {
     return MakeError("Unknown operator: " + ptr->op);
   }
 
+  return absl::OkStatus();
+}
+
+absl::Status Compiler::CompileIdentifier(const ExprNode& expr) {
+  const auto name = expr.String();
+  const auto symbol = stable_.Resolve(name);
+  if (!symbol.has_value()) {
+    return MakeError("Undefiend variable " + name);
+  }
+  Emit(Opcode::kGetGlobal, symbol->index);
   return absl::OkStatus();
 }
 

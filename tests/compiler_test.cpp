@@ -194,7 +194,7 @@ TEST(CompilerTest, TestGlobalLetStatement) {
         Encode(Opcode::kSetGlobal, {0}),
         Encode(Opcode::kGetGlobal, {0}),
         Encode(Opcode::kPop)}},
-      {"let one = 1; two = one;",
+      {"let one = 1; let two = one; two;",
        {IntObj(1)},
        {Encode(Opcode::kConst, {0}),
         Encode(Opcode::kSetGlobal, {0}),

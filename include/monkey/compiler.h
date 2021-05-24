@@ -78,6 +78,7 @@ class Compiler {
   size_t AddInstruction(const Instruction& ins);
   /// Returns the index of the added instruction
   size_t Emit(Opcode op, const std::vector<int>& operands = {});
+  size_t Emit(Opcode op, int operand);
 
   void SetEmitted(Opcode op, size_t pos);
   void RemoveLastOp(Opcode expected);
@@ -88,6 +89,7 @@ class Compiler {
   absl::Status CompileIfExpr(const ExprNode& expr);
   absl::Status CompileInfixExpr(const ExprNode& expr);
   absl::Status CompilePrefixExpr(const ExprNode& expr);
+  absl::Status CompileIdentifier(const ExprNode& expr);
   /// Compile statement
   absl::Status CompileLetStmt(const StmtNode& stmt);
   absl::Status CompileExprStmt(const StmtNode& stmt);
