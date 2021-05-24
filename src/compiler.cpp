@@ -207,7 +207,14 @@ absl::Status Compiler::CompilePrefixExpr(const ExprNode& expr) {
 }
 
 absl::Status Compiler::CompileLetStmt(const StmtNode& stmt) {
-  return MakeError("TODO");
+  const auto* ptr = stmt.PtrCast<LetStmt>();
+  CHECK_NOTNULL(ptr);
+  auto status = CompileImpl(ptr->expr);
+  if (!status.ok()) return status;
+  // Add to symbol table
+  const auto& symbol = stable_.Define(ptr->name.value);
+  Emit(Opcode::kSetGlobal, {symbol.index});
+  return absl::OkStatus();
 }
 
 absl::Status Compiler::CompileExprStmt(const StmtNode& stmt) {

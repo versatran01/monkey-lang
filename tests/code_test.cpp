@@ -3,6 +3,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "monkey/instruction.h"
+
 namespace {
 using namespace monkey;
 
@@ -28,6 +30,24 @@ TEST(CodeTest, TestEncode) {
   }
 }
 
+TEST(CodeTest, TestEncodeSingle) {
+  struct EncodeTest {
+    Opcode op;
+    int operand;
+    Bytes expected;
+  };
+
+  const std::vector<EncodeTest> tests = {
+      {Opcode::kConst, 65534, {ToByte(Opcode::kConst), 255, 254}}};
+
+  for (const auto& test : tests) {
+    const auto ins = Encode(test.op, test.operand);
+    EXPECT_THAT(ins.bytes, ContainerEq(test.expected));
+    EXPECT_EQ(ins.NumOps(), 1);
+    EXPECT_EQ(ins.NumBytes(), test.expected.size());
+  }
+}  // namespace
+
 TEST(CodeTest, TestDecode) {
   struct DecodeTest {
     Opcode op;
@@ -50,7 +70,7 @@ TEST(CodeTest, TestDecode) {
 }
 
 TEST(CodeTest, TestInstructionString) {
-  const std::vector<Instruction> instrs = {
+  const std::vector<Instruction> instructions = {
       Encode(Opcode::kAdd),
       Encode(Opcode::kConst, {2}),
       Encode(Opcode::kConst, {65534}),
@@ -59,13 +79,13 @@ TEST(CodeTest, TestInstructionString) {
   const std::vector<std::string> expected = {
       "0000 OpAdd", "0000 OpConst 2", "0000 OpConst 65534"};
 
-  for (size_t i = 0; i < instrs.size(); ++i) {
-    EXPECT_EQ(instrs[i].Repr(), expected[i]);
+  for (size_t i = 0; i < instructions.size(); ++i) {
+    EXPECT_EQ(instructions[i].Repr(), expected[i]);
   }
 
   const std::string fullstr = "0000 OpAdd\n0001 OpConst 2\n0004 OpConst 65534";
 
-  const auto instr = ConcatInstructions(instrs);
+  const auto instr = ConcatInstructions(instructions);
   EXPECT_EQ(instr.Repr(), fullstr);
 }
 

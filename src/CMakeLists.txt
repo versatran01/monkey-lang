@@ -56,7 +56,7 @@ cc_library(
 
 cc_library(
   NAME code
-  SRCS "code.cpp"
+  SRCS "code.cpp" "instruction.cpp"
   LINKOPTS absl::flat_hash_map monkey::base)
 
 cc_library(

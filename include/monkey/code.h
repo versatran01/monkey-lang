@@ -10,6 +10,7 @@
 namespace monkey {
 
 using Byte = unsigned char;
+using Bytes = std::vector<Byte>;
 
 enum class Opcode : Byte {
   kConst,
@@ -35,39 +36,13 @@ enum class Opcode : Byte {
 std::string Repr(Opcode op);
 std::ostream& operator<<(std::ostream& os, Opcode op);
 
-/// Convesion between Byte and Opcode
+/// Conversion between Byte and Opcode
 inline constexpr Byte ToByte(Opcode op) noexcept {
   return static_cast<Byte>(op);
 }
 inline constexpr Opcode ToOpcode(Byte bt) noexcept {
   return static_cast<Opcode>(bt);
 }
-
-using Bytes = std::vector<Byte>;
-
-struct Instruction {
-  Bytes bytes;
-  size_t num_ops{0};
-
-  auto NumOps() const noexcept { return num_ops; }
-  auto NumBytes() const noexcept { return bytes.size(); }
-  void Append(const Instruction& ins);
-  Byte PopBack();
-
-  std::string Repr() const;
-  friend std::ostream& operator<<(std::ostream& os, const Instruction& ins);
-
-  friend bool operator==(const Instruction& lhs, const Instruction& rhs) {
-    return std::equal(
-        lhs.bytes.begin(), lhs.bytes.end(), rhs.bytes.begin(), rhs.bytes.end());
-  }
-
-  friend bool operator!=(const Instruction& lhs, const Instruction& rhs) {
-    return !(lhs == rhs);
-  }
-};
-
-Instruction ConcatInstructions(const std::vector<Instruction>& instrs);
 
 struct Definition {
   std::string name;
@@ -78,16 +53,6 @@ struct Definition {
 };
 
 Definition LookupDefinition(Opcode op);
-
-struct Decoded {
-  std::vector<int> operands;
-  size_t nbytes{0};
-};
-
-Instruction Encode(Opcode op, const std::vector<int>& operands = {});
-Decoded Decode(const Definition& def,
-               const Instruction& ins,
-               size_t offset = 0);
 
 // Helper functions
 inline uint16_t SwapUint16Bytes(uint16_t n) {
