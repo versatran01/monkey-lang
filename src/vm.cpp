@@ -6,10 +6,10 @@
 namespace monkey {
 
 absl::Status VirtualMachine::Run(const Bytecode& bc) {
+  auto status = kOkStatus;
+
   for (size_t ip = 0; ip < bc.ins.NumBytes(); ++ip) {
     const auto op = ToOpcode(bc.ins.bytes[ip]);
-
-    auto status = absl::OkStatus();
 
     switch (op) {
       case Opcode::kConst: {
@@ -88,7 +88,7 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
     if (!status.ok()) return status;
   }
 
-  return absl::OkStatus();
+  return status;
 }
 
 absl::Status VirtualMachine::ExecBinaryOp(Opcode op) {
@@ -97,6 +97,8 @@ absl::Status VirtualMachine::ExecBinaryOp(Opcode op) {
 
   if (ObjOfSameType(ObjectType::kInt, lhs, rhs)) {
     return ExecIntBinaryOp(lhs, op, rhs);
+  } else if (ObjOfSameType(ObjectType::kStr, lhs, rhs)) {
+    return ExecStrBinaryOp(lhs, op, rhs);
   }
 
   return MakeError(fmt::format("Unsupported types for binary operations: {} {}",
@@ -129,7 +131,7 @@ absl::Status VirtualMachine::ExecIntBinaryOp(const Object& lhs,
   }
 
   Push(IntObj(res));
-  return absl::OkStatus();
+  return kOkStatus;
 }
 
 absl::Status VirtualMachine::ExecComparison(Opcode op) {
@@ -154,7 +156,7 @@ absl::Status VirtualMachine::ExecComparison(Opcode op) {
           "Unknown operator: {} ({} {})", op, lhs.Type(), rhs.Type()));
   }
 
-  return absl::OkStatus();
+  return kOkStatus;
 }
 
 absl::Status VirtualMachine::ExecIntComparison(const Object& lhs,
@@ -179,7 +181,21 @@ absl::Status VirtualMachine::ExecIntComparison(const Object& lhs,
   }
 
   Push(BoolObj(res));
-  return absl::OkStatus();
+  return kOkStatus;
+}
+
+absl::Status VirtualMachine::ExecStrBinaryOp(const Object& lhs,
+                                             Opcode op,
+                                             const Object& rhs) {
+  const auto lv = lhs.Cast<StrType>();
+  const auto rv = rhs.Cast<StrType>();
+
+  if (op != Opcode::kAdd) {
+    return MakeError("unknown string operator: " + Repr(op));
+  }
+
+  Push(StrObj(lv + rv));
+  return kOkStatus;
 }
 
 absl::Status VirtualMachine::ExecBangOp() {
@@ -193,7 +209,7 @@ absl::Status VirtualMachine::ExecBangOp() {
     Push(BoolObj(false));
   }
 
-  return absl::OkStatus();
+  return kOkStatus;
 }
 
 absl::Status VirtualMachine::ExecMinusOp() {
@@ -203,7 +219,7 @@ absl::Status VirtualMachine::ExecMinusOp() {
   }
 
   Push(IntObj(-obj.Cast<IntType>()));
-  return absl::OkStatus();
+  return kOkStatus;
 }
 
 const Object& VirtualMachine::Top() const {

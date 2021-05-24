@@ -72,7 +72,7 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
                        Repr(node.Type()));
   }
 
-  return absl::OkStatus();
+  return kOkStatus;
 }
 
 size_t Compiler::AddConstant(const Object& obj) {
@@ -157,7 +157,7 @@ absl::Status Compiler::CompileIfExpr(const ExprNode& expr) {
   }
 
   ChangeOperand(jmp_pos, static_cast<int>(ins_.NumBytes()));
-  return absl::OkStatus();
+  return kOkStatus;
 }
 
 absl::Status Compiler::CompileInfixExpr(const ExprNode& expr) {
@@ -197,7 +197,7 @@ absl::Status Compiler::CompileInfixExpr(const ExprNode& expr) {
     return MakeError("Unknown operator " + ptr->op);
   }
 
-  return absl::OkStatus();
+  return kOkStatus;
 }
 
 absl::Status Compiler::CompilePrefixExpr(const ExprNode& expr) {

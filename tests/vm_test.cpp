@@ -9,6 +9,7 @@
 
 namespace {
 using namespace monkey;
+using namespace std::string_literals;
 
 using LiteralType = absl::variant<void*, int, bool, std::string>;
 
@@ -147,9 +148,9 @@ TEST(VmTest, TestGlobalLetStatement) {
 
 TEST(VmTest, TestStringExpression) {
   const std::vector<VmTest> tests = {
-      {R"r("monkey")r", "monkey"},
-      {R"r("mon" + "key")r", "monkey"},
-      {R"r("mon" + "key" + "banana")r", "monkeybanana"},
+      {R"r("monkey")r", "monkey"s},
+      {R"r("mon" + "key")r", "monkey"s},
+      {R"r("mon" + "key" + "banana")r", "monkeybanana"s},
   };
 
   for (const auto& test : tests) {

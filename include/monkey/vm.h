@@ -23,6 +23,7 @@ class VirtualMachine {
   absl::Status ExecIntComparison(const Object& lhs,
                                  Opcode op,
                                  const Object& rhs);
+  absl::Status ExecStrBinaryOp(const Object& lhs, Opcode op, const Object& rhs);
   absl::Status ExecBangOp();
   absl::Status ExecMinusOp();
 

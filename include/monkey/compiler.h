@@ -14,6 +14,8 @@ inline absl::Status MakeError(absl::string_view msg) {
   return absl::InternalError(msg);
 }
 
+inline static const absl::Status kOkStatus = absl::OkStatus();
+
 // Emitted opcode and position in instruction
 struct Emitted {
   Opcode op;
