@@ -88,6 +88,15 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         Push(obj);
         break;
       }
+      case Opcode::kDict: {
+        const auto size = ReadUint16(bc.BytePtr(ip + 1));
+        ip += 2;
+        const auto obj = BuildDict(sp_ - size, sp_);
+        if (IsObjError(obj)) return MakeError(obj.Inspect());
+        sp_ -= size;
+        Push(obj);
+        break;
+      }
       default:
         return MakeError("Unhandled Opcode: " + Repr(op));
     }
@@ -196,6 +205,20 @@ Object VirtualMachine::BuildArray(size_t start, size_t end) const {
   return ArrayObj({stack_.begin() + start, stack_.begin() + end});
 }
 
+Object VirtualMachine::BuildDict(size_t start, size_t end) const {
+  Dict dict;
+
+  for (size_t i = start; i < end; i += 2) {
+    const auto& key = stack_.at(i);
+    if (!IsObjHashable(key)) {
+      return ErrorObj("unusable as hash key: " + Repr(key.Type()));
+    }
+    dict[key] = stack_.at(i + 1);
+  }
+
+  return DictObj(std::move(dict));
+}
+
 absl::Status VirtualMachine::ExecStrBinaryOp(const Object& lhs,
                                              Opcode op,
                                              const Object& rhs) {
@@ -247,11 +270,11 @@ Object VirtualMachine::Pop() {
   return o;
 }
 
-void VirtualMachine::Push(Object obj) {
+void VirtualMachine::Push(const Object& obj) {
   if (sp_ == stack_.size()) {
-    stack_.push_back(std::move(obj));
+    stack_.push_back(obj);
   } else {
-    stack_[sp_] = std::move(obj);
+    stack_[sp_] = obj;
   }
 
   ++sp_;

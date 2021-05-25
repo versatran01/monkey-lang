@@ -93,9 +93,10 @@ struct FuncObject {
   std::shared_ptr<Environment> env{nullptr};
 };
 
-bool IsObjHashable(ObjectType type);
 
 bool IsObjTruthy(const Object& obj);
+bool IsObjError(const Object& obj) noexcept;
+bool IsObjHashable(const Object& obj) noexcept;
 
 // Use these to create new objects
 Object NullObj();
@@ -106,8 +107,8 @@ Object ErrorObj(StrType str);
 Object ReturnObj(const Object& obj);
 Object FuncObj(const FuncObject& fn);
 Object BuiltinObj(const Builtin& fn);
-Object ArrayObj(const Array& arr);
-Object DictObj(const Dict& dict);
+Object ArrayObj(Array arr);
+Object DictObj(Dict dict);
 Object QuoteObj(const ExprNode& expr);
 
 // Directly create object from ast node

@@ -294,4 +294,37 @@ TEST(CompilerTest, TestArrayLiteral) {
   }
 }
 
+TEST(CompilerTest, TestDictLiterals) {
+  const std::vector<CompilerTest> tests = {
+      {"{}", {}, {Encode(Opcode::kDict, 0), Encode(Opcode::kPop)}},
+      {"{1: 2, 3: 4, 5: 6}",
+       {IntObj(1), IntObj(2), IntObj(3), IntObj(4), IntObj(5), IntObj(6)},
+       {Encode(Opcode::kConst, 0),
+        Encode(Opcode::kConst, 1),
+        Encode(Opcode::kConst, 2),
+        Encode(Opcode::kConst, 3),
+        Encode(Opcode::kConst, 4),
+        Encode(Opcode::kConst, 5),
+        Encode(Opcode::kDict, 6),
+        Encode(Opcode::kPop)}},
+      {"{1: 2 + 3, 4: 5 * 6}",
+       {IntObj(1), IntObj(2), IntObj(3), IntObj(4), IntObj(5), IntObj(6)},
+       {Encode(Opcode::kConst, 0),
+        Encode(Opcode::kConst, 1),
+        Encode(Opcode::kConst, 2),
+        Encode(Opcode::kAdd),
+        Encode(Opcode::kConst, 3),
+        Encode(Opcode::kConst, 4),
+        Encode(Opcode::kConst, 5),
+        Encode(Opcode::kMul),
+        Encode(Opcode::kDict, 4),
+        Encode(Opcode::kPop)}},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckCompiler(test);
+  }
+}
+
 }  // namespace
