@@ -54,6 +54,7 @@ struct Token {
   friend std::ostream& operator<<(std::ostream& os, const Token& token);
 };
 
-TokenType GetKeywordType(absl::string_view ident);
+/// Get the type of the keyword, if not a keyword then type is identifier
+TokenType GetKeywordType(absl::string_view name);
 
 }  // namespace monkey

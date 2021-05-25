@@ -22,7 +22,7 @@ std::string FormatInstruction(const Definition& def,
       CHECK(false) << "Should not reach here";
   }
 
-  return fmt::format("ERROR: unhandled operandCount for {}\n", def.name);
+  return fmt::format("ERROR: unhandled operand count for {}\n", def.name);
 }
 
 }  // namespace

@@ -15,6 +15,7 @@ include/monkey/code.h
 include/monkey/compiler.h
 include/monkey/environment.h
 include/monkey/evaluator.h
+include/monkey/instruction.h
 include/monkey/lexer.h
 include/monkey/object.h
 include/monkey/parser.h
@@ -31,6 +32,7 @@ src/code.cpp
 src/compiler.cpp
 src/environment.cpp
 src/evaluator.cpp
+src/instruction.cpp
 src/lexer.cpp
 src/object.cpp
 src/parser.cpp

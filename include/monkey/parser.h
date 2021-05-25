@@ -34,8 +34,8 @@ class Parser {
   // Parsing functions
   StmtNode ParseStatement();
   StmtNode ParseLetStmt();
-  StmtNode ParseReturnStmt();
   StmtNode PasreExprStmt();
+  StmtNode ParseReturnStmt();
   BlockStmt ParseBlockStmt();
 
   ExprNode ParseExpression(Precedence precedence);

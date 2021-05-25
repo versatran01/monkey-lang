@@ -22,7 +22,6 @@ class Lexer {
   std::string ReadString();
   Token ReadDualToken(TokenType type1, char next_ch, TokenType type2) noexcept;
 
-  // data
   std::string input_;
   std::size_t position_{0};       // current position in input (current char)
   std::size_t read_position_{0};  // current read position  (after current char)

@@ -2,8 +2,7 @@
 
 #include <absl/container/flat_hash_map.h>
 #include <fmt/ostream.h>
-
-#include <ostream>
+#include <glog/logging.h>
 
 namespace monkey {
 
@@ -40,14 +39,17 @@ const auto gTokenTypeStrings = absl::flat_hash_map<TokenType, std::string>{
 
 }  // namespace
 
-std::string Repr(TokenType type) { return gTokenTypeStrings.at(type); }
+std::string Repr(TokenType type) {
+  CHECK(gTokenTypeStrings.contains(type)) << type;
+  return gTokenTypeStrings.at(type);
+}
 
 std::ostream& operator<<(std::ostream& os, TokenType type) {
   return os << Repr(type);
 }
 
-TokenType GetKeywordType(absl::string_view ident) {
-  const auto it = gKeywords.find(ident);
+TokenType GetKeywordType(absl::string_view name) {
+  const auto it = gKeywords.find(name);
   if (it != gKeywords.cend()) {
     return it->second;
   }

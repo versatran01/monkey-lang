@@ -1,7 +1,5 @@
 #pragma once
 
-#include <absl/types/span.h>
-
 #include <cstring>
 #include <iosfwd>
 #include <string>

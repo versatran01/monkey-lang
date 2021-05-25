@@ -11,7 +11,7 @@ bool IsLetter(char c) { return std::isalpha(c) || c == '_'; }
 
 }  // namespace
 
-Lexer::Lexer(std::string input) : input_(std::move(input)) { ReadChar(); }
+Lexer::Lexer(std::string input) : input_{std::move(input)} { ReadChar(); }
 
 Token Lexer::ReadDualToken(TokenType type1,
                            char next_ch,
@@ -20,9 +20,9 @@ Token Lexer::ReadDualToken(TokenType type1,
     auto prev_ch = ch_;
     ReadChar();
     return {type2, std::string{prev_ch} + ch_};
-  } else {
-    return {type1, {ch_}};
   }
+
+  return {type1, {ch_}};
 }
 
 Token Lexer::NextToken() {

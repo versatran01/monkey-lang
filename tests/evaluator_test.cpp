@@ -277,8 +277,8 @@ TEST(EvaluatorTest, TestArrayLiterals) {
   const auto& array = obj.Cast<Array>();
   ASSERT_EQ(array.size(), 3);
   CheckLiteral(array[0], 1);
-  CheckLiteral(array[1], 4);
-  CheckLiteral(array[2], 6);
+  CheckLiteral(array[1], 2 * 2);
+  CheckLiteral(array[2], 3 + 3);
 }
 
 TEST(EvaluatorTest, TestArrayIndexExpression) {

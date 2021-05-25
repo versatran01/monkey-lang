@@ -19,13 +19,13 @@ class VirtualMachine {
  private:
   absl::Status ExecBinaryOp(Opcode op);
   absl::Status ExecIntBinaryOp(const Object& lhs, Opcode op, const Object& rhs);
-  absl::Status ExecComparison(Opcode op);
-  absl::Status ExecIntComparison(const Object& lhs,
-                                 Opcode op,
-                                 const Object& rhs);
   absl::Status ExecStrBinaryOp(const Object& lhs, Opcode op, const Object& rhs);
+
   absl::Status ExecBangOp();
   absl::Status ExecMinusOp();
+
+  absl::Status ExecComparison(Opcode op);
+  absl::Status ExecIntComp(const Object& lhs, Opcode op, const Object& rhs);
 
   Object Pop();
   void Push(Object obj);

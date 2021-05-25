@@ -139,7 +139,7 @@ absl::Status VirtualMachine::ExecComparison(Opcode op) {
   const auto lhs = Pop();
 
   if (ObjOfSameType(ObjectType::kInt, lhs, rhs)) {
-    return ExecIntComparison(lhs, op, rhs);
+    return ExecIntComp(lhs, op, rhs);
   }
 
   // Otherwise must be bool
@@ -159,9 +159,9 @@ absl::Status VirtualMachine::ExecComparison(Opcode op) {
   return kOkStatus;
 }
 
-absl::Status VirtualMachine::ExecIntComparison(const Object& lhs,
-                                               Opcode op,
-                                               const Object& rhs) {
+absl::Status VirtualMachine::ExecIntComp(const Object& lhs,
+                                         Opcode op,
+                                         const Object& rhs) {
   const auto lv = lhs.Cast<IntType>();
   const auto rv = rhs.Cast<IntType>();
 
@@ -177,7 +177,7 @@ absl::Status VirtualMachine::ExecIntComparison(const Object& lhs,
       res = lv > rv;
       break;
     default:
-      return MakeError("Unknown opeartor: " + Repr(op));
+      return MakeError("Unknown operator: " + Repr(op));
   }
 
   Push(BoolObj(res));

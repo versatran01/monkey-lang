@@ -9,8 +9,8 @@
 
 namespace monkey {
 
-using IntType = int64_t;
 using BoolType = bool;
+using IntType = int64_t;
 using StrType = std::string;
 
 enum class NodeType {
@@ -76,12 +76,6 @@ class AstNode {
   template <typename T>
   auto PtrCast() const noexcept {
     return dynamic_cast<const T*>(self_.get());
-  }
-
-  template <typename T>
-  auto MutPtrCast() const noexcept {
-    // This is probably a hack
-    return dynamic_cast<T*>(const_cast<NodeBase*>(self_.get()));
   }
 
  protected:

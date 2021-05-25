@@ -14,7 +14,7 @@ class Environment {
   explicit Environment(Environment* outer = nullptr) : outer_{outer} {}
 
   Object Get(absl::string_view name) const;
-  Object& Set(absl::string_view name, Object obj);
+  Object& Set(absl::string_view name, const Object& obj);
 
   auto size() const noexcept { return store_.size(); }
   auto empty() const noexcept { return store_.empty(); }

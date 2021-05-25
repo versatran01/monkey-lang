@@ -110,7 +110,7 @@ class TimerManager {
   bool empty() const noexcept { return size() == 0; }
 
   /// Start a ManualTimer by name, need to manually stop the returned timer.
-  /// Elapsed time will automatically added to the stats when stoppped.
+  /// Elapsed time will automatically added to the stats when stopped.
   /// After stop one can just call timer.Start() to restart.
   /// Need to call Commit() to aggregate stats
   ManualTimer Manual(std::string name) { return {std::move(name), this}; }
