@@ -1,5 +1,7 @@
 #pragma once
 
+#include <absl/container/inlined_vector.h>
+
 #include <cstring>
 #include <iosfwd>
 #include <string>
@@ -45,7 +47,7 @@ inline constexpr Opcode ToOpcode(Byte bt) noexcept {
 
 struct Definition {
   std::string name;
-  std::vector<size_t> operand_bytes{};
+  absl::InlinedVector<size_t, 2> operand_bytes{};
 
   std::string Repr() const;
   friend std::ostream& operator<<(std::ostream& os, const Definition& def);
