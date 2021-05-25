@@ -1,6 +1,8 @@
 #include "monkey/code.h"
 
 #include <absl/container/flat_hash_map.h>
+#include <absl/strings/str_join.h>
+#include <fmt/ostream.h>
 
 namespace monkey {
 
@@ -25,6 +27,7 @@ const absl::flat_hash_map<Opcode, Definition> gOpcodeDefinitions = {
     {Opcode::kNull, {"OpNull"}},
     {Opcode::kGetGlobal, {"OpGetGlobal", {2}}},
     {Opcode::kSetGlobal, {"OpSetGlobal", {2}}},
+    {Opcode::kArray, {"OpArray", {2}}},
 };
 
 }  // namespace
@@ -33,6 +36,15 @@ std::string Repr(Opcode op) { return gOpcodeDefinitions.at(op).name; }
 std::ostream& operator<<(std::ostream& os, Opcode op) { return os << Repr(op); }
 
 Definition LookupDefinition(Opcode op) { return gOpcodeDefinitions.at(op); }
+
+std::string Definition::Repr() const {
+  return fmt::format(
+      "Def(op={}, operands=[{}])", name, absl::StrJoin(operand_bytes, ", "));
+}
+
+std::ostream& operator<<(std::ostream& os, const Definition& def) {
+  return os << def.Repr();
+}
 
 size_t Definition::SumOperandBytes() const {
   return std::accumulate(

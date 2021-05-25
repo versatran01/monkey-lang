@@ -67,6 +67,16 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
       Emit(Opcode::kConst, static_cast<int>(AddConstant(ToStrObj(node))));
       break;
     }
+    case NodeType::kArrayLiteral: {
+      const auto* ptr = node.PtrCast<ArrayLiteral>();
+      for (const auto& elem : ptr->elements) {
+        auto status = CompileImpl(elem);
+        if (!status.ok()) return status;
+      }
+
+      Emit(Opcode::kArray, static_cast<int>(ptr->elements.size()));
+      break;
+    }
     default:
       return MakeError("Internal Compiler Error: Unhandled ast node: " +
                        Repr(node.Type()));

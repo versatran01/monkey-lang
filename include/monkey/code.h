@@ -29,6 +29,7 @@ enum class Opcode : Byte {
   kNull,
   kGetGlobal,
   kSetGlobal,
+  kArray,
 };
 
 std::string Repr(Opcode op);
@@ -45,6 +46,9 @@ inline constexpr Opcode ToOpcode(Byte bt) noexcept {
 struct Definition {
   std::string name;
   std::vector<size_t> operand_bytes{};
+
+  std::string Repr() const;
+  friend std::ostream& operator<<(std::ostream& os, const Definition& def);
 
   auto NumOperands() const noexcept { return operand_bytes.size(); }
   size_t SumOperandBytes() const;

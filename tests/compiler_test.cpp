@@ -1,5 +1,6 @@
 #include "monkey/compiler.h"
 
+#include <glog/logging.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -255,6 +256,37 @@ TEST(CompilerTest, TestStringExpression) {
         Encode(Opcode::kConst, 1),
         Encode(Opcode::kAdd),
         Encode(Opcode::kPop)}}};
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckCompiler(test);
+  }
+}
+
+TEST(CompilerTest, TestArrayLiteral) {
+  const std::vector<CompilerTest> tests = {
+      {"[]", {}, {Encode(Opcode::kArray, 0), Encode(Opcode::kPop)}},
+      {"[1, 2, 3]",
+       {IntObj(1), IntObj(2), IntObj(3)},
+       {Encode(Opcode::kConst, 0),
+        Encode(Opcode::kConst, 1),
+        Encode(Opcode::kConst, 2),
+        Encode(Opcode::kArray, 3),
+        Encode(Opcode::kPop)}},
+      {"[1 + 2, 3 - 4, 5 * 6]",
+       {IntObj(1), IntObj(2), IntObj(3), IntObj(4), IntObj(5), IntObj(6)},
+       {Encode(Opcode::kConst, 0),
+        Encode(Opcode::kConst, 1),
+        Encode(Opcode::kAdd),
+        Encode(Opcode::kConst, 2),
+        Encode(Opcode::kConst, 3),
+        Encode(Opcode::kSub),
+        Encode(Opcode::kConst, 4),
+        Encode(Opcode::kConst, 5),
+        Encode(Opcode::kMul),
+        Encode(Opcode::kArray, 3),
+        Encode(Opcode::kPop)}},
+  };
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.input);

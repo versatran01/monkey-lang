@@ -86,19 +86,19 @@ Instruction ConcatInstructions(const std::vector<Instruction>& instrs) {
 
 Instruction Encode(Opcode op, int operand) {
   const auto def = LookupDefinition(op);
-  CHECK_EQ(def.NumOperands(), 1);
+  CHECK_EQ(def.NumOperands(), 1) << def;
   const auto total_bytes = def.SumOperandBytes() + 1;
 
   Instruction ins;
   const auto offset = ins.EncodeOpcode(op, total_bytes);
-  const auto nbytes = def.operand_bytes.front();
+  const auto nbytes = def.operand_bytes.at(0);
   ins.EncodeOperand(offset, nbytes, operand);
   return ins;
 }
 
 Instruction Encode(Opcode op, const std::vector<int>& operands) {
   const auto def = LookupDefinition(op);
-  CHECK_EQ(def.NumOperands(), operands.size());
+  CHECK_EQ(def.NumOperands(), operands.size()) << def;
   const auto total_bytes = def.SumOperandBytes() + 1;
 
   Instruction ins;
@@ -133,4 +133,5 @@ Decoded Decode(const Definition& def, const Instruction& ins, size_t offset) {
 
   return dec;
 }
+
 }  // namespace monkey
