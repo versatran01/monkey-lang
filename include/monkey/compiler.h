@@ -25,6 +25,9 @@ struct Emitted {
 struct Bytecode {
   Instruction ins;
   std::vector<Object> consts;
+
+  Byte ByteAt(size_t n) const { return ins.bytes.at(n); }
+  const Byte* BytePtr(size_t n) const { return &ins.bytes.at(n); }
 };
 
 using SymbolScope = std::string;

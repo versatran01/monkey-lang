@@ -1,6 +1,7 @@
 #include "monkey/vm.h"
 
 #include <absl/types/variant.h>
+#include <glog/logging.h>
 #include <gtest/gtest.h>
 
 #include "monkey/compiler.h"
@@ -11,7 +12,8 @@ namespace {
 using namespace monkey;
 using namespace std::string_literals;
 
-using LiteralType = absl::variant<void*, int, bool, std::string>;
+using LiteralType =
+    absl::variant<void*, int, bool, std::string, std::vector<int>>;
 
 struct VmTest {
   std::string input;
@@ -46,6 +48,16 @@ void CheckVm(const VmTest& test) {
     case 3:
       EXPECT_EQ(vm.Last(), StrObj(std::get<3>(test.value)));
       break;
+    case 4: {
+      Array arr;
+      const auto& ivec = std::get<4>(test.value);
+      for (const auto& i : ivec) {
+        arr.push_back(IntObj(i));
+      }
+      const auto obj = ArrayObj(arr);
+      EXPECT_EQ(vm.Last(), obj);
+      break;
+    }
     default:
       ASSERT_FALSE(true) << "Unhandeld type";
   }
@@ -159,4 +171,16 @@ TEST(VmTest, TestStringExpression) {
   }
 }
 
+TEST(VmTest, TestArrayLiteral) {
+  const std::vector<VmTest> tests = {
+      {"[]", std::vector<int>{}},
+      {"[1, 2, 3]", std::vector<int>{1, 2, 3}},
+      {"[1 + 2, 3 * 4, 5 + 6]", std::vector<int>{3, 12, 11}},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckVm(test);
+  }
+}
 }  // namespace

@@ -9,12 +9,12 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
   auto status = kOkStatus;
 
   for (size_t ip = 0; ip < bc.ins.NumBytes(); ++ip) {
-    const auto op = ToOpcode(bc.ins.bytes[ip]);
+    const auto op = ToOpcode(bc.ByteAt(ip));
 
     switch (op) {
       case Opcode::kConst: {
         CHECK_LT(ip + 1, bc.ins.NumBytes());
-        const auto const_index = ReadUint16(&bc.ins.bytes[ip + 1]);
+        const auto const_index = ReadUint16(bc.BytePtr(ip + 1));
         ip += 2;
 
         Push(bc.consts[const_index]);
@@ -56,28 +56,36 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
       }
       case Opcode::kJump: {
         CHECK_LT(ip + 1, bc.ins.NumBytes());
-        size_t pos = ReadUint16(&bc.ins.bytes[ip + 1]);
+        size_t pos = ReadUint16(bc.BytePtr(ip + 1));
         ip = pos - 1;  // the loop will increment ip, so -1
         break;
       }
       case Opcode::kJumpNotTrue: {
         CHECK_LT(ip + 1, bc.ins.NumBytes());
-        size_t pos = ReadUint16(&bc.ins.bytes[ip + 1]);
+        size_t pos = ReadUint16(bc.BytePtr(ip + 1));
         ip += 2;
         const auto cond = Pop();
         if (!IsObjTruthy(cond)) ip = pos - 1;
         break;
       }
       case Opcode::kSetGlobal: {
-        auto index = ReadUint16(&bc.ins.bytes[ip + 1]);
+        auto index = ReadUint16(bc.BytePtr(ip + 1));
         ip += 2;
         globals_[index] = Pop();
         break;
       }
       case Opcode::kGetGlobal: {
-        auto index = ReadUint16(&bc.ins.bytes[ip + 1]);
+        auto index = ReadUint16(bc.BytePtr(ip + 1));
         ip += 2;
         Push(globals_.at(index));
+        break;
+      }
+      case Opcode::kArray: {
+        const auto size = ReadUint16(bc.BytePtr(ip + 1));
+        ip += 2;
+        const auto obj = BuildArray(sp_ - size, sp_);
+        sp_ -= size;
+        Push(obj);
         break;
       }
       default:
@@ -182,6 +190,10 @@ absl::Status VirtualMachine::ExecIntComp(const Object& lhs,
 
   Push(BoolObj(res));
   return kOkStatus;
+}
+
+Object VirtualMachine::BuildArray(size_t start, size_t end) const {
+  return ArrayObj({stack_.begin() + start, stack_.begin() + end});
 }
 
 absl::Status VirtualMachine::ExecStrBinaryOp(const Object& lhs,

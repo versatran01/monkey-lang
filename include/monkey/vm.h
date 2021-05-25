@@ -27,6 +27,8 @@ class VirtualMachine {
   absl::Status ExecComparison(Opcode op);
   absl::Status ExecIntComp(const Object& lhs, Opcode op, const Object& rhs);
 
+  Object BuildArray(size_t start, size_t end) const;
+
   Object Pop();
   void Push(Object obj);
 
