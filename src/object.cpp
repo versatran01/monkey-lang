@@ -84,11 +84,6 @@ std::ostream& operator<<(std::ostream& os, const Object& obj) {
   return os << fmt::format("Obj({}={})", obj.Type(), obj.Inspect());
 }
 
-bool IsObjHashable(ObjectType type) {
-  return type == ObjectType::kBool || type == ObjectType::kInt ||
-         type == ObjectType::kStr;
-}
-
 Object NullObj() { return Object{ObjectType::kNull}; }
 Object IntObj(IntType value) { return {ObjectType::kInt, value}; }
 Object StrObj(StrType value) { return {ObjectType::kStr, std::move(value)}; }
@@ -96,8 +91,8 @@ Object BoolObj(BoolType value) { return {ObjectType::kBool, value}; }
 Object ErrorObj(StrType str) { return {ObjectType::kError, std::move(str)}; }
 Object ReturnObj(const Object& value) { return {ObjectType::kReturn, value}; }
 Object FuncObj(const FuncObject& fn) { return {ObjectType::kFunc, fn}; }
-Object ArrayObj(const Array& arr) { return {ObjectType::kArray, arr}; }
-Object DictObj(const Dict& dict) { return {ObjectType::kDict, dict}; }
+Object ArrayObj(Array arr) { return {ObjectType::kArray, std::move(arr)}; }
+Object DictObj(Dict dict) { return {ObjectType::kDict, std::move(dict)}; }
 Object QuoteObj(const ExprNode& expr) { return {ObjectType::kQuote, expr}; }
 Object BuiltinObj(const Builtin& fn) { return {ObjectType::kBuiltin, fn}; }
 
@@ -131,6 +126,16 @@ bool IsObjTruthy(const Object& obj) {
     default:
       return true;
   }
+}
+
+bool IsObjError(const Object& obj) noexcept {
+  return obj.Type() == ObjectType::kError;
+}
+
+bool IsObjHashable(const Object& obj) noexcept {
+  auto type = obj.Type();
+  return type == ObjectType::kBool || type == ObjectType::kInt ||
+         type == ObjectType::kStr;
 }
 
 bool operator==(const Object& lhs, const Object& rhs) {

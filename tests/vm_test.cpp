@@ -2,6 +2,7 @@
 
 #include <absl/types/variant.h>
 #include <glog/logging.h>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "monkey/compiler.h"
@@ -12,13 +13,26 @@ namespace {
 using namespace monkey;
 using namespace std::string_literals;
 
+using IntVec = std::vector<int>;
+using IntDict = absl::flat_hash_map<int, int>;
+
 using LiteralType =
-    absl::variant<void*, int, bool, std::string, std::vector<int>>;
+    absl::variant<void*, int, bool, std::string, IntVec, IntDict>;
 
 struct VmTest {
   std::string input;
   LiteralType value;
 };
+
+MATCHER_P(MAP_MATCHER, map, "Maps are not equal") {
+  if (map.size() != arg.size()) return false;
+
+  return std::all_of(map.cbegin(), map.cend(), [&](const auto& pair) {
+    auto it = arg.find(pair.first);
+    if (it == arg.cend()) return false;
+    return it->second == pair.second;
+  });
+}
 
 Program Parse(const std::string& input) {
   Parser parser{input};
@@ -54,12 +68,22 @@ void CheckVm(const VmTest& test) {
       for (const auto& i : ivec) {
         arr.push_back(IntObj(i));
       }
-      const auto obj = ArrayObj(arr);
+      const auto obj = ArrayObj(std::move(arr));
       EXPECT_EQ(vm.Last(), obj);
       break;
     }
+    case 5: {
+      Dict dict;
+      const auto& idict = std::get<5>(test.value);
+      for (const auto& [k, v] : idict) {
+        dict[IntObj(k)] = IntObj(v);
+      }
+//      const auto obj = DictObj(dict);
+      EXPECT_THAT(vm.Last().Cast<Dict>(), MAP_MATCHER(dict));
+      break;
+    }
     default:
-      ASSERT_FALSE(true) << "Unhandeld type";
+      ASSERT_TRUE(false) << "Unhandeld type";
   }
 }
 
@@ -173,9 +197,22 @@ TEST(VmTest, TestStringExpression) {
 
 TEST(VmTest, TestArrayLiteral) {
   const std::vector<VmTest> tests = {
-      {"[]", std::vector<int>{}},
-      {"[1, 2, 3]", std::vector<int>{1, 2, 3}},
-      {"[1 + 2, 3 * 4, 5 + 6]", std::vector<int>{3, 12, 11}},
+      {"[]", IntVec{}},
+      {"[1, 2, 3]", IntVec{1, 2, 3}},
+      {"[1 + 2, 3 * 4, 5 + 6]", IntVec{3, 12, 11}},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckVm(test);
+  }
+}
+
+TEST(VmTest, TestDictLiteral) {
+  const std::vector<VmTest> tests = {
+      {"{}", IntDict{}},
+      {"{1: 2, 2: 3}", IntDict{{1, 2}, {2, 3}}},
+      {"{1 + 1: 2 * 2, 3 + 3: 4 * 4}", IntDict{{2, 4}, {6, 16}}},
   };
 
   for (const auto& test : tests) {

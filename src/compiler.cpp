@@ -77,6 +77,19 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
       Emit(Opcode::kArray, static_cast<int>(ptr->elements.size()));
       break;
     }
+    case NodeType::kDictLiteral: {
+      const auto* ptr = node.PtrCast<DictLiteral>();
+
+      for (const auto& pair : ptr->pairs) {
+        auto status = CompileImpl(pair.first);
+        if (!status.ok()) return status;
+        status.Update(CompileImpl(pair.second));
+        if (!status.ok()) return status;
+      }
+
+      Emit(Opcode::kDict, static_cast<int>(ptr->pairs.size()) * 2);
+      break;
+    }
     default:
       return MakeError("Internal Compiler Error: Unhandled ast node: " +
                        Repr(node.Type()));

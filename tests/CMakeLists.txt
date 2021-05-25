@@ -49,4 +49,4 @@ cc_test(
 cc_test(
   NAME vm_test
   SRCS "vm_test.cpp"
-  DEPS monkey::vm monkey::parser)
+  DEPS monkey::vm monkey::parser GMock::GMock)

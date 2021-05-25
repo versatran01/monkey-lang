@@ -32,6 +32,7 @@ enum class Opcode : Byte {
   kGetGlobal,
   kSetGlobal,
   kArray,
+  kDict,
 };
 
 std::string Repr(Opcode op);

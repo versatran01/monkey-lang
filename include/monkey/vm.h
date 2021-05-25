@@ -28,9 +28,10 @@ class VirtualMachine {
   absl::Status ExecIntComp(const Object& lhs, Opcode op, const Object& rhs);
 
   Object BuildArray(size_t start, size_t end) const;
+  Object BuildDict(size_t start, size_t end) const;
 
   Object Pop();
-  void Push(Object obj);
+  void Push(const Object& obj);
 
   size_t sp_{0};
   std::deque<Object> stack_;
