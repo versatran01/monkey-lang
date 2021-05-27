@@ -78,7 +78,6 @@ void CheckVm(const VmTest& test) {
       for (const auto& [k, v] : idict) {
         dict[IntObj(k)] = IntObj(v);
       }
-      //      const auto obj = DictObj(dict);
       EXPECT_THAT(vm.Last().Cast<Dict>(), MAP_MATCHER(dict));
       break;
     }

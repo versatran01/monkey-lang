@@ -53,9 +53,9 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
     case NodeType::kBlockStmt:
       return EvalBlockStmt(*node.PtrCast<BlockStmt>(), env);
     case NodeType::kReturnStmt: {
-      auto obj = Evaluate(GetExpr(node), env);
+      const auto obj = Evaluate(GetExpr(node), env);
       if (IsObjError(obj)) return obj;
-      return ReturnObj(std::move(obj));
+      return ReturnObj(obj);
     }
     case NodeType::kLetStmt: {
       const auto obj = Evaluate(GetExpr(node), env);
@@ -152,12 +152,8 @@ Object Evaluator::EvalProgram(const Program& program, Environment& env) const {
 
   for (const auto& stmt : program.statements) {
     obj = Evaluate(stmt, env);
-
-    if (obj.Type() == ObjectType::kReturn) {
-      return obj.Cast<Object>();
-    } else if (obj.Type() == ObjectType::kError) {
-      return obj;
-    }
+    if (obj.Type() == ObjectType::kReturn) return obj.Cast<Object>();
+    if (obj.Type() == ObjectType::kError) return obj;
   }
 
   return obj;
@@ -166,27 +162,19 @@ Object Evaluator::EvalProgram(const Program& program, Environment& env) const {
 Object Evaluator::EvalIdentifier(const Identifier& ident,
                                  const Environment& env) const {
   const auto obj = env.Get(ident.value);
-  if (obj.Ok()) {
-    return obj;
-  }
+  if (obj.Ok()) return obj;
 
   const auto it = gBuiltins.find(ident.value);
-  if (it != gBuiltins.end()) {
-    return it->second;
-  }
+  if (it != gBuiltins.end()) return it->second;
 
   return ErrorObj(fmt::format("{}: {}", kIdentNotFound, ident.value));
 }
 
 Object Evaluator::EvalPrefixExpr(const std::string& op,
                                  const Object& obj) const {
-  if (op == "!") {
-    return EvalBangOpExpr(obj);
-  } else if (op == "-") {
-    return EvalMinuxPrefixOpExpr(obj);
-  } else {
-    return ErrorObj(fmt::format("{}: {}{}", kUnknownOp, op, obj.Type()));
-  }
+  if (op == "!") return EvalBangOpExpr(obj);
+  if (op == "-") return EvalMinuxPrefixOpExpr(obj);
+  return ErrorObj(fmt::format("{}: {}{}", kUnknownOp, op, obj.Type()));
 }
 
 Object Evaluator::EvalInfixExpr(const Object& lhs,
@@ -194,27 +182,31 @@ Object Evaluator::EvalInfixExpr(const Object& lhs,
                                 const Object& rhs) const {
   if (ObjOfSameType(ObjectType::kInt, lhs, rhs)) {
     return EvalIntInfixExpr(lhs, op, rhs);
-  } else if (ObjOfSameType(ObjectType::kBool, lhs, rhs)) {
+  }
+  if (ObjOfSameType(ObjectType::kBool, lhs, rhs)) {
     return EvalBoolInfixExpr(lhs, op, rhs);
-  } else if (ObjOfSameType(ObjectType::kStr, lhs, rhs)) {
+  }
+  if (ObjOfSameType(ObjectType::kStr, lhs, rhs)) {
     return EvalStrInfixExpr(lhs, op, rhs);
-  } else if (lhs.Type() != rhs.Type()) {
+  }
+  if (lhs.Type() != rhs.Type()) {
     return ErrorObj(
         fmt::format("{}: {} {} {}", kTypeMismatch, lhs.Type(), op, rhs.Type()));
-  } else {
-    return ErrorObj(
-        fmt::format("{}: {} {} {}", kUnknownOp, lhs.Type(), op, rhs.Type()));
   }
+  return ErrorObj(
+      fmt::format("{}: {} {} {}", kUnknownOp, lhs.Type(), op, rhs.Type()));
 }
 
 Object Evaluator::EvalIndexExpr(const Object& lhs, const Object& index) const {
   if (lhs.Type() == ObjectType::kArray && index.Type() == ObjectType::kInt) {
     return EvalArrayIndexExpr(lhs, index);
-  } else if (lhs.Type() == ObjectType::kDict) {
-    return EvalDictIndexExpr(lhs, index);
-  } else {
-    return ErrorObj(fmt::format("{} {}", kIndexOpNotSupported, lhs.Type()));
   }
+
+  if (lhs.Type() == ObjectType::kDict) {
+    return EvalDictIndexExpr(lhs, index);
+  }
+
+  return ErrorObj(fmt::format("{} {}", kIndexOpNotSupported, lhs.Type()));
 }
 
 Object Evaluator::EvalArrayIndexExpr(const Object& obj,
@@ -225,9 +217,7 @@ Object Evaluator::EvalArrayIndexExpr(const Object& obj,
   CHECK_EQ(index.Type(), ObjectType::kInt);
   const auto idx = static_cast<size_t>(index.Cast<IntType>());
 
-  if (idx < size_t{0} || idx >= arr.size()) {
-    return kNullObject;
-  }
+  if (idx < size_t{0} || idx >= arr.size()) return kNullObject;
   return arr[idx];
 }
 
@@ -242,10 +232,7 @@ Object Evaluator::EvalDictIndexExpr(const Object& obj,
 
   // get the value
   const auto it = dict.find(key);
-  if (it == dict.end()) {
-    return kNullObject;
-  }
-
+  if (it == dict.end()) return kNullObject;
   return it->second;
 }
 
@@ -283,6 +270,7 @@ Object Evaluator::EvalBlockStmt(const BlockStmt& block,
 Object Evaluator::EvalDictLiteral(const DictLiteral& expr,
                                   Environment& env) const {
   Dict dict;
+
   for (const auto& [k, v] : expr.pairs) {
     const auto key = Evaluate(k, env);
 
@@ -298,6 +286,7 @@ Object Evaluator::EvalDictLiteral(const DictLiteral& expr,
 
     dict[key] = val;
   }
+
   return DictObj(std::move(dict));
 }
 
@@ -306,10 +295,10 @@ std::vector<Object> Evaluator::EvalExprs(const std::vector<ExprNode>& exprs,
   std::vector<Object> objs;
 
   for (const auto& expr : exprs) {
-    auto obj = Evaluate(expr, env);
+    const auto obj = Evaluate(expr, env);
     if (IsObjError(obj)) return {obj};
 
-    objs.push_back(std::move(obj));
+    objs.push_back(obj);
   }
 
   return objs;
@@ -339,30 +328,18 @@ Object Evaluator::EvalIntInfixExpr(const Object& lhs,
   const auto lv = lhs.Cast<IntType>();
   const auto rv = rhs.Cast<IntType>();
 
-  if (op == "+") {
-    return IntObj(lv + rv);
-  } else if (op == "-") {
-    return IntObj(lv - rv);
-  } else if (op == "*") {
-    return IntObj(lv * rv);
-  } else if (op == "/") {
-    return IntObj(lv / rv);
-  } else if (op == "==") {
-    return BoolObj(lv == rv);
-  } else if (op == "!=") {
-    return BoolObj(lv != rv);
-  } else if (op == ">") {
-    return BoolObj(lv > rv);
-  } else if (op == ">=") {
-    return BoolObj(lv >= rv);
-  } else if (op == "<") {
-    return BoolObj(lv < rv);
-  } else if (op == "<=") {
-    return BoolObj(lv <= rv);
-  } else {
-    return ErrorObj(
-        fmt::format("{}: {} {} {}", kUnknownOp, lhs.Type(), op, rhs.Type()));
-  }
+  if (op == "+") return IntObj(lv + rv);
+  if (op == "-") return IntObj(lv - rv);
+  if (op == "*") return IntObj(lv * rv);
+  if (op == "/") return IntObj(lv / rv);
+  if (op == "==") return BoolObj(lv == rv);
+  if (op == "!=") return BoolObj(lv != rv);
+  if (op == ">") return BoolObj(lv > rv);
+  if (op == ">=") return BoolObj(lv >= rv);
+  if (op == "<") return BoolObj(lv < rv);
+  if (op == "<=") return BoolObj(lv <= rv);
+  return ErrorObj(
+      fmt::format("{}: {} {} {}", kUnknownOp, lhs.Type(), op, rhs.Type()));
 }
 
 Object Evaluator::EvalBoolInfixExpr(const Object& lhs,
@@ -370,14 +347,10 @@ Object Evaluator::EvalBoolInfixExpr(const Object& lhs,
                                     const Object& rhs) const {
   const auto lv = lhs.Cast<bool>();
   const auto rv = rhs.Cast<bool>();
-  if (op == "==") {
-    return BoolObj(lv == rv);
-  } else if (op == "!=") {
-    return BoolObj(lv != rv);
-  } else {
-    return ErrorObj(
-        fmt::format("{}: {} {} {}", kUnknownOp, lhs.Type(), op, rhs.Type()));
-  }
+  if (op == "==") return BoolObj(lv == rv);
+  if (op == "!=") return BoolObj(lv != rv);
+  return ErrorObj(
+      fmt::format("{}: {} {} {}", kUnknownOp, lhs.Type(), op, rhs.Type()));
 }
 
 Object Evaluator::ApplyFunc(const Object& obj,
@@ -404,11 +377,13 @@ Object Evaluator::EvalIfExpr(const IfExpr& expr, Environment& env) const {
 
   if (IsObjTruthy(cond)) {
     return EvalBlockStmt(expr.true_block, env);
-  } else if (!expr.false_block.empty()) {
-    return EvalBlockStmt(expr.false_block, env);
-  } else {
-    return kNullObject;
   }
+
+  if (!expr.false_block.empty()) {
+    return EvalBlockStmt(expr.false_block, env);
+  }
+
+  return kNullObject;
 }
 
 }  // namespace monkey

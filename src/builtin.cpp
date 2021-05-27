@@ -81,8 +81,8 @@ Object BuiltinRest(const std::vector<Object>& args) {
     return NullObj();
   }
 
-  std::vector<Object> rest{arr.begin() + 1, arr.end()};
-  return ArrayObj(std::move(rest));
+  //  std::vector<Object> rest{arr.begin() + 1, arr.end()};
+  return ArrayObj({arr.begin() + 1, arr.end()});
 }
 
 Object BuiltinPush(const std::vector<Object>& args) {

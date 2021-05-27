@@ -93,8 +93,8 @@ Object ReturnObj(const Object& value) { return {ObjectType::kReturn, value}; }
 Object FuncObj(const FuncObject& fn) { return {ObjectType::kFunc, fn}; }
 Object ArrayObj(Array arr) { return {ObjectType::kArray, std::move(arr)}; }
 Object DictObj(Dict dict) { return {ObjectType::kDict, std::move(dict)}; }
-Object QuoteObj(const ExprNode& expr) { return {ObjectType::kQuote, expr}; }
 Object BuiltinObj(const Builtin& fn) { return {ObjectType::kBuiltin, fn}; }
+Object QuoteObj(const ExprNode& expr) { return {ObjectType::kQuote, expr}; }
 
 Object ToIntObj(const ExprNode& expr) {
   CHECK_EQ(expr.Type(), NodeType::kIntLiteral);

@@ -42,7 +42,9 @@ bool ObjOfSameType(ObjectType op, Args const&... args) {
 struct Object {
   Object() = default;
   explicit Object(ObjectType type) : type{type} {}
-  Object(ObjectType type, const absl::any& value) : type{type}, value{value} {}
+  Object(ObjectType type, absl::any value)
+      : type{type}, value{std::move(value)} {}
+
   virtual ~Object() noexcept = default;
 
   std::string Inspect() const;
@@ -92,7 +94,6 @@ struct FuncObject {
   BlockStmt body;
   std::shared_ptr<Environment> env{nullptr};
 };
-
 
 bool IsObjTruthy(const Object& obj);
 bool IsObjError(const Object& obj) noexcept;

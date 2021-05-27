@@ -75,18 +75,21 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         break;
       }
       case Opcode::kSetGlobal: {
+        CHECK_LT(ip + 1, bc.ins.NumBytes());
         auto index = ReadUint16(bc.BytePtr(ip + 1));
         ip += 2;
         globals_[index] = Pop();
         break;
       }
       case Opcode::kGetGlobal: {
+        CHECK_LT(ip + 1, bc.ins.NumBytes());
         auto index = ReadUint16(bc.BytePtr(ip + 1));
         ip += 2;
         Push(globals_.at(index));
         break;
       }
       case Opcode::kArray: {
+        CHECK_LT(ip + 1, bc.ins.NumBytes());
         const auto size = ReadUint16(bc.BytePtr(ip + 1));
         ip += 2;
         const auto obj = BuildArray(sp_ - size, sp_);
@@ -95,6 +98,7 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         break;
       }
       case Opcode::kDict: {
+        CHECK_LT(ip + 1, bc.ins.NumBytes());
         const auto size = ReadUint16(bc.BytePtr(ip + 1));
         ip += 2;
         const auto obj = BuildDict(sp_ - size, sp_);
@@ -120,7 +124,9 @@ absl::Status VirtualMachine::ExecBinaryOp(Opcode op) {
 
   if (ObjOfSameType(ObjectType::kInt, lhs, rhs)) {
     return ExecIntBinaryOp(lhs, op, rhs);
-  } else if (ObjOfSameType(ObjectType::kStr, lhs, rhs)) {
+  }
+
+  if (ObjOfSameType(ObjectType::kStr, lhs, rhs)) {
     return ExecStrBinaryOp(lhs, op, rhs);
   }
 
@@ -211,11 +217,13 @@ absl::Status VirtualMachine::ExecIndexExpr(const Object& lhs,
                                            const Object& index) {
   if (lhs.Type() == ObjectType::kArray && index.Type() == ObjectType::kInt) {
     return ExecArrayIndex(lhs, index);
-  } else if (lhs.Type() == ObjectType::kDict) {
-    return ExecDictIndex(lhs, index);
-  } else {
-    return MakeError("index operator not supported: " + Repr(lhs.Type()));
   }
+
+  if (lhs.Type() == ObjectType::kDict) {
+    return ExecDictIndex(lhs, index);
+  }
+
+  return MakeError("index operator not supported: " + Repr(lhs.Type()));
 }
 
 absl::Status VirtualMachine::ExecDictIndex(const Object& lhs,
