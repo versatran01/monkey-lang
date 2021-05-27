@@ -29,6 +29,7 @@ const absl::flat_hash_map<Opcode, Definition> gOpcodeDefinitions = {
     {Opcode::kSetGlobal, {"OpSetGlobal", {2}}},
     {Opcode::kArray, {"OpArray", {2}}},
     {Opcode::kDict, {"OpDict", {2}}},
+    {Opcode::kIndex, {"OpIndex"}},
 };
 
 }  // namespace

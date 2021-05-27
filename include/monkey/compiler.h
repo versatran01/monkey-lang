@@ -92,6 +92,7 @@ class Compiler {
 
   /// Compile expression
   absl::Status CompileIfExpr(const ExprNode& expr);
+  absl::Status CompileIndexExpr(const ExprNode& expr);
   absl::Status CompileInfixExpr(const ExprNode& expr);
   absl::Status CompilePrefixExpr(const ExprNode& expr);
   absl::Status CompileIdentifier(const ExprNode& expr);

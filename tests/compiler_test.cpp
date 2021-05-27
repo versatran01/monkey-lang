@@ -327,4 +327,34 @@ TEST(CompilerTest, TestDictLiterals) {
   }
 }
 
+TEST(CompilerTest, TestIndexExpression) {
+  const std::vector<CompilerTest> tests = {
+      {"[1,2,3][1 + 1]",
+       {IntObj(1), IntObj(2), IntObj(3), IntObj(1), IntObj(1)},
+       {Encode(Opcode::kConst, 0),
+        Encode(Opcode::kConst, 1),
+        Encode(Opcode::kConst, 2),
+        Encode(Opcode::kArray, 3),
+        Encode(Opcode::kConst, 3),
+        Encode(Opcode::kConst, 4),
+        Encode(Opcode::kAdd),
+        Encode(Opcode::kIndex),
+        Encode(Opcode::kPop)}},
+      {"{1: 2}[2 - 1]",
+       {IntObj(1), IntObj(2), IntObj(2), IntObj(1)},
+       {Encode(Opcode::kConst, 0),
+        Encode(Opcode::kConst, 1),
+        Encode(Opcode::kDict, 2),
+        Encode(Opcode::kConst, 2),
+        Encode(Opcode::kConst, 3),
+        Encode(Opcode::kSub),
+        Encode(Opcode::kIndex),
+        Encode(Opcode::kPop)}},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckCompiler(test);
+  }
+}
 }  // namespace

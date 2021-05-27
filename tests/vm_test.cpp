@@ -78,7 +78,7 @@ void CheckVm(const VmTest& test) {
       for (const auto& [k, v] : idict) {
         dict[IntObj(k)] = IntObj(v);
       }
-//      const auto obj = DictObj(dict);
+      //      const auto obj = DictObj(dict);
       EXPECT_THAT(vm.Last().Cast<Dict>(), MAP_MATCHER(dict));
       break;
     }
@@ -213,6 +213,26 @@ TEST(VmTest, TestDictLiteral) {
       {"{}", IntDict{}},
       {"{1: 2, 2: 3}", IntDict{{1, 2}, {2, 3}}},
       {"{1 + 1: 2 * 2, 3 + 3: 4 * 4}", IntDict{{2, 4}, {6, 16}}},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckVm(test);
+  }
+}
+
+TEST(VmTest, TestIndexExpression) {
+  const std::vector<VmTest> tests = {
+      {"[1, 2, 3][1]", 2},
+      {"[1, 2, 3][0 + 2]", 3},
+      {"[[1, 1, 1]][0][0]", 1},
+      {"[][0]", nullptr},
+      {"[1, 2, 3][99]", nullptr},
+      {"[1][-1]", nullptr},
+      {"{1: 1, 2: 2}[1]", 1},
+      {"{1: 1, 2: 2}[2]", 2},
+      {"{1: 1}[0]", nullptr},
+      {"{}[0]", nullptr},
   };
 
   for (const auto& test : tests) {

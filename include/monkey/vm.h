@@ -27,6 +27,10 @@ class VirtualMachine {
   absl::Status ExecComparison(Opcode op);
   absl::Status ExecIntComp(const Object& lhs, Opcode op, const Object& rhs);
 
+  absl::Status ExecIndexExpr(const Object& lhs, const Object& index);
+  absl::Status ExecDictIndex(const Object& lhs, const Object& index);
+  absl::Status ExecArrayIndex(const Object& lhs, const Object& index);
+
   Object BuildArray(size_t start, size_t end) const;
   Object BuildDict(size_t start, size_t end) const;
 

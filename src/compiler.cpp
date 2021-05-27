@@ -50,6 +50,9 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
     case NodeType::kInfixExpr: {
       return CompileInfixExpr(node);
     }
+    case NodeType::kIndexExpr: {
+      return CompileIndexExpr(node);
+    }
     case NodeType::kIntLiteral: {
       Emit(Opcode::kConst, static_cast<int>(AddConstant(ToIntObj(node))));
       break;
@@ -180,6 +183,18 @@ absl::Status Compiler::CompileIfExpr(const ExprNode& expr) {
   }
 
   ChangeOperand(jmp_pos, static_cast<int>(ins_.NumBytes()));
+  return kOkStatus;
+}
+
+absl::Status Compiler::CompileIndexExpr(const ExprNode& expr) {
+  const auto* ptr = expr.PtrCast<IndexExpr>();
+  CHECK_NOTNULL(ptr);
+  auto status = CompileImpl(ptr->lhs);
+  if (!status.ok()) return status;
+  status.Update(CompileImpl(ptr->index));
+  if (!status.ok()) return status;
+
+  Emit(Opcode::kIndex);
   return kOkStatus;
 }
 

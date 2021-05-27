@@ -54,6 +54,12 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         Pop();
         break;
       }
+      case Opcode::kIndex: {
+        auto index = Pop();
+        auto lhs = Pop();
+        status = ExecIndexExpr(lhs, index);
+        break;
+      }
       case Opcode::kJump: {
         CHECK_LT(ip + 1, bc.ins.NumBytes());
         size_t pos = ReadUint16(bc.BytePtr(ip + 1));
@@ -198,6 +204,47 @@ absl::Status VirtualMachine::ExecIntComp(const Object& lhs,
   }
 
   Push(BoolObj(res));
+  return kOkStatus;
+}
+
+absl::Status VirtualMachine::ExecIndexExpr(const Object& lhs,
+                                           const Object& index) {
+  if (lhs.Type() == ObjectType::kArray && index.Type() == ObjectType::kInt) {
+    return ExecArrayIndex(lhs, index);
+  } else if (lhs.Type() == ObjectType::kDict) {
+    return ExecDictIndex(lhs, index);
+  } else {
+    return MakeError("index operator not supported: " + Repr(lhs.Type()));
+  }
+}
+
+absl::Status VirtualMachine::ExecDictIndex(const Object& lhs,
+                                           const Object& index) {
+  const auto& dict = lhs.Cast<Dict>();
+  if (!IsObjHashable(index)) {
+    return MakeError("unusable as hash key: " + Repr(index.Type()));
+  }
+
+  const auto it = dict.find(index);
+  if (it == dict.end()) {
+    Push(NullObj());
+  } else {
+    Push(it->second);
+  }
+  return kOkStatus;
+}
+
+absl::Status VirtualMachine::ExecArrayIndex(const Object& lhs,
+                                            const Object& index) {
+  const auto& array = lhs.Cast<Array>();
+  const auto i = index.Cast<IntType>();
+  const auto size = array.size();
+
+  if (i < 0 || i >= size) {
+    Push(NullObj());
+  } else {
+    Push(array[i]);
+  }
   return kOkStatus;
 }
 
