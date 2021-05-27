@@ -21,12 +21,25 @@ struct Instruction {
   friend std::ostream& operator<<(std::ostream& os, const Instruction& ins);
 
   friend bool operator==(const Instruction& lhs, const Instruction& rhs) {
-    return std::equal(
-        lhs.bytes.begin(), lhs.bytes.end(), rhs.bytes.begin(), rhs.bytes.end());
+    return lhs.NumOps() == rhs.NumOps() && lhs.NumBytes() == rhs.NumBytes() &&
+           std::equal(lhs.bytes.begin(),
+                      lhs.bytes.end(),
+                      rhs.bytes.begin(),
+                      rhs.bytes.end());
   }
 
   friend bool operator!=(const Instruction& lhs, const Instruction& rhs) {
     return !(lhs == rhs);
+  }
+
+  Instruction& operator+=(const Instruction& ins) noexcept {
+    Append(ins);
+    return *this;
+  }
+
+  friend Instruction operator+(Instruction lhs,
+                               const Instruction& rhs) noexcept {
+    return lhs += rhs;
   }
 };
 

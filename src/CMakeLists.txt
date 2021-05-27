@@ -32,9 +32,14 @@ cc_library(
   LINKOPTS absl::strings)
 
 cc_library(
+  NAME code
+  SRCS "code.cpp" "instruction.cpp"
+  LINKOPTS absl::flat_hash_map monkey::base)
+
+cc_library(
   NAME object
   SRCS "object.cpp"
-  DEPS monkey::ast absl::hash absl::flat_hash_map)
+  DEPS monkey::ast monkey::code absl::hash absl::flat_hash_map)
 
 cc_library(
   NAME builtin
@@ -53,11 +58,6 @@ cc_library(
   DEPS monkey::ast monkey::object monkey::builtin monkey::environment
        monkey::timer
   LINKOPTS absl::strings)
-
-cc_library(
-  NAME code
-  SRCS "code.cpp" "instruction.cpp"
-  LINKOPTS absl::flat_hash_map monkey::base)
 
 cc_library(
   NAME compiler

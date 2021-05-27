@@ -28,6 +28,8 @@ std::string FormatInstruction(const Definition& def,
 }  // namespace
 
 void Instruction::Append(const Instruction& ins) {
+  // just be sure we call reserve explicitly
+  bytes.reserve(bytes.size() + ins.NumBytes());
   bytes.insert(bytes.end(), ins.bytes.cbegin(), ins.bytes.cend());
   ++num_ops;
 }

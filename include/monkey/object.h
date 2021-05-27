@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "monkey/ast.h"
+#include "monkey/instruction.h"
 
 namespace monkey {
 
@@ -24,10 +25,11 @@ enum class ObjectType {
   kReturn,
   kError,
   kFunc,
-  kBuiltin,
   kArray,
   kDict,
   kQuote,
+  kBuiltinFunc,
+  kCompiledFunc,
 };
 
 std::string Repr(ObjectType type);
@@ -53,7 +55,7 @@ struct Object {
   friend std::ostream& operator<<(std::ostream& os, const Object& obj);
 
   template <typename T>
-  auto Cast() const {
+  const T& Cast() const {
     return absl::any_cast<const T&>(value);
   }
 
@@ -85,7 +87,11 @@ struct Object {
 
 using Array = std::vector<Object>;
 using Dict = absl::flat_hash_map<Object, Object>;
-using Builtin = std::function<Object(std::vector<Object>)>;
+
+struct BuiltinFunc {
+  std::string name;
+  std::function<Object(std::vector<Object>)> func;
+};
 
 struct FuncObject {
   std::string Inspect() const;
@@ -107,10 +113,12 @@ Object BoolObj(BoolType value);
 Object ErrorObj(StrType str);
 Object ReturnObj(const Object& obj);
 Object FuncObj(const FuncObject& fn);
-Object BuiltinObj(const Builtin& fn);
 Object ArrayObj(Array arr);
 Object DictObj(Dict dict);
 Object QuoteObj(const ExprNode& expr);
+Object BuiltinFuncObj(const BuiltinFunc& fn);
+Object CompiledFuncObj(const Instruction& ins);
+Object CompiledFuncObj(const std::vector<Instruction>& ins);
 
 // Directly create object from ast node
 Object ToIntObj(const ExprNode& expr);

@@ -11,12 +11,12 @@ namespace {
 const absl::flat_hash_map<Opcode, Definition> gOpcodeDefinitions = {
     {Opcode::kConst, {"OpConst", {2}}},
     {Opcode::kPop, {"OpPop"}},
+    {Opcode::kTrue, {"OpTrue"}},
+    {Opcode::kFalse, {"OpFalse"}},
     {Opcode::kAdd, {"OpAdd"}},
     {Opcode::kSub, {"OpSub"}},
     {Opcode::kMul, {"OpMul"}},
     {Opcode::kDiv, {"OpDiv"}},
-    {Opcode::kTrue, {"OpTrue"}},
-    {Opcode::kFalse, {"OpFalse"}},
     {Opcode::kEq, {"OpEq"}},
     {Opcode::kNe, {"OpNe"}},
     {Opcode::kGt, {"OpGt"}},
@@ -30,6 +30,9 @@ const absl::flat_hash_map<Opcode, Definition> gOpcodeDefinitions = {
     {Opcode::kArray, {"OpArray", {2}}},
     {Opcode::kDict, {"OpDict", {2}}},
     {Opcode::kIndex, {"OpIndex"}},
+    {Opcode::kCall, {"OpCall"}},
+    {Opcode::kReturn, {"OpReturn"}},
+    {Opcode::kReturnVal, {"OpReturnVal"}},
 };
 
 }  // namespace

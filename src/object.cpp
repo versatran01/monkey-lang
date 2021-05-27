@@ -24,10 +24,11 @@ const auto gObjectTypeStrings = absl::flat_hash_map<ObjectType, std::string>{
     {ObjectType::kReturn, "RETURN"},
     {ObjectType::kError, "ERROR"},
     {ObjectType::kFunc, "FUNC"},
-    {ObjectType::kBuiltin, "BUILTIN"},
     {ObjectType::kArray, "ARRAY"},
     {ObjectType::kDict, "DICT"},
     {ObjectType::kQuote, "QUOTE"},
+    {ObjectType::kBuiltinFunc, "BUILTIN_FUNC"},
+    {ObjectType::kCompiledFunc, "COMPILED_FUNC"},
 };
 
 }  // namespace
@@ -65,8 +66,8 @@ std::string Object::Inspect() const {
       return absl::any_cast<std::string>(value);
     case ObjectType::kFunc:
       return Cast<FuncObject>().Inspect();
-    case ObjectType::kBuiltin:
-      return "Builtin Function";
+    case ObjectType::kBuiltinFunc:
+      return fmt::format("BUILTIN_FUNC {}", Cast<BuiltinFunc>().name);
     case ObjectType::kDict: {
       const auto pf = absl::PairFormatter(ObjFmt{}, ": ", ObjFmt{});
       return fmt::format("{{{}}}", absl::StrJoin(Cast<Dict>(), ", ", pf));
@@ -75,6 +76,8 @@ std::string Object::Inspect() const {
       return fmt::format("[{}]", absl::StrJoin(Cast<Array>(), ", ", ObjFmt{}));
     case ObjectType::kQuote:
       return fmt::format("QUOTE({})", Cast<ExprNode>().String());
+    case ObjectType::kCompiledFunc:
+      return fmt::format("COMPILED_FUNC({})", Cast<Instruction>().Repr());
     default:
       return fmt::format("Unknown type: {}", Type());
   }
@@ -93,8 +96,16 @@ Object ReturnObj(const Object& value) { return {ObjectType::kReturn, value}; }
 Object FuncObj(const FuncObject& fn) { return {ObjectType::kFunc, fn}; }
 Object ArrayObj(Array arr) { return {ObjectType::kArray, std::move(arr)}; }
 Object DictObj(Dict dict) { return {ObjectType::kDict, std::move(dict)}; }
-Object BuiltinObj(const Builtin& fn) { return {ObjectType::kBuiltin, fn}; }
 Object QuoteObj(const ExprNode& expr) { return {ObjectType::kQuote, expr}; }
+Object BuiltinFuncObj(const BuiltinFunc& fn) {
+  return {ObjectType::kBuiltinFunc, fn};
+}
+Object CompiledFuncObj(const Instruction& ins) {
+  return {ObjectType::kCompiledFunc, ins};
+}
+Object CompiledFuncObj(const std::vector<Instruction>& ins) {
+  return {ObjectType::kCompiledFunc, ConcatInstructions(ins)};
+}
 
 Object ToIntObj(const ExprNode& expr) {
   CHECK_EQ(expr.Type(), NodeType::kIntLiteral);

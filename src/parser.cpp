@@ -112,7 +112,7 @@ StmtNode Parser::ParseLetStmt() {
   let_stmt.token = curr_token_;
 
   if (!ExpectPeek(TokenType::kIdent)) {
-    LOG(INFO) << "[ParseLetStatement] Next token is not Ident";
+    LOG(WARNING) << "[ParseLetStatement] Next token is not Ident";
     return {};
   }
 
@@ -120,7 +120,7 @@ StmtNode Parser::ParseLetStmt() {
   let_stmt.name.value = curr_token_.literal;
 
   if (!ExpectPeek(TokenType::kAssign)) {
-    LOG(INFO) << "[ParseLetStatement] Next token is not Assing";
+    LOG(WARNING) << "[ParseLetStatement] Next token is not Assing";
     return {};
   }
 
@@ -129,6 +129,11 @@ StmtNode Parser::ParseLetStmt() {
 
   while (!IsCurrToken(TokenType::kSemicolon)) {
     NextToken();
+
+    if (IsCurrToken(TokenType::kEof)) {
+      errors_.push_back("failed to parse let statement, missing ;");
+      return {};
+    }
   }
 
   return let_stmt;
@@ -143,6 +148,10 @@ StmtNode Parser::ParseReturnStmt() {
 
   while (!IsCurrToken(TokenType::kSemicolon)) {
     NextToken();
+    if (IsCurrToken(TokenType::kEof)) {
+      errors_.push_back("failed to parse return statement, missing ;");
+      return {};
+    }
   }
 
   return ret_stmt;
@@ -180,10 +189,8 @@ BlockStmt Parser::ParseBlockStmt() {
 ExprNode Parser::ParseExpression(Precedence precedence) {
   const auto prefix_it = prefix_parse_fn_.find(curr_token_.type);
   if (prefix_it == prefix_parse_fn_.end()) {
-    const std::string msg =
-        fmt::format("no prefix parse function for {}", curr_token_.type);
-    LOG(WARNING) << msg;
-    errors_.push_back(msg);
+    errors_.push_back(
+        fmt::format("no prefix parse function for {}", curr_token_.type));
     return {};
   }
 

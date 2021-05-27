@@ -15,12 +15,12 @@ using Bytes = std::vector<Byte>;
 enum class Opcode : Byte {
   kConst,
   kPop,
+  kTrue,
+  kFalse,
   kAdd,
   kSub,
   kMul,
   kDiv,
-  kTrue,
-  kFalse,
   kEq,
   kNe,
   kGt,
@@ -34,6 +34,9 @@ enum class Opcode : Byte {
   kArray,
   kDict,
   kIndex,
+  kCall,
+  kReturn,
+  kReturnVal,
 };
 
 std::string Repr(Opcode op);

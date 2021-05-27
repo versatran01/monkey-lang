@@ -17,20 +17,18 @@ struct CompilerTest {
   std::vector<Instruction> inst_vec;
 };
 
-Program Parse(const std::string& input) {
-  Parser parser{input};
-  return parser.ParseProgram();
-}
-
 void CheckCompiler(const CompilerTest& test) {
-  const auto program = Parse(test.input);
+  Parser parser{test.input};
+  const auto program = parser.ParseProgram();
+  ASSERT_TRUE(parser.Ok()) << parser.ErrorMsg();
 
   Compiler compiler;
   const auto bc = compiler.Compile(program);
   ASSERT_TRUE(bc.ok()) << bc.status();
+
   // Check instructions
-  const auto expected = ConcatInstructions(test.inst_vec);
-  EXPECT_EQ(bc->ins.Repr(), expected.Repr());
+  const auto ins = ConcatInstructions(test.inst_vec);
+  EXPECT_EQ(bc->ins.Repr(), ins.Repr());
   EXPECT_THAT(bc->consts, ContainerEq(test.constants));
 }
 
@@ -357,4 +355,23 @@ TEST(CompilerTest, TestIndexExpression) {
     CheckCompiler(test);
   }
 }
+
+TEST(CompilerTest, TestFunction) {
+  const std::vector<CompilerTest> tests = {
+      {"fn() { return 5 + 10; }",
+       {IntObj(5),
+        IntObj(10),
+        CompiledFuncObj({Encode(Opcode::kConst, 0),
+                         Encode(Opcode::kConst, 1),
+                         Encode(Opcode::kAdd),
+                         Encode(Opcode::kReturnVal)})},
+       {Encode(Opcode::kConst, 2), Encode(Opcode::kPop)}},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckCompiler(test);
+  }
+}
+
 }  // namespace
