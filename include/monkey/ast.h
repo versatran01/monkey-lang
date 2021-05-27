@@ -23,11 +23,11 @@ enum class NodeType {
   kStrLiteral,
   kArrayLiteral,
   kDictLiteral,
+  kFuncLiteral,
   kIndexExpr,
   kPrefixExpr,
   kInfixExpr,
   kIfExpr,
-  kFnLiteral,
   kCallExpr,
   // Statement
   kExprStmt,
@@ -191,7 +191,7 @@ struct IfExpr final : public NodeBase {
 };
 
 struct FuncLiteral final : public NodeBase {
-  FuncLiteral() : NodeBase{NodeType::kFnLiteral} {}
+  FuncLiteral() : NodeBase{NodeType::kFuncLiteral} {}
   std::string String() const override;
   auto NumParams() const noexcept { return params.size(); }
 

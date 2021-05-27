@@ -26,7 +26,7 @@ const auto gNodeTypeStrings = absl::flat_hash_map<NodeType, std::string>{
     {NodeType::kInfixExpr, "InfixExpr"},
     {NodeType::kIfExpr, "IfExpr"},
     {NodeType::kIndexExpr, "IndexExpr"},
-    {NodeType::kFnLiteral, "FuncLiteral"},
+    {NodeType::kFuncLiteral, "FuncLiteral"},
     {NodeType::kCallExpr, "CallExpr"},
     {NodeType::kExprStmt, "ExprStmt"},
     {NodeType::kLetStmt, "LetStmt"},

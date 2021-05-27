@@ -114,12 +114,12 @@ Object BuiltinPuts(const std::vector<Object>& args) {
 
 BuiltinMap MakeBuiltins() {
   BuiltinMap map;
-  map["len"] = BuiltinFuncObj({"len", BuiltinLen});
-  map["first"] = BuiltinFuncObj({"first", BuiltinFirst});
-  map["last"] = BuiltinFuncObj({"last", BuiltinLast});
-  map["rest"] = BuiltinFuncObj({"rest", BuiltinRest});
-  map["push"] = BuiltinFuncObj({"push", BuiltinPush});
-  map["puts"] = BuiltinFuncObj({"puts", BuiltinPuts});
+  map["len"] = BuiltinObj({"len", BuiltinLen});
+  map["first"] = BuiltinObj({"first", BuiltinFirst});
+  map["last"] = BuiltinObj({"last", BuiltinLast});
+  map["rest"] = BuiltinObj({"rest", BuiltinRest});
+  map["push"] = BuiltinObj({"push", BuiltinPush});
+  map["puts"] = BuiltinObj({"puts", BuiltinPuts});
   return map;
 }
 

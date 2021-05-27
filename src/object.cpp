@@ -27,8 +27,8 @@ const auto gObjectTypeStrings = absl::flat_hash_map<ObjectType, std::string>{
     {ObjectType::kArray, "ARRAY"},
     {ObjectType::kDict, "DICT"},
     {ObjectType::kQuote, "QUOTE"},
-    {ObjectType::kBuiltinFunc, "BUILTIN_FUNC"},
-    {ObjectType::kCompiledFunc, "COMPILED_FUNC"},
+    {ObjectType::kBuiltin, "BUILTIN"},
+    {ObjectType::kCompiled, "COMPILED"},
 };
 
 }  // namespace
@@ -66,8 +66,8 @@ std::string Object::Inspect() const {
       return absl::any_cast<std::string>(value);
     case ObjectType::kFunc:
       return Cast<FuncObject>().Inspect();
-    case ObjectType::kBuiltinFunc:
-      return fmt::format("BUILTIN_FUNC {}", Cast<BuiltinFunc>().name);
+    case ObjectType::kBuiltin:
+      return fmt::format("{}()", Cast<Builtin>().name);
     case ObjectType::kDict: {
       const auto pf = absl::PairFormatter(ObjFmt{}, ": ", ObjFmt{});
       return fmt::format("{{{}}}", absl::StrJoin(Cast<Dict>(), ", ", pf));
@@ -75,16 +75,16 @@ std::string Object::Inspect() const {
     case ObjectType::kArray:
       return fmt::format("[{}]", absl::StrJoin(Cast<Array>(), ", ", ObjFmt{}));
     case ObjectType::kQuote:
-      return fmt::format("QUOTE({})", Cast<ExprNode>().String());
-    case ObjectType::kCompiledFunc:
-      return fmt::format("COMPILED_FUNC({})", Cast<Instruction>().Repr());
+      return Cast<ExprNode>().String();
+    case ObjectType::kCompiled:
+      return Cast<Instruction>().Repr();
     default:
       return fmt::format("Unknown type: {}", Type());
   }
 }
 
 std::ostream& operator<<(std::ostream& os, const Object& obj) {
-  return os << fmt::format("Obj({}={})", obj.Type(), obj.Inspect());
+  return os << fmt::format("{}({})", obj.Type(), obj.Inspect());
 }
 
 Object NullObj() { return Object{ObjectType::kNull}; }
@@ -97,14 +97,12 @@ Object FuncObj(const FuncObject& fn) { return {ObjectType::kFunc, fn}; }
 Object ArrayObj(Array arr) { return {ObjectType::kArray, std::move(arr)}; }
 Object DictObj(Dict dict) { return {ObjectType::kDict, std::move(dict)}; }
 Object QuoteObj(const ExprNode& expr) { return {ObjectType::kQuote, expr}; }
-Object BuiltinFuncObj(const BuiltinFunc& fn) {
-  return {ObjectType::kBuiltinFunc, fn};
+Object BuiltinObj(const Builtin& fn) { return {ObjectType::kBuiltin, fn}; }
+Object CompiledObj(Instruction ins) {
+  return {ObjectType::kCompiled, std::move(ins)};
 }
-Object CompiledFuncObj(const Instruction& ins) {
-  return {ObjectType::kCompiledFunc, ins};
-}
-Object CompiledFuncObj(const std::vector<Instruction>& ins) {
-  return {ObjectType::kCompiledFunc, ConcatInstructions(ins)};
+Object CompiledObj(const std::vector<Instruction>& ins) {
+  return {ObjectType::kCompiled, ConcatInstructions(ins)};
 }
 
 Object ToIntObj(const ExprNode& expr) {

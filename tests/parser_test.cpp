@@ -272,7 +272,7 @@ TEST(ParserTest, TestParsingFunctionLiteral) {
   const auto stmt = program.statements.front();
   ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
   const auto& expr = GetExpr(stmt);
-  ASSERT_EQ(expr.Type(), NodeType::kFnLiteral);
+  ASSERT_EQ(expr.Type(), NodeType::kFuncLiteral);
   const auto* ptr = expr.PtrCast<FuncLiteral>();
   ASSERT_NE(ptr, nullptr);
   ASSERT_EQ(ptr->NumParams(), 2);
@@ -297,7 +297,7 @@ TEST(ParserTest, TestParsingFunctionLiteral2) {
     const auto stmt = program.statements.front();
     ASSERT_EQ(stmt.Type(), NodeType::kExprStmt);
     const auto& expr = GetExpr(stmt);
-    ASSERT_EQ(expr.Type(), NodeType::kFnLiteral);
+    ASSERT_EQ(expr.Type(), NodeType::kFuncLiteral);
     const auto* ptr = expr.PtrCast<FuncLiteral>();
     ASSERT_NE(ptr, nullptr);
     ASSERT_EQ(ptr->NumParams(), test.params.size());

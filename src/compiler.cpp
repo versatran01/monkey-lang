@@ -50,6 +50,9 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
     case NodeType::kLetStmt: {
       return CompileLetStmt(node);
     }
+    case NodeType::kReturnStmt: {
+      return CompileReturnStmt(node);
+    }
     case NodeType::kIdentifier: {
       return CompileIdentifier(node);
     }
@@ -105,6 +108,27 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
       Emit(Opcode::kDict, static_cast<int>(ptr->pairs.size()) * 2);
       break;
     }
+    case NodeType::kFuncLiteral: {
+      EnterScope();
+
+      const auto* ptr = node.PtrCast<FuncLiteral>();
+      auto status = CompileImpl(ptr->body);
+
+      if (ScopedLast().op == Opcode::kPop) {
+        // Replace last pop with return
+        const auto last_pos = ScopedLast().pos;
+        ReplaceInstruction(last_pos, Encode(Opcode::kReturnVal));
+        ScopedLast().op = Opcode::kReturnVal;
+      }
+
+      if (ScopedLast().op != Opcode::kReturnVal) Emit(Opcode::kReturn);
+
+      auto ins = ExitScope();
+      Emit(Opcode::kConst,
+           static_cast<int>(AddConstant(CompiledObj(std::move(ins)))));
+
+      break;
+    }
     default:
       return MakeError("Internal Compiler Error: Unhandled ast node: " +
                        Repr(node.Type()));
@@ -153,8 +177,8 @@ void Compiler::ReplaceInstruction(size_t pos, const Instruction& ins) {
   auto& curr_ins = ScopedIns();
   CHECK_LE(pos + ins.NumBytes(), curr_ins.NumBytes());
   // Also check the opcode are the same
-  CHECK_EQ(ToOpcode(curr_ins.bytes[pos]), ToOpcode(ins.bytes[0]))
-      << "Replacing instruction with different types is not allowed";
+  //  CHECK_EQ(ToOpcode(curr_ins.bytes[pos]), ToOpcode(ins.bytes[0]))
+  //      << "Replacing instruction with different types is not allowed";
   for (size_t i = 0; i < ins.NumBytes(); ++i) {
     curr_ins.bytes[pos + i] = ins.bytes[i];
   }
@@ -267,17 +291,15 @@ absl::Status Compiler::CompilePrefixExpr(const ExprNode& expr) {
     return MakeError("Unknown operator: " + ptr->op);
   }
 
-  return absl::OkStatus();
+  return kOkStatus;
 }
 
 absl::Status Compiler::CompileIdentifier(const ExprNode& expr) {
   const auto name = expr.String();
   const auto symbol = stable_.Resolve(name);
-  if (!symbol.has_value()) {
-    return MakeError("Undefiend variable " + name);
-  }
+  if (!symbol.has_value()) return MakeError("Undefiend variable " + name);
   Emit(Opcode::kGetGlobal, symbol->index);
-  return absl::OkStatus();
+  return kOkStatus;
 }
 
 absl::Status Compiler::CompileLetStmt(const StmtNode& stmt) {
@@ -288,7 +310,7 @@ absl::Status Compiler::CompileLetStmt(const StmtNode& stmt) {
   // Add to symbol table
   const auto& symbol = stable_.Define(ptr->name.value);
   Emit(Opcode::kSetGlobal, symbol.index);
-  return absl::OkStatus();
+  return kOkStatus;
 }
 
 absl::Status Compiler::CompileExprStmt(const StmtNode& stmt) {
@@ -299,7 +321,7 @@ absl::Status Compiler::CompileExprStmt(const StmtNode& stmt) {
   if (!status.ok()) return status;
 
   Emit(Opcode::kPop);
-  return absl::OkStatus();
+  return kOkStatus;
 }
 
 absl::Status Compiler::CompileBlockStmt(const StmtNode& stmt) {
@@ -311,7 +333,17 @@ absl::Status Compiler::CompileBlockStmt(const StmtNode& stmt) {
     if (!status.ok()) return status;
   }
 
-  return absl::OkStatus();
+  return kOkStatus;
+}
+
+absl::Status Compiler::CompileReturnStmt(const StmtNode& stmt) {
+  const auto* ptr = stmt.PtrCast<ReturnStmt>();
+  CHECK_NOTNULL(ptr);
+  const auto status = CompileImpl(ptr->expr);
+  if (!status.ok()) return status;
+
+  Emit(Opcode::kReturnVal);
+  return kOkStatus;
 }
 
 std::string Symbol::Repr() const {

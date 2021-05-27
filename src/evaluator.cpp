@@ -96,7 +96,7 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
     case NodeType::kIdentifier: {
       return EvalIdentifier(*node.PtrCast<Identifier>(), env);
     }
-    case NodeType::kFnLiteral: {
+    case NodeType::kFuncLiteral: {
       const auto* ptr = node.PtrCast<FuncLiteral>();
       return FuncObj(
           {ptr->params, ptr->body, std::make_shared<Environment>(env)});
@@ -362,8 +362,8 @@ Object Evaluator::ApplyFunc(const Object& obj,
       const auto ret_obj = EvalBlockStmt(fn_obj.body, fn_env);
       return UnwrapReturn(ret_obj);
     }
-    case ObjectType::kBuiltinFunc: {
-      const auto& fn_obj = obj.Cast<BuiltinFunc>();
+    case ObjectType::kBuiltin: {
+      const auto& fn_obj = obj.Cast<Builtin>();
       return fn_obj.func(args);
     }
     default:

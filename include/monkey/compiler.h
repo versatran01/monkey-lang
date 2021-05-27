@@ -83,8 +83,11 @@ class Compiler {
 
   Instruction& ScopedIns() { return CurrScope().ins; }
   const Instruction& ScopedIns() const { return CurrScope().ins; }
-  const Emitted& ScopedLast() { return CurrScope().last; }
-  const Emitted& ScopedPrev() { return CurrScope().prev; }
+
+  Emitted& ScopedLast() { return CurrScope().last; }
+  const Emitted& ScopedLast() const { return CurrScope().last; }
+
+  const Emitted& ScopedPrev() const { return CurrScope().prev; }
 
   /// Scope related
   void EnterScope();
@@ -121,6 +124,7 @@ class Compiler {
   absl::Status CompileLetStmt(const StmtNode& stmt);
   absl::Status CompileExprStmt(const StmtNode& stmt);
   absl::Status CompileBlockStmt(const StmtNode& stmt);
+  absl::Status CompileReturnStmt(const StmtNode& stmt);
 
   std::vector<Scope> scopes_;
   SymbolTable stable_;
