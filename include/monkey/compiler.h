@@ -69,9 +69,33 @@ class SymbolTable {
 
 class Compiler {
  public:
+  Compiler();
+
   absl::StatusOr<Bytecode> Compile(const Program& program);
 
   const auto& timers() const noexcept { return timers_; }
+
+  struct Scope {
+    Instruction ins;
+    Emitted last;
+    Emitted prev;
+  };
+
+  Instruction& ScopedIns() { return CurrScope().ins; }
+  const Instruction& ScopedIns() const { return CurrScope().ins; }
+  const Emitted& ScopedLast() { return CurrScope().last; }
+  const Emitted& ScopedPrev() { return CurrScope().prev; }
+
+  /// Scope related
+  void EnterScope();
+  Instruction ExitScope();
+  Scope& CurrScope() { return scopes_.back(); }
+  const Scope& CurrScope() const { return scopes_.back(); }
+  size_t NumScopes() const noexcept { return scopes_.size(); }
+
+  /// Returns the index of the added instruction
+  size_t Emit(Opcode op, const std::vector<int>& operands = {});
+  size_t Emit(Opcode op, int operand);
 
  private:
   void Reset();
@@ -81,9 +105,6 @@ class Compiler {
   size_t AddConstant(const Object& obj);
   /// Returns the index of the added instruction
   size_t AddInstruction(const Instruction& ins);
-  /// Returns the index of the added instruction
-  size_t Emit(Opcode op, const std::vector<int>& operands = {});
-  size_t Emit(Opcode op, int operand);
 
   void SetEmitted(Opcode op, size_t pos);
   void RemoveLastOp(Opcode expected);
@@ -101,8 +122,7 @@ class Compiler {
   absl::Status CompileExprStmt(const StmtNode& stmt);
   absl::Status CompileBlockStmt(const StmtNode& stmt);
 
-  Instruction ins_;
-  Emitted curr_, prev_;
+  std::vector<Scope> scopes_;
   SymbolTable stable_;
   std::vector<Object> consts_;
   mutable TimerManager timers_;

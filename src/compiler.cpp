@@ -7,6 +7,8 @@ namespace monkey {
 
 static constexpr int kPlaceHolder = 0;
 
+Compiler::Compiler() { scopes_.push_back({}); }
+
 absl::StatusOr<Bytecode> Compiler::Compile(const Program& program) {
   auto _ = timers_.Scoped("CompileProgram");
 
@@ -15,13 +17,23 @@ absl::StatusOr<Bytecode> Compiler::Compile(const Program& program) {
     if (!status.ok()) return status;
   }
 
-  Bytecode bc{std::move(ins_), std::move(consts_)};
+  // Maybe don't use move
+  Bytecode bc{std::move(ScopedIns()), std::move(consts_)};
   Reset();
   return bc;
 }
 
+void Compiler::EnterScope() { scopes_.push_back({}); }
+
+Instruction Compiler::ExitScope() {
+  Instruction ins = ScopedIns();
+  scopes_.pop_back();
+  return ins;
+}
+
 void Compiler::Reset() {
-  ins_ = Instruction{};
+  //  ins_ = Instruction{};
+  scopes_.clear();
   consts_.clear();
 }
 
@@ -107,8 +119,9 @@ size_t Compiler::AddConstant(const Object& obj) {
 }
 
 size_t Compiler::AddInstruction(const Instruction& ins) {
-  const auto pos = ins_.NumBytes();
-  ins_.Append(ins);
+  auto& curr_ins = ScopedIns();
+  const auto pos = curr_ins.NumBytes();
+  curr_ins.Append(ins);
   return pos;
 }
 
@@ -125,29 +138,30 @@ size_t Compiler::Emit(Opcode op, int operand) {
 }
 
 void Compiler::SetEmitted(Opcode op, size_t pos) {
-  prev_ = curr_;
-  curr_.op = op;
-  curr_.pos = pos;
+  CurrScope().prev = CurrScope().last;
+  CurrScope().last = {op, pos};
 }
 
 void Compiler::RemoveLastOp(Opcode expected) {
-  auto op = ToOpcode(ins_.PopBack());
+  auto& ins = ScopedIns();
+  auto op = ToOpcode(ins.PopBack());
   CHECK_EQ(op, expected);
-  curr_ = prev_;
+  CurrScope().last = CurrScope().prev;
 }
 
 void Compiler::ReplaceInstruction(size_t pos, const Instruction& ins) {
-  CHECK_LE(pos + ins.NumBytes(), ins_.NumBytes());
+  auto& curr_ins = ScopedIns();
+  CHECK_LE(pos + ins.NumBytes(), curr_ins.NumBytes());
   // Also check the opcode are the same
-  CHECK_EQ(ToOpcode(ins_.bytes[pos]), ToOpcode(ins.bytes[0]))
+  CHECK_EQ(ToOpcode(curr_ins.bytes[pos]), ToOpcode(ins.bytes[0]))
       << "Replacing instruction with different types is not allowed";
   for (size_t i = 0; i < ins.NumBytes(); ++i) {
-    ins_.bytes[pos + i] = ins.bytes[i];
+    curr_ins.bytes[pos + i] = ins.bytes[i];
   }
 }
 
 void Compiler::ChangeOperand(size_t pos, int operand) {
-  const auto op = ToOpcode(ins_.bytes.at(pos));
+  const auto op = ToOpcode(ScopedIns().bytes.at(pos));
   const auto new_ins = Encode(op, operand);
   ReplaceInstruction(pos, new_ins);
 }
@@ -167,11 +181,11 @@ absl::Status Compiler::CompileIfExpr(const ExprNode& expr) {
   status.Update(CompileImpl(ptr->true_block));
   if (!status.ok()) return status;
 
-  if (curr_.op == Opcode::kPop) RemoveLastOp(Opcode::kPop);
+  if (ScopedLast().op == Opcode::kPop) RemoveLastOp(Opcode::kPop);
 
   // Emit an `OpJump` with a bogus value
   const auto jmp_pos = Emit(Opcode::kJump, kPlaceHolder);
-  ChangeOperand(jnt_pos, static_cast<int>(ins_.NumBytes()));
+  ChangeOperand(jnt_pos, static_cast<int>(ScopedIns().NumBytes()));
 
   if (ptr->false_block.empty()) {
     Emit(Opcode::kNull);
@@ -179,10 +193,10 @@ absl::Status Compiler::CompileIfExpr(const ExprNode& expr) {
     status.Update(CompileImpl(ptr->false_block));
     if (!status.ok()) return status;
 
-    if (curr_.op == Opcode::kPop) RemoveLastOp(Opcode::kPop);
+    if (ScopedLast().op == Opcode::kPop) RemoveLastOp(Opcode::kPop);
   }
 
-  ChangeOperand(jmp_pos, static_cast<int>(ins_.NumBytes()));
+  ChangeOperand(jmp_pos, static_cast<int>(ScopedIns().NumBytes()));
   return kOkStatus;
 }
 

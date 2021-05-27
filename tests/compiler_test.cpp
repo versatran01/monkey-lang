@@ -374,4 +374,25 @@ TEST(CompilerTest, TestFunction) {
   }
 }
 
+TEST(CopmilerTest, TestCompilerScope) {
+  Compiler comp;
+  ASSERT_EQ(comp.NumScopes(), 1);
+
+  comp.Emit(Opcode::kMul);
+  comp.EnterScope();
+  ASSERT_EQ(comp.NumScopes(), 2);
+
+  comp.Emit(Opcode::kSub);
+  EXPECT_EQ(comp.ScopedIns().NumBytes(), 1);
+  EXPECT_EQ(comp.ScopedLast().op, Opcode::kSub);
+
+  comp.ExitScope();
+  ASSERT_EQ(comp.NumScopes(), 1);
+
+  comp.Emit(Opcode::kAdd);
+  EXPECT_EQ(comp.ScopedIns().NumBytes(), 2);
+  EXPECT_EQ(comp.ScopedLast().op, Opcode::kAdd);
+  EXPECT_EQ(comp.ScopedPrev().op, Opcode::kMul);
+}
+
 }  // namespace
