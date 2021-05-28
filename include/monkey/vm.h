@@ -2,7 +2,7 @@
 
 #include <absl/container/flat_hash_map.h>
 
-#include <deque>
+#include <stack>
 
 #include "monkey/compiler.h"
 #include "monkey/frame.h"
@@ -14,7 +14,7 @@ class VirtualMachine {
  public:
   absl::Status Run(const Bytecode& bc);
   const Object& Top() const;
-  const Object& Last() const;
+  const Object& Last() const { return last_; }
 
  private:
   absl::Status ExecBinaryOp(Opcode op);
@@ -31,17 +31,17 @@ class VirtualMachine {
   absl::Status ExecDictIndex(const Object& lhs, const Object& index);
   absl::Status ExecArrayIndex(const Object& lhs, const Object& index);
 
-  Object BuildArray(size_t start, size_t end) const;
-  Object BuildDict(size_t start, size_t end) const;
+  Object BuildArray(size_t size);
+  Object BuildDict(size_t size);
 
   Object PopStack();
-  void PushStack(const Object& obj);
+  void PushStack(Object obj);
 
   void PushFrame(const Frame& frame);
 
-  size_t sp_{0};
-  std::deque<Object> stack_;
-  std::deque<Frame> frames_;
+  Object last_;
+  std::stack<Object> stack_;
+  std::stack<Frame> frames_;
   absl::flat_hash_map<int, Object> globals_;
 };
 

@@ -92,19 +92,16 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         CHECK_LT(ip + 1, bc.ins.NumBytes());
         const auto size = ReadUint16(bc.BytePtr(ip + 1));
         ip += 2;
-        const auto obj = BuildArray(sp_ - size, sp_);
-        sp_ -= size;
-        PushStack(obj);
+        PushStack(BuildArray(size));
         break;
       }
       case Opcode::kDict: {
         CHECK_LT(ip + 1, bc.ins.NumBytes());
         const auto size = ReadUint16(bc.BytePtr(ip + 1));
         ip += 2;
-        const auto obj = BuildDict(sp_ - size, sp_);
+        auto obj = BuildDict(size);
         if (IsObjError(obj)) return MakeError(obj.Inspect());
-        sp_ -= size;
-        PushStack(obj);
+        PushStack(std::move(obj));
         break;
       }
       default:
@@ -256,19 +253,28 @@ absl::Status VirtualMachine::ExecArrayIndex(const Object& lhs,
   return kOkStatus;
 }
 
-Object VirtualMachine::BuildArray(size_t start, size_t end) const {
-  return ArrayObj({stack_.begin() + start, stack_.begin() + end});
+Object VirtualMachine::BuildArray(size_t size) {
+  Array arr;
+  arr.reserve(size);
+  for (size_t i = 0; i < size; ++i) {
+    arr.push_back(PopStack());
+  }
+  std::reverse(arr.begin(), arr.end());
+  return ArrayObj(std::move(arr));
 }
 
-Object VirtualMachine::BuildDict(size_t start, size_t end) const {
+Object VirtualMachine::BuildDict(size_t size) {
   Dict dict;
 
-  for (size_t i = start; i < end; i += 2) {
-    const auto& key = stack_.at(i);
+  for (size_t i = 0; i < size; i += 2) {
+    auto value = PopStack();
+    auto key = PopStack();
+
     if (!IsObjHashable(key)) {
       return ErrorObj("unusable as hash key: " + Repr(key.Type()));
     }
-    dict[key] = stack_.at(i + 1);
+
+    dict[key] = value;
   }
 
   return DictObj(std::move(dict));
@@ -277,8 +283,8 @@ Object VirtualMachine::BuildDict(size_t start, size_t end) const {
 absl::Status VirtualMachine::ExecStrBinaryOp(const Object& lhs,
                                              Opcode op,
                                              const Object& rhs) {
-  const auto lv = lhs.Cast<StrType>();
-  const auto rv = rhs.Cast<StrType>();
+  const auto& lv = lhs.Cast<StrType>();
+  const auto& rv = rhs.Cast<StrType>();
 
   if (op != Opcode::kAdd) {
     return MakeError("unknown string operator: " + Repr(op));
@@ -313,27 +319,17 @@ absl::Status VirtualMachine::ExecMinusOp() {
 }
 
 const Object& VirtualMachine::Top() const {
-  CHECK_GT(sp_, 0) << "Calling Top() when Stack is empty";
-  return stack_[sp_ - 1];
+  CHECK(!stack_.empty());
+  return stack_.top();
 }
-
-const Object& VirtualMachine::Last() const { return stack_.at(sp_); }
 
 Object VirtualMachine::PopStack() {
-  Object o = Top();  // Will check empty in Top();
-  --sp_;
-  return o;
+  CHECK(!stack_.empty());
+  last_ = std::move(stack_.top());
+  stack_.pop();
+  return last_;
 }
 
-void VirtualMachine::PushStack(const Object& obj) {
-  if (sp_ == stack_.size()) {
-    stack_.push_back(obj);
-  } else {
-    stack_[sp_] = obj;
-  }
-
-  ++sp_;
-  CHECK_LE(sp_, stack_.size());
-}
+void VirtualMachine::PushStack(Object obj) { stack_.emplace(std::move(obj)); }
 
 }  // namespace monkey
