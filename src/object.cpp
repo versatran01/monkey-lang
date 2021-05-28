@@ -50,6 +50,11 @@ std::string FuncObject::Inspect() const {
       body.String());
 }
 
+std::string CompiledFunc::Inspect() const {
+  //  return fmt::format("{}", fmt::ptr(this));
+  return ins.Repr();
+}
+
 std::string Object::Inspect() const {
   switch (Type()) {
     case ObjectType::kNull:
@@ -77,7 +82,7 @@ std::string Object::Inspect() const {
     case ObjectType::kQuote:
       return Cast<ExprNode>().String();
     case ObjectType::kCompiled:
-      return Cast<Instruction>().Repr();
+      return Cast<CompiledFunc>().Inspect();
     default:
       return fmt::format("Unknown type: {}", Type());
   }
@@ -99,10 +104,10 @@ Object DictObj(Dict dict) { return {ObjectType::kDict, std::move(dict)}; }
 Object QuoteObj(const ExprNode& expr) { return {ObjectType::kQuote, expr}; }
 Object BuiltinObj(const Builtin& fn) { return {ObjectType::kBuiltin, fn}; }
 Object CompiledObj(Instruction ins) {
-  return {ObjectType::kCompiled, std::move(ins)};
+  return {ObjectType::kCompiled, CompiledFunc{std::move(ins)}};
 }
 Object CompiledObj(const std::vector<Instruction>& ins) {
-  return {ObjectType::kCompiled, ConcatInstructions(ins)};
+  return {ObjectType::kCompiled, CompiledFunc{ConcatInstructions(ins)}};
 }
 
 Object ToIntObj(const ExprNode& expr) {

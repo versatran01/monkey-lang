@@ -90,7 +90,7 @@ using Dict = absl::flat_hash_map<Object, Object>;
 
 struct Builtin {
   std::string name;
-  std::function<Object(std::vector<Object>)> func;
+  std::function<Object(const std::vector<Object>&)> func;
 };
 
 struct FuncObject {
@@ -99,6 +99,12 @@ struct FuncObject {
   std::vector<Identifier> params;
   BlockStmt body;
   std::shared_ptr<Environment> env{nullptr};
+};
+
+struct CompiledFunc {
+  std::string Inspect() const;
+
+  Instruction ins;
 };
 
 bool IsObjTruthy(const Object& obj);

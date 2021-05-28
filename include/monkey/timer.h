@@ -1,14 +1,14 @@
 #pragma once
 
-#include <absl/container/flat_hash_map.h>  // flat_hash_map
-#include <absl/strings/string_view.h>      // string_view
-#include <absl/time/clock.h>               // GetCurrentTimeNanos
-#include <absl/time/time.h>                // Duration
+#include <absl/container/flat_hash_map.h>
+#include <absl/strings/string_view.h>
+#include <absl/time/clock.h>  // GetCurrentTimeNanos
+#include <absl/time/time.h>   // Duration
 
-#include <limits>        // numeric_limits
-#include <shared_mutex>  // shared_mutex
+#include <limits>
+#include <shared_mutex>
 
-#include "monkey/stats.h"  // Stats
+#include "monkey/stats.h"
 
 /// Specialize numeric_limits for absl::Duration (follows integral type)
 /// https://codeyarns.com/tech/2015-07-02-max-min-and-lowest-in-c.html

@@ -393,7 +393,7 @@ TEST(CompilerTest, TestFunction) {
   }
 }
 
-TEST(CopmilerTest, TestCompilerScope) {
+TEST(CompilerTest, TestCompilerScope) {
   Compiler comp;
   ASSERT_EQ(comp.NumScopes(), 1);
 
@@ -412,6 +412,30 @@ TEST(CopmilerTest, TestCompilerScope) {
   EXPECT_EQ(comp.ScopedIns().NumBytes(), 2);
   EXPECT_EQ(comp.ScopedLast().op, Opcode::kAdd);
   EXPECT_EQ(comp.ScopedPrev().op, Opcode::kMul);
+}
+
+TEST(CompilerTest, TestFunctionCall) {
+  const std::vector<CompilerTest> tests = {
+      {"fn() { 24; }()",
+       {IntObj(24),
+        CompiledObj({Encode(Opcode::kConst, 0), Encode(Opcode::kReturnVal)})},
+       {Encode(Opcode::kConst, 1),
+        Encode(Opcode::kCall),
+        Encode(Opcode::kPop)}},
+      {"let noArg = fn() { 24 }; noArg();",
+       {IntObj(24),
+        CompiledObj({Encode(Opcode::kConst, 0), Encode(Opcode::kReturnVal)})},
+       {Encode(Opcode::kConst, 1),
+        Encode(Opcode::kSetGlobal, 0),
+        Encode(Opcode::kGetGlobal, 0),
+        Encode(Opcode::kCall),
+        Encode(Opcode::kPop)}},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckCompiler(test);
+  }
 }
 
 }  // namespace

@@ -17,11 +17,11 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         const auto const_index = ReadUint16(bc.BytePtr(ip + 1));
         ip += 2;
 
-        Push(bc.consts[const_index]);
+        PushStack(bc.consts[const_index]);
         break;
       }
       case Opcode::kNull:
-        Push(NullObj());
+        PushStack(NullObj());
         break;
       case Opcode::kAdd:
       case Opcode::kSub:
@@ -31,10 +31,10 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         break;
       }
       case Opcode::kTrue:
-        Push(BoolObj(true));
+        PushStack(BoolObj(true));
         break;
       case Opcode::kFalse:
-        Push(BoolObj(false));
+        PushStack(BoolObj(false));
         break;
       case Opcode::kEq:
       case Opcode::kNe:
@@ -51,12 +51,12 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         break;
       }
       case Opcode::kPop: {
-        Pop();
+        PopStack();
         break;
       }
       case Opcode::kIndex: {
-        auto index = Pop();
-        auto lhs = Pop();
+        auto index = PopStack();
+        auto lhs = PopStack();
         status = ExecIndexExpr(lhs, index);
         break;
       }
@@ -70,7 +70,7 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         CHECK_LT(ip + 1, bc.ins.NumBytes());
         size_t pos = ReadUint16(bc.BytePtr(ip + 1));
         ip += 2;
-        const auto cond = Pop();
+        const auto cond = PopStack();
         if (!IsObjTruthy(cond)) ip = pos - 1;
         break;
       }
@@ -78,14 +78,14 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         CHECK_LT(ip + 1, bc.ins.NumBytes());
         auto index = ReadUint16(bc.BytePtr(ip + 1));
         ip += 2;
-        globals_[index] = Pop();
+        globals_[index] = PopStack();
         break;
       }
       case Opcode::kGetGlobal: {
         CHECK_LT(ip + 1, bc.ins.NumBytes());
         auto index = ReadUint16(bc.BytePtr(ip + 1));
         ip += 2;
-        Push(globals_.at(index));
+        PushStack(globals_.at(index));
         break;
       }
       case Opcode::kArray: {
@@ -94,7 +94,7 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         ip += 2;
         const auto obj = BuildArray(sp_ - size, sp_);
         sp_ -= size;
-        Push(obj);
+        PushStack(obj);
         break;
       }
       case Opcode::kDict: {
@@ -104,7 +104,7 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         const auto obj = BuildDict(sp_ - size, sp_);
         if (IsObjError(obj)) return MakeError(obj.Inspect());
         sp_ -= size;
-        Push(obj);
+        PushStack(obj);
         break;
       }
       default:
@@ -119,8 +119,8 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
 }
 
 absl::Status VirtualMachine::ExecBinaryOp(Opcode op) {
-  const auto rhs = Pop();
-  const auto lhs = Pop();
+  const auto rhs = PopStack();
+  const auto lhs = PopStack();
 
   if (ObjOfSameType(ObjectType::kInt, lhs, rhs)) {
     return ExecIntBinaryOp(lhs, op, rhs);
@@ -159,13 +159,13 @@ absl::Status VirtualMachine::ExecIntBinaryOp(const Object& lhs,
       return MakeError("Unknown integer operator: " + Repr(op));
   }
 
-  Push(IntObj(res));
+  PushStack(IntObj(res));
   return kOkStatus;
 }
 
 absl::Status VirtualMachine::ExecComparison(Opcode op) {
-  const auto rhs = Pop();
-  const auto lhs = Pop();
+  const auto rhs = PopStack();
+  const auto lhs = PopStack();
 
   if (ObjOfSameType(ObjectType::kInt, lhs, rhs)) {
     return ExecIntComp(lhs, op, rhs);
@@ -175,10 +175,10 @@ absl::Status VirtualMachine::ExecComparison(Opcode op) {
   CHECK(ObjOfSameType(ObjectType::kBool, lhs, rhs));
   switch (op) {
     case Opcode::kEq:
-      Push(BoolObj(lhs.Cast<BoolType>() == rhs.Cast<BoolType>()));
+      PushStack(BoolObj(lhs.Cast<BoolType>() == rhs.Cast<BoolType>()));
       break;
     case Opcode::kNe:
-      Push(BoolObj(lhs.Cast<BoolType>() != rhs.Cast<BoolType>()));
+      PushStack(BoolObj(lhs.Cast<BoolType>() != rhs.Cast<BoolType>()));
       break;
     default:
       return MakeError(fmt::format(
@@ -209,7 +209,7 @@ absl::Status VirtualMachine::ExecIntComp(const Object& lhs,
       return MakeError("Unknown operator: " + Repr(op));
   }
 
-  Push(BoolObj(res));
+  PushStack(BoolObj(res));
   return kOkStatus;
 }
 
@@ -235,9 +235,9 @@ absl::Status VirtualMachine::ExecDictIndex(const Object& lhs,
 
   const auto it = dict.find(index);
   if (it == dict.end()) {
-    Push(NullObj());
+    PushStack(NullObj());
   } else {
-    Push(it->second);
+    PushStack(it->second);
   }
   return kOkStatus;
 }
@@ -249,9 +249,9 @@ absl::Status VirtualMachine::ExecArrayIndex(const Object& lhs,
   const auto size = array.size();
 
   if (i < 0 || i >= size) {
-    Push(NullObj());
+    PushStack(NullObj());
   } else {
-    Push(array[i]);
+    PushStack(array[i]);
   }
   return kOkStatus;
 }
@@ -284,31 +284,31 @@ absl::Status VirtualMachine::ExecStrBinaryOp(const Object& lhs,
     return MakeError("unknown string operator: " + Repr(op));
   }
 
-  Push(StrObj(lv + rv));
+  PushStack(StrObj(lv + rv));
   return kOkStatus;
 }
 
 absl::Status VirtualMachine::ExecBangOp() {
-  const auto obj = Pop();
+  const auto obj = PopStack();
 
   if (obj.Type() == ObjectType::kBool) {
-    Push(BoolObj(!obj.Cast<BoolType>()));
+    PushStack(BoolObj(!obj.Cast<BoolType>()));
   } else if (obj.Type() == ObjectType::kNull) {
-    Push(BoolObj(true));
+    PushStack(BoolObj(true));
   } else {
-    Push(BoolObj(false));
+    PushStack(BoolObj(false));
   }
 
   return kOkStatus;
 }
 
 absl::Status VirtualMachine::ExecMinusOp() {
-  const auto obj = Pop();
+  const auto obj = PopStack();
   if (obj.Type() != ObjectType::kInt) {
     return MakeError("Unsupported type for negation: " + Repr(obj.Type()));
   }
 
-  Push(IntObj(-obj.Cast<IntType>()));
+  PushStack(IntObj(-obj.Cast<IntType>()));
   return kOkStatus;
 }
 
@@ -319,13 +319,13 @@ const Object& VirtualMachine::Top() const {
 
 const Object& VirtualMachine::Last() const { return stack_.at(sp_); }
 
-Object VirtualMachine::Pop() {
+Object VirtualMachine::PopStack() {
   Object o = Top();  // Will check empty in Top();
   --sp_;
   return o;
 }
 
-void VirtualMachine::Push(const Object& obj) {
+void VirtualMachine::PushStack(const Object& obj) {
   if (sp_ == stack_.size()) {
     stack_.push_back(obj);
   } else {

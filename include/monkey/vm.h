@@ -3,9 +3,9 @@
 #include <absl/container/flat_hash_map.h>
 
 #include <deque>
-#include <stack>
 
 #include "monkey/compiler.h"
+#include "monkey/frame.h"
 #include "monkey/object.h"
 
 namespace monkey {
@@ -34,11 +34,14 @@ class VirtualMachine {
   Object BuildArray(size_t start, size_t end) const;
   Object BuildDict(size_t start, size_t end) const;
 
-  Object Pop();
-  void Push(const Object& obj);
+  Object PopStack();
+  void PushStack(const Object& obj);
+
+  void PushFrame(const Frame& frame);
 
   size_t sp_{0};
   std::deque<Object> stack_;
+  std::deque<Frame> frames_;
   absl::flat_hash_map<int, Object> globals_;
 };
 

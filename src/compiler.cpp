@@ -68,6 +68,9 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
     case NodeType::kIndexExpr: {
       return CompileIndexExpr(node);
     }
+    case NodeType::kCallExpr: {
+      return CompileCallExpr(node);
+    }
     case NodeType::kIntLiteral: {
       Emit(Opcode::kConst, static_cast<int>(AddConstant(ToIntObj(node))));
       break;
@@ -224,6 +227,15 @@ absl::Status Compiler::CompileIfExpr(const ExprNode& expr) {
   return kOkStatus;
 }
 
+absl::Status Compiler::CompileCallExpr(const ExprNode& expr) {
+  const auto* ptr = expr.PtrCast<CallExpr>();
+  CHECK_NOTNULL(ptr);
+  auto status = CompileImpl(ptr->func);
+  if (!status.ok()) return status;
+  Emit(Opcode::kCall);
+  return kOkStatus;
+}
+
 absl::Status Compiler::CompileIndexExpr(const ExprNode& expr) {
   const auto* ptr = expr.PtrCast<IndexExpr>();
   CHECK_NOTNULL(ptr);
@@ -344,24 +356,6 @@ absl::Status Compiler::CompileReturnStmt(const StmtNode& stmt) {
 
   Emit(Opcode::kReturnVal);
   return kOkStatus;
-}
-
-std::string Symbol::Repr() const {
-  return fmt::format("Symbol(name={}, scope={}, ind={})", name, scope, index);
-}
-
-std::ostream& operator<<(std::ostream& os, const Symbol& symbol) {
-  return os << symbol.Repr();
-}
-
-Symbol& SymbolTable::Define(const std::string& name) {
-  return store_[name] = {name, kGlobalScope, num_defs_++};
-}
-
-absl::optional<Symbol> SymbolTable::Resolve(const std::string& name) const {
-  const auto it = store_.find(name);
-  if (it == store_.end()) return absl::nullopt;
-  return it->second;
 }
 
 }  // namespace monkey

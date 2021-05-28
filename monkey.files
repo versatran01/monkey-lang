@@ -15,11 +15,13 @@ include/monkey/code.h
 include/monkey/compiler.h
 include/monkey/environment.h
 include/monkey/evaluator.h
+include/monkey/frame.h
 include/monkey/instruction.h
 include/monkey/lexer.h
 include/monkey/object.h
 include/monkey/parser.h
 include/monkey/stats.h
+include/monkey/symbol.h
 include/monkey/timer.h
 include/monkey/token.h
 include/monkey/vm.h
@@ -36,6 +38,7 @@ src/instruction.cpp
 src/lexer.cpp
 src/object.cpp
 src/parser.cpp
+src/symbol.cpp
 src/timer.cpp
 src/token.cpp
 src/vm.cpp

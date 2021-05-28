@@ -60,9 +60,14 @@ cc_library(
   LINKOPTS absl::strings)
 
 cc_library(
+  NAME symbol
+  SRCS "symbol.cpp"
+  DEPS absl::flat_hash_map monkey::base)
+
+cc_library(
   NAME compiler
   SRCS "compiler.cpp"
-  DEPS monkey::code monkey::ast monkey::object absl::statusor
+  DEPS monkey::code monkey::ast monkey::object monkey::symbol absl::statusor
   LINKOPTS monkey::timer)
 
 cc_library(
