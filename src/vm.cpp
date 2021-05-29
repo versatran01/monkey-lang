@@ -106,7 +106,7 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         ip += 2;
         auto obj = BuildDict(size);
         if (IsObjError(obj)) return MakeError(obj.Inspect());
-        PushStack(std::move(obj));
+        PushStack(obj);
         break;
       }
       case Opcode::kCall: {
@@ -122,10 +122,13 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
       case Opcode::kReturnVal: {
         auto ret = PopStack();
         PopFrame();
-        PopStack();
-
-        PushStack(std::move(ret));
+        ReplaceStackTop(ret);
         continue;  // we do not want to increment ip if we just popped the frame
+      }
+      case Opcode::kReturn: {
+        PopFrame();
+        ReplaceStackTop(NullObj());
+        continue;
       }
       default:
         return MakeError("Unhandled Opcode: " + Repr(op));
@@ -355,7 +358,12 @@ Object VirtualMachine::PopStack() {
   return last_;
 }
 
-void VirtualMachine::PushStack(Object obj) { stack_.emplace(std::move(obj)); }
+void VirtualMachine::PushStack(const Object& obj) { stack_.emplace(obj); }
+
+void VirtualMachine::ReplaceStackTop(const Object& obj) {
+  last_ = Top();
+  stack_.top() = obj;
+}
 
 Frame VirtualMachine::PopFrame() {
   CHECK(!frames_.empty());

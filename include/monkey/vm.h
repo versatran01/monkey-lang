@@ -41,7 +41,8 @@ class VirtualMachine {
   Object BuildDict(size_t size);
 
   Object PopStack();
-  void PushStack(Object obj);
+  void PushStack(const Object& obj);
+  void ReplaceStackTop(const Object& obj);
 
   Frame PopFrame();
   void PushFrame(Frame frame);
