@@ -97,7 +97,7 @@ Object IntObj(IntType value) { return {ObjectType::kInt, value}; }
 Object StrObj(StrType value) { return {ObjectType::kStr, std::move(value)}; }
 Object BoolObj(BoolType value) { return {ObjectType::kBool, value}; }
 Object ErrorObj(StrType str) { return {ObjectType::kError, std::move(str)}; }
-Object ReturnObj(const Object& value) { return {ObjectType::kReturn, value}; }
+Object ReturnObj(Object obj) { return {ObjectType::kReturn, std::move(obj)}; }
 Object FuncObj(const FuncObject& fn) { return {ObjectType::kFunc, fn}; }
 Object ArrayObj(Array arr) { return {ObjectType::kArray, std::move(arr)}; }
 Object DictObj(Dict dict) { return {ObjectType::kDict, std::move(dict)}; }

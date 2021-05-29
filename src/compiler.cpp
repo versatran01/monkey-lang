@@ -7,10 +7,10 @@ namespace monkey {
 
 static constexpr int kPlaceHolder = 0;
 
-Compiler::Compiler() { scopes_.push_back({}); }
-
 absl::StatusOr<Bytecode> Compiler::Compile(const Program& program) {
   auto _ = timers_.Scoped("CompileProgram");
+
+  EnterScope();
 
   for (const auto& stmt : program.statements) {
     auto status = CompileImpl(stmt);
@@ -32,7 +32,6 @@ Instruction Compiler::ExitScope() {
 }
 
 void Compiler::Reset() {
-  //  ins_ = Instruction{};
   scopes_.clear();
   consts_.clear();
 }
@@ -340,12 +339,14 @@ absl::Status Compiler::CompileBlockStmt(const StmtNode& stmt) {
   const auto* ptr = stmt.PtrCast<BlockStmt>();
   CHECK_NOTNULL(ptr);
 
+  absl::Status status = kOkStatus;
+
   for (const auto& st : ptr->statements) {
-    auto status = CompileImpl(st);
+    status.Update(CompileImpl(st));
     if (!status.ok()) return status;
   }
 
-  return kOkStatus;
+  return status;
 }
 
 absl::Status Compiler::CompileReturnStmt(const StmtNode& stmt) {

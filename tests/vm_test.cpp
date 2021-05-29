@@ -279,4 +279,17 @@ TEST(VmTest, TestCallFunctionWithoutReturnVal) {
   }
 }
 
+TEST(VmTest, TestFirstClassFunction) {
+  const std::vector<VmTest> tests = {
+      {"let returnsOne = fn() { 1; }; let returnsOneReturner = fn() { "
+       "returnsOne; }; returnsOneReturner()();",
+       1},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckVm(test);
+  }
+}
+
 }  // namespace

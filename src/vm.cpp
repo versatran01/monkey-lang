@@ -18,7 +18,6 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
 
     switch (op) {
       case Opcode::kConst: {
-        CHECK_LT(ip + 1, ins.NumBytes());
         const auto const_index = ReadUint16(ins.BytePtr(ip + 1));
         ip += 2;
 
@@ -66,13 +65,11 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         break;
       }
       case Opcode::kJump: {
-        CHECK_LT(ip + 1, ins.NumBytes());
         size_t pos = ReadUint16(ins.BytePtr(ip + 1));
         ip = pos - 1;  // the loop will increment ip, so -1
         break;
       }
       case Opcode::kJumpNotTrue: {
-        CHECK_LT(ip + 1, ins.NumBytes());
         size_t pos = ReadUint16(ins.BytePtr(ip + 1));
         ip += 2;
         const auto cond = PopStack();
@@ -80,36 +77,33 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         break;
       }
       case Opcode::kSetGlobal: {
-        CHECK_LT(ip + 1, ins.NumBytes());
         auto index = ReadUint16(ins.BytePtr(ip + 1));
         ip += 2;
         globals_[index] = PopStack();
         break;
       }
       case Opcode::kGetGlobal: {
-        CHECK_LT(ip + 1, ins.NumBytes());
         auto index = ReadUint16(ins.BytePtr(ip + 1));
         ip += 2;
         PushStack(globals_.at(index));
         break;
       }
       case Opcode::kArray: {
-        CHECK_LT(ip + 1, ins.NumBytes());
         const auto size = ReadUint16(ins.BytePtr(ip + 1));
         ip += 2;
         PushStack(BuildArray(size));
         break;
       }
       case Opcode::kDict: {
-        CHECK_LT(ip + 1, ins.NumBytes());
         const auto size = ReadUint16(ins.BytePtr(ip + 1));
         ip += 2;
         auto obj = BuildDict(size);
         if (IsObjError(obj)) return MakeError(obj.Inspect());
-        PushStack(obj);
+        PushStack(std::move(obj));
         break;
       }
       case Opcode::kCall: {
+        // This will be popped when function returns
         auto obj = Top();
 
         if (obj.Type() != ObjectType::kCompiled) {
@@ -122,7 +116,7 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
       case Opcode::kReturnVal: {
         auto ret = PopStack();
         PopFrame();
-        ReplaceStackTop(ret);
+        ReplaceStackTop(std::move(ret));
         continue;  // we do not want to increment ip if we just popped the frame
       }
       case Opcode::kReturn: {
@@ -351,18 +345,18 @@ const Object& VirtualMachine::Top() const {
   return stack_.top();
 }
 
-Object VirtualMachine::PopStack() {
+const Object& VirtualMachine::PopStack() {
   CHECK(!stack_.empty());
   last_ = std::move(stack_.top());
   stack_.pop();
   return last_;
 }
 
-void VirtualMachine::PushStack(const Object& obj) { stack_.emplace(obj); }
+void VirtualMachine::PushStack(Object obj) { stack_.emplace(std::move(obj)); }
 
-void VirtualMachine::ReplaceStackTop(const Object& obj) {
+void VirtualMachine::ReplaceStackTop(Object obj) {
   last_ = Top();
-  stack_.top() = obj;
+  stack_.top() = std::move(obj);
 }
 
 Frame VirtualMachine::PopFrame() {

@@ -47,7 +47,7 @@ struct Instruction {
 };
 
 struct Decoded {
-  std::vector<int> operands;
+  absl::InlinedVector<int, 2> operands;
   size_t nbytes{0};
 };
 

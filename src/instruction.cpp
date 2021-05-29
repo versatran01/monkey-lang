@@ -1,6 +1,7 @@
 #include "monkey/instruction.h"
 
 #include <absl/strings/str_join.h>
+#include <absl/types/span.h>
 #include <fmt/core.h>
 #include <glog/logging.h>
 
@@ -9,7 +10,7 @@ namespace monkey {
 namespace {
 
 std::string FormatInstruction(const Definition& def,
-                              const std::vector<int>& operands) {
+                              absl::Span<const int> operands) {
   const auto num_operands = operands.size();
   CHECK_EQ(num_operands, def.NumOperands());
 
@@ -42,7 +43,7 @@ Byte Instruction::PopBack() {
 }
 
 size_t Instruction::EncodeOpcode(Opcode op, size_t total_bytes) {
-  num_ops += 1;
+  ++num_ops;
   auto nbytes = NumBytes();
   bytes.resize(nbytes + total_bytes);
   bytes[nbytes] = ToByte(op);
@@ -50,8 +51,15 @@ size_t Instruction::EncodeOpcode(Opcode op, size_t total_bytes) {
 }
 
 void Instruction::EncodeOperand(size_t offset, size_t nbytes, int operand) {
+  CHECK_LE(0, operand);
+
   switch (nbytes) {
+    case 1:
+      CHECK_LE(operand, std::numeric_limits<uint8_t>::max());
+      bytes[offset] = static_cast<uint8_t>(operand);
+      break;
     case 2:
+      CHECK_LE(operand, std::numeric_limits<uint16_t>::max());
       PutUint16(&bytes[offset], static_cast<uint16_t>(operand));
       break;
     default:
@@ -124,8 +132,11 @@ Decoded Decode(const Definition& def, const Instruction& ins, size_t offset) {
     CHECK_LE(start + nbytes, ins.NumBytes());
 
     switch (nbytes) {
+      case 1:
+        dec.operands.push_back(ins.ByteAt(dec.nbytes + offset));
+        break;
       case 2:
-        dec.operands.push_back(ReadUint16(&ins.bytes[dec.nbytes + offset]));
+        dec.operands.push_back(ReadUint16(ins.BytePtr(dec.nbytes + offset)));
         break;
       default:
         CHECK(false) << "Should not reach here";

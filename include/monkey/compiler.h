@@ -24,8 +24,6 @@ struct Bytecode {
 
 class Compiler {
  public:
-  Compiler();
-
   absl::StatusOr<Bytecode> Compile(const Program& program);
 
   const auto& timers() const noexcept { return timers_; }
@@ -88,8 +86,8 @@ class Compiler {
   absl::Status CompileBlockStmt(const StmtNode& stmt);
   absl::Status CompileReturnStmt(const StmtNode& stmt);
 
-  std::vector<Scope> scopes_;
   SymbolTable stable_;
+  std::vector<Scope> scopes_;
   std::vector<Object> consts_;
   mutable TimerManager timers_;
 };

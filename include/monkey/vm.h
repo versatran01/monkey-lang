@@ -40,9 +40,10 @@ class VirtualMachine {
   Object BuildArray(size_t size);
   Object BuildDict(size_t size);
 
-  Object PopStack();
-  void PushStack(const Object& obj);
-  void ReplaceStackTop(const Object& obj);
+  // Returns the stored last object on stack
+  const Object& PopStack();
+  void PushStack(Object obj);
+  void ReplaceStackTop(Object obj);
 
   Frame PopFrame();
   void PushFrame(Frame frame);

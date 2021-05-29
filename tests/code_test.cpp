@@ -20,6 +20,7 @@ TEST(CodeTest, TestEncode) {
   const std::vector<EncodeTest> tests = {
       {Opcode::kConst, {65534}, {ToByte(Opcode::kConst), 255, 254}},
       {Opcode::kAdd, {}, {ToByte(Opcode::kAdd)}},
+      {Opcode::kGetLocal, {255}, {ToByte(Opcode::kGetLocal), 255}},
   };
 
   for (const auto& test : tests) {
@@ -58,6 +59,7 @@ TEST(CodeTest, TestDecode) {
   const std::vector<DecodeTest> tests = {
       {Opcode::kConst, {65535}, 2},
       {Opcode::kAdd, {}, 0},
+      {Opcode::kGetLocal, {255}, 1},
   };
 
   for (const auto& test : tests) {
@@ -65,25 +67,30 @@ TEST(CodeTest, TestDecode) {
     const auto def = LookupDefinition(test.op);
     const auto dec = Decode(def, inst, 1);
     EXPECT_EQ(dec.nbytes, test.nbytes);
-    EXPECT_THAT(dec.operands, ContainerEq(test.operands));
+    EXPECT_THAT(absl::MakeConstSpan(dec.operands),
+                ContainerEq(absl::MakeConstSpan(test.operands)));
   }
 }
 
 TEST(CodeTest, TestInstructionString) {
   const std::vector<Instruction> instructions = {
       Encode(Opcode::kAdd),
-      Encode(Opcode::kConst, {2}),
-      Encode(Opcode::kConst, {65534}),
+      Encode(Opcode::kGetLocal, 1),
+      Encode(Opcode::kConst, 2),
+      Encode(Opcode::kConst, 65534),
   };
 
-  const std::vector<std::string> expected = {
-      "0000 OpAdd", "0000 OpConst 2", "0000 OpConst 65534"};
+  const std::vector<std::string> expected = {"0000 OpAdd",
+                                             "0000 OpGetLocal 1",
+                                             "0000 OpConst 2",
+                                             "0000 OpConst 65534"};
 
   for (size_t i = 0; i < instructions.size(); ++i) {
     EXPECT_EQ(instructions[i].Repr(), expected[i]);
   }
 
-  const std::string fullstr = "0000 OpAdd\n0001 OpConst 2\n0004 OpConst 65534";
+  const std::string fullstr =
+      "0000 OpAdd\n0001 OpGetLocal 1\n0003 OpConst 2\n0006 OpConst 65534";
 
   const auto instr = ConcatInstructions(instructions);
   EXPECT_EQ(instr.Repr(), fullstr);

@@ -37,6 +37,8 @@ enum class Opcode : Byte {
   kCall,
   kReturn,
   kReturnVal,
+  kGetLocal,
+  kSetLocal,
 };
 
 std::string Repr(Opcode op);

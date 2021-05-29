@@ -395,6 +395,9 @@ TEST(CompilerTest, TestFunction) {
 
 TEST(CompilerTest, TestCompilerScope) {
   Compiler comp;
+  ASSERT_EQ(comp.NumScopes(), 0);
+
+  comp.EnterScope();
   ASSERT_EQ(comp.NumScopes(), 1);
 
   comp.Emit(Opcode::kMul);

@@ -43,6 +43,11 @@ bool ObjOfSameType(ObjectType op, Args const&... args) {
 
 struct Object {
   Object() = default;
+  Object(const Object&) = default;
+  Object& operator=(const Object&) = default;
+  Object(Object&&) = default;
+  Object& operator=(Object&&) = default;
+
   explicit Object(ObjectType type) : type{type} {}
   Object(ObjectType type, absl::any value)
       : type{type}, value{std::move(value)} {}
@@ -122,12 +127,12 @@ Object IntObj(IntType value);
 Object StrObj(StrType value);
 Object BoolObj(BoolType value);
 Object ErrorObj(StrType str);
-Object ReturnObj(const Object& obj);
-Object FuncObj(const FuncObject& fn);
+Object ReturnObj(Object obj);
 Object ArrayObj(Array arr);
 Object DictObj(Dict dict);
-Object QuoteObj(const ExprNode& expr);
 Object BuiltinObj(const Builtin& fn);
+Object FuncObj(const FuncObject& fn);
+Object QuoteObj(const ExprNode& expr);
 Object CompiledObj(Instruction ins);
 Object CompiledObj(const std::vector<Instruction>& ins);
 
