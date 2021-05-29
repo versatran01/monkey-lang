@@ -351,7 +351,7 @@ absl::Status Compiler::CompileBlockStmt(const StmtNode& stmt) {
 absl::Status Compiler::CompileReturnStmt(const StmtNode& stmt) {
   const auto* ptr = stmt.PtrCast<ReturnStmt>();
   CHECK_NOTNULL(ptr);
-  const auto status = CompileImpl(ptr->expr);
+  auto status = CompileImpl(ptr->expr);
   if (!status.ok()) return status;
 
   Emit(Opcode::kReturnVal);

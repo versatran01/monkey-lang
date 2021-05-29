@@ -25,7 +25,7 @@ class Evaluator {
                                 Environment& env) const;
 
   Object EvalBangOpExpr(const Object& obj) const;
-  Object EvalMinuxPrefixOpExpr(const Object& obj) const;
+  Object EvalMinusPrefixOpExpr(const Object& obj) const;
   Object EvalPrefixExpr(const std::string& op, const Object& obj) const;
   Object EvalInfixExpr(const Object& lhs,
                        const std::string& op,

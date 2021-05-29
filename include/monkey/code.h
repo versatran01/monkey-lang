@@ -57,7 +57,7 @@ struct Definition {
   std::string Repr() const;
   friend std::ostream& operator<<(std::ostream& os, const Definition& def);
 
-  auto NumOperands() const noexcept { return operand_bytes.size(); }
+  size_t NumOperands() const noexcept { return operand_bytes.size(); }
   size_t SumOperandBytes() const;
 };
 

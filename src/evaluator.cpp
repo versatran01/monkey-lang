@@ -173,7 +173,7 @@ Object Evaluator::EvalIdentifier(const Identifier& ident,
 Object Evaluator::EvalPrefixExpr(const std::string& op,
                                  const Object& obj) const {
   if (op == "!") return EvalBangOpExpr(obj);
-  if (op == "-") return EvalMinuxPrefixOpExpr(obj);
+  if (op == "-") return EvalMinusPrefixOpExpr(obj);
   return ErrorObj(fmt::format("{}: {}{}", kUnknownOp, op, obj.Type()));
 }
 
@@ -315,7 +315,7 @@ Object Evaluator::EvalBangOpExpr(const Object& obj) const {
   }
 }
 
-Object Evaluator::EvalMinuxPrefixOpExpr(const Object& obj) const {
+Object Evaluator::EvalMinusPrefixOpExpr(const Object& obj) const {
   if (obj.Type() == ObjectType::kInt) {
     return IntObj(-obj.Cast<IntType>());
   }

@@ -59,6 +59,11 @@ struct Object {
     return absl::any_cast<const T&>(value);
   }
 
+  template <typename T>
+  T& MutCast() {
+    return absl::any_cast<T&>(value);
+  }
+
   // https://abseil.io/docs/cpp/guides/hash
   template <typename H>
   friend H AbslHashValue(H h, const Object& obj) {

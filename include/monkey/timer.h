@@ -100,7 +100,7 @@ class TimerManager {
   class ScopedTimer : public ManualTimer {
    public:
     using ManualTimer::ManualTimer;
-    ~ScopedTimer() noexcept { Commit(); }
+    ~ScopedTimer() noexcept override { Commit(); }
   };
 
   explicit TimerManager(std::string name = "timers") : name_{std::move(name)} {}

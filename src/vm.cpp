@@ -6,15 +6,20 @@
 namespace monkey {
 
 absl::Status VirtualMachine::Run(const Bytecode& bc) {
+  frames_.push({CompiledFunc{bc.ins}});
+
   auto status = kOkStatus;
 
-  for (size_t ip = 0; ip < bc.ins.NumBytes(); ++ip) {
-    const auto op = ToOpcode(bc.ByteAt(ip));
+  while (CurrFrame().ip < CurrFrame().Ins().NumBytes()) {
+    const auto& ins = CurrFrame().Ins();
+    auto& ip = CurrFrame().ip;
+
+    const auto op = ToOpcode(ins.ByteAt(ip));
 
     switch (op) {
       case Opcode::kConst: {
-        CHECK_LT(ip + 1, bc.ins.NumBytes());
-        const auto const_index = ReadUint16(bc.BytePtr(ip + 1));
+        CHECK_LT(ip + 1, ins.NumBytes());
+        const auto const_index = ReadUint16(ins.BytePtr(ip + 1));
         ip += 2;
 
         PushStack(bc.consts[const_index]);
@@ -61,48 +66,66 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         break;
       }
       case Opcode::kJump: {
-        CHECK_LT(ip + 1, bc.ins.NumBytes());
-        size_t pos = ReadUint16(bc.BytePtr(ip + 1));
+        CHECK_LT(ip + 1, ins.NumBytes());
+        size_t pos = ReadUint16(ins.BytePtr(ip + 1));
         ip = pos - 1;  // the loop will increment ip, so -1
         break;
       }
       case Opcode::kJumpNotTrue: {
-        CHECK_LT(ip + 1, bc.ins.NumBytes());
-        size_t pos = ReadUint16(bc.BytePtr(ip + 1));
+        CHECK_LT(ip + 1, ins.NumBytes());
+        size_t pos = ReadUint16(ins.BytePtr(ip + 1));
         ip += 2;
         const auto cond = PopStack();
         if (!IsObjTruthy(cond)) ip = pos - 1;
         break;
       }
       case Opcode::kSetGlobal: {
-        CHECK_LT(ip + 1, bc.ins.NumBytes());
-        auto index = ReadUint16(bc.BytePtr(ip + 1));
+        CHECK_LT(ip + 1, ins.NumBytes());
+        auto index = ReadUint16(ins.BytePtr(ip + 1));
         ip += 2;
         globals_[index] = PopStack();
         break;
       }
       case Opcode::kGetGlobal: {
-        CHECK_LT(ip + 1, bc.ins.NumBytes());
-        auto index = ReadUint16(bc.BytePtr(ip + 1));
+        CHECK_LT(ip + 1, ins.NumBytes());
+        auto index = ReadUint16(ins.BytePtr(ip + 1));
         ip += 2;
         PushStack(globals_.at(index));
         break;
       }
       case Opcode::kArray: {
-        CHECK_LT(ip + 1, bc.ins.NumBytes());
-        const auto size = ReadUint16(bc.BytePtr(ip + 1));
+        CHECK_LT(ip + 1, ins.NumBytes());
+        const auto size = ReadUint16(ins.BytePtr(ip + 1));
         ip += 2;
         PushStack(BuildArray(size));
         break;
       }
       case Opcode::kDict: {
-        CHECK_LT(ip + 1, bc.ins.NumBytes());
-        const auto size = ReadUint16(bc.BytePtr(ip + 1));
+        CHECK_LT(ip + 1, ins.NumBytes());
+        const auto size = ReadUint16(ins.BytePtr(ip + 1));
         ip += 2;
         auto obj = BuildDict(size);
         if (IsObjError(obj)) return MakeError(obj.Inspect());
         PushStack(std::move(obj));
         break;
+      }
+      case Opcode::kCall: {
+        auto obj = Top();
+
+        if (obj.Type() != ObjectType::kCompiled) {
+          status.Update(MakeError("calling non-function: " + Repr(obj.Type())));
+        } else {
+          PushFrame(Frame{std::move(obj.MutCast<CompiledFunc>())});
+        }
+        break;
+      }
+      case Opcode::kReturnVal: {
+        auto ret = PopStack();
+        PopFrame();
+        PopStack();
+
+        PushStack(std::move(ret));
+        continue;  // we do not want to increment ip if we just popped the frame
       }
       default:
         return MakeError("Unhandled Opcode: " + Repr(op));
@@ -110,6 +133,8 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
 
     // Check status and early return
     if (!status.ok()) return status;
+
+    ++ip;
   }
 
   return status;
@@ -331,5 +356,16 @@ Object VirtualMachine::PopStack() {
 }
 
 void VirtualMachine::PushStack(Object obj) { stack_.emplace(std::move(obj)); }
+
+Frame VirtualMachine::PopFrame() {
+  CHECK(!frames_.empty());
+  auto frame = std::move(frames_.top());
+  frames_.pop();
+  return frame;
+}
+
+void VirtualMachine::PushFrame(Frame frame) {
+  frames_.emplace(std::move(frame));
+}
 
 }  // namespace monkey

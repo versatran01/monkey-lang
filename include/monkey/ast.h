@@ -90,7 +90,7 @@ struct Program final : public NodeBase {
   std::string TokenLiteral() const override;
   std::string String() const override;
 
-  auto AddStatement(const StmtNode& stmt) { return statements.push_back(stmt); }
+  void AddStatement(const StmtNode& stmt) { return statements.push_back(stmt); }
   auto NumStatements() const noexcept { return statements.size(); }
 
   std::vector<StmtNode> statements;

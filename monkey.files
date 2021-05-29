@@ -15,7 +15,6 @@ include/monkey/code.h
 include/monkey/compiler.h
 include/monkey/environment.h
 include/monkey/evaluator.h
-include/monkey/frame.h
 include/monkey/instruction.h
 include/monkey/lexer.h
 include/monkey/object.h

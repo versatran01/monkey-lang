@@ -5,10 +5,16 @@
 #include <stack>
 
 #include "monkey/compiler.h"
-#include "monkey/frame.h"
 #include "monkey/object.h"
 
 namespace monkey {
+
+struct Frame {
+  const Instruction& Ins() const noexcept { return func.ins; }
+
+  CompiledFunc func;
+  mutable size_t ip{0};
+};
 
 class VirtualMachine {
  public:
@@ -37,7 +43,10 @@ class VirtualMachine {
   Object PopStack();
   void PushStack(Object obj);
 
-  void PushFrame(const Frame& frame);
+  Frame PopFrame();
+  void PushFrame(Frame frame);
+
+  const auto& CurrFrame() const { return frames_.top(); }
 
   Object last_;
   std::stack<Object> stack_;

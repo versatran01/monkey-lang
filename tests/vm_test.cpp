@@ -239,4 +239,20 @@ TEST(VmTest, TestIndexExpression) {
     CheckVm(test);
   }
 }
+
+TEST(VmTest, TestCallFunctionNoArgs) {
+  const std::vector<VmTest> tests = {
+      {"let fivePlusTen = fn() { 5 + 10; }; fivePlusTen();", 15},
+      {"let one = fn() { 1; }; let two = fn() { 2; }; one() + two()", 3},
+      {R"r(let a = fn() { 1 };let b = fn() { a() + 1 };
+        let c = fn() { b() + 1 }; c();)r",
+       3},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckVm(test);
+  }
+}
+
 }  // namespace

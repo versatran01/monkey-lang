@@ -94,7 +94,7 @@ Object BuiltinPush(const std::vector<Object>& args) {
   const auto& arg0 = args.front();
   if (arg0.Type() != ObjectType::kArray) {
     return ErrorObj(
-        fmt::format("arguent to `push` must be ARRAY, got {}", arg0.Type()));
+        fmt::format("argument to `push` must be ARRAY, got {}", arg0.Type()));
   }
 
   const auto& arr = arg0.Cast<Array>();

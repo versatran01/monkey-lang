@@ -13,6 +13,9 @@ struct Instruction {
   void Append(const Instruction& ins);
   Byte PopBack();
 
+  Byte ByteAt(size_t n) const { return bytes.at(n); }
+  const Byte* BytePtr(size_t n) const { return &bytes.at(n); }
+
   /// Encode opcode and also allocate enough space for operands
   size_t EncodeOpcode(Opcode op, size_t total_bytes = 1);
   void EncodeOperand(size_t offset, size_t nbytes, int operand);
