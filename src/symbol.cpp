@@ -13,13 +13,24 @@ std::ostream& operator<<(std::ostream& os, const Symbol& symbol) {
 }
 
 Symbol& SymbolTable::Define(const std::string& name) {
-  return store_[name] = {name, kGlobalScope, num_defs_++};
+  return store_[name] = {
+             name, outer_ == nullptr ? kGlobalScope : kLocalScope, num_defs_++};
 }
 
 absl::optional<Symbol> SymbolTable::Resolve(const std::string& name) const {
   const auto it = store_.find(name);
-  if (it == store_.end()) return absl::nullopt;
+
+  if (it == store_.end()) {
+    // not found in global scope
+    if (outer_ == nullptr) return absl::nullopt;
+    // try the outer scope
+    return outer_->Resolve(name);
+  }
   return it->second;
+}
+
+SymbolTable MakeEnclosedSymbolTable(const SymbolTable* table) {
+  return SymbolTable{table};
 }
 
 }  // namespace monkey

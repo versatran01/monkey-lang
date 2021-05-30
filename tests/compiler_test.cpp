@@ -204,44 +204,6 @@ TEST(CompilerTest, TestGlobalLetStatement) {
   }
 }
 
-TEST(CompilerTest, TestSymbolDefine) {
-  const SymbolDict tests = {
-      {"a", {"a", kGlobalScope, 0}},
-      {"b", {"b", kGlobalScope, 1}},
-  };
-
-  SymbolTable global;
-  auto a = global.Define("a");
-  EXPECT_EQ(a, tests.at("a"));
-  EXPECT_EQ(global.NumDefs(), 1);
-
-  auto b = global.Define("b");
-  EXPECT_EQ(b, tests.at("b"));
-  EXPECT_EQ(global.NumDefs(), 2);
-}
-
-TEST(CompilerTest, TestSymbolResolve) {
-  const std::vector<Symbol> tests = {
-      {"a", kGlobalScope, 0},
-      {"b", kGlobalScope, 1},
-  };
-
-  SymbolTable global;
-  global.Define("a");
-  global.Define("b");
-  EXPECT_EQ(global.NumDefs(), 2);
-
-  auto a = global.Resolve("a");
-  ASSERT_TRUE(a.has_value());
-  EXPECT_EQ(*a, tests[0]);
-
-  auto b = global.Resolve("b");
-  ASSERT_TRUE(b.has_value());
-  EXPECT_EQ(*b, tests[1]);
-
-  auto c = global.Resolve("c");
-  EXPECT_FALSE(c.has_value());
-}
 
 TEST(CompilerTest, TestStringExpression) {
   const std::vector<CompilerTest> tests = {
@@ -411,6 +373,8 @@ TEST(CompilerTest, TestCompilerScope) {
   comp.ExitScope();
   ASSERT_EQ(comp.NumScopes(), 1);
 
+  // Check for symbol table
+
   comp.Emit(Opcode::kAdd);
   EXPECT_EQ(comp.ScopedIns().NumBytes(), 2);
   EXPECT_EQ(comp.ScopedLast().op, Opcode::kAdd);
@@ -433,6 +397,43 @@ TEST(CompilerTest, TestFunctionCall) {
         Encode(Opcode::kGetGlobal, 0),
         Encode(Opcode::kCall),
         Encode(Opcode::kPop)}},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckCompiler(test);
+  }
+}
+
+TEST(CompilerTest, TestLetStatementScope) {
+  const std::vector<CompilerTest> tests = {
+      {"let num = 55; fn() { num }",
+       {IntObj(55),
+        CompiledObj(
+            {Encode(Opcode::kGetGlobal, 0), Encode(Opcode::kReturnVal)})},
+       {Encode(Opcode::kConst, 0),
+        Encode(Opcode::kSetGlobal, 0),
+        Encode(Opcode::kConst, 1),
+        Encode(Opcode::kPop)}},
+      {"fn() { let num = 55; num }",
+       {IntObj(55),
+        CompiledObj({Encode(Opcode::kConst, 0),
+                     Encode(Opcode::kSetLocal, 0),
+                     Encode(Opcode::kGetLocal, 0),
+                     Encode(Opcode::kReturnVal)})},
+       {Encode(Opcode::kConst, 1), Encode(Opcode::kPop)}},
+      {"fn() { let a = 55; let b = 77; a + b }",
+       {IntObj(55),
+        IntObj(77),
+        CompiledObj({Encode(Opcode::kConst, 0),
+                     Encode(Opcode::kSetLocal, 0),
+                     Encode(Opcode::kConst, 1),
+                     Encode(Opcode::kSetLocal, 1),
+                     Encode(Opcode::kGetLocal, 0),
+                     Encode(Opcode::kGetLocal, 1),
+                     Encode(Opcode::kAdd),
+                     Encode(Opcode::kReturnVal)})},
+       {Encode(Opcode::kConst, 2), Encode(Opcode::kPop)}},
   };
 
   for (const auto& test : tests) {

@@ -28,7 +28,7 @@ Object& Environment::Set(absl::string_view name, const Object& obj) {
   return store_[name] = obj;
 }
 
-Environment MakeEnclosedEnv(Environment* env) { return Environment{env}; }
+Environment MakeEnclosedEnv(const Environment* env) { return Environment{env}; }
 
 std::ostream& operator<<(std::ostream& os, const Environment& env) {
   auto pf = absl::PairFormatter(

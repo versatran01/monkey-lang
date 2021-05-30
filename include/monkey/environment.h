@@ -11,7 +11,7 @@ namespace monkey {
 
 class Environment {
  public:
-  explicit Environment(Environment* outer = nullptr) : outer_{outer} {}
+  explicit Environment(const Environment* outer = nullptr) : outer_{outer} {}
 
   Object Get(absl::string_view name) const;
   Object& Set(absl::string_view name, const Object& obj);
@@ -23,9 +23,9 @@ class Environment {
 
  private:
   absl::flat_hash_map<std::string, Object> store_;
-  Environment* outer_{nullptr};
+  const Environment* outer_{nullptr};
 };
 
-Environment MakeEnclosedEnv(Environment* env);
+Environment MakeEnclosedEnv(const Environment* env);
 
 }  // namespace monkey

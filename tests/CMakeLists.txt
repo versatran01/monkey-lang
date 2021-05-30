@@ -42,6 +42,11 @@ cc_test(
   DEPS monkey::code GMock::GMock)
 
 cc_test(
+  NAME symbol_test
+  SRCS "symbol_test.cpp"
+  DEPS monkey::symbol)
+
+cc_test(
   NAME compiler_test
   SRCS "compiler_test.cpp"
   DEPS monkey::compiler monkey::parser GMock::GMock)

@@ -33,14 +33,20 @@ using SymbolDict = absl::flat_hash_map<std::string, Symbol>;
 
 class SymbolTable {
  public:
+  explicit SymbolTable(const SymbolTable* outer = nullptr) : outer_{outer} {}
+
   Symbol& Define(const std::string& name);
   absl::optional<Symbol> Resolve(const std::string& name) const;
+  bool IsGlobal() const noexcept { return outer_ == nullptr; }
 
   int NumDefs() const noexcept { return num_defs_; }
 
  private:
   SymbolDict store_;
   int num_defs_{0};
+  const SymbolTable* outer_{nullptr};
 };
+
+SymbolTable MakeEnclosedSymbolTable(const SymbolTable* table);
 
 }  // namespace monkey
