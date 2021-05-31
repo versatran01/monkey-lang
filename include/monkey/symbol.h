@@ -11,7 +11,11 @@ namespace monkey {
 enum class SymbolScope {
   kGlobal,
   kLocal,
+  kBuiltin,
 };
+
+std::string Repr(SymbolScope scope);
+std::ostream& operator<<(std::ostream& os, SymbolScope scope);
 
 struct Symbol {
   std::string name;
@@ -40,10 +44,11 @@ class SymbolTable {
   explicit SymbolTable(const SymbolTable* outer = nullptr) : outer_{outer} {}
 
   Symbol& Define(const std::string& name);
+  Symbol& DefineBuiltin(const std::string& name, size_t index);
   absl::optional<Symbol> Resolve(const std::string& name) const;
-  bool IsGlobal() const noexcept { return outer_ == nullptr; }
 
   size_t NumDefs() const noexcept { return num_defs_; }
+  bool IsGlobal() const noexcept { return outer_ == nullptr; }
 
   std::string Repr() const;
   friend std::ostream& operator<<(std::ostream& os, const SymbolTable& table);
@@ -51,7 +56,7 @@ class SymbolTable {
  private:
   SymbolDict store_;
   size_t num_defs_{0};
-  const SymbolTable* outer_;
+  const SymbolTable* outer_{nullptr};
 };
 
 using SymbolTablePtr = std::unique_ptr<SymbolTable>;

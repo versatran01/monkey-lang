@@ -6,7 +6,7 @@ namespace {
 
 using namespace monkey;
 
-TEST(CompilerTest, TestSymbolDefine) {
+TEST(SymbolTest, TestSymbolDefine) {
   const SymbolDict tests = {
       {"a", {"a", SymbolScope::kGlobal, 0}},
       {"b", {"b", SymbolScope::kGlobal, 1}},
@@ -43,7 +43,7 @@ TEST(CompilerTest, TestSymbolDefine) {
   EXPECT_EQ(f, tests.at("f"));
 }
 
-TEST(CompilerTest, TestSymbolResolve) {
+TEST(SymbolTest, TestSymbolResolve) {
   const std::vector<Symbol> tests = {
       {"a", SymbolScope::kGlobal, 0},
       {"b", SymbolScope::kGlobal, 1},
@@ -66,7 +66,7 @@ TEST(CompilerTest, TestSymbolResolve) {
   EXPECT_FALSE(c.has_value());
 }
 
-TEST(CompilerTest, TestResolveLocal) {
+TEST(SymbolTest, TestResolveLocal) {
   SymbolTable global;
   global.Define("a");
   global.Define("b");
@@ -89,7 +89,7 @@ TEST(CompilerTest, TestResolveLocal) {
   }
 }
 
-TEST(CompilerTest, TestResolveNestedLocal) {
+TEST(SymbolTest, TestResolveNestedLocal) {
   SymbolTable global;
   global.Define("a");
   global.Define("b");
@@ -126,6 +126,32 @@ TEST(CompilerTest, TestResolveNestedLocal) {
     auto res = local2.Resolve(sym.name);
     ASSERT_TRUE(res.has_value());
     EXPECT_EQ(*res, sym);
+  }
+}
+
+TEST(SymbolTest, TestDefineResolveBuiltin) {
+  auto global = SymbolTable{};
+  auto local1 = SymbolTable(&global);
+  auto local2 = SymbolTable(&local1);
+
+  const std::vector<Symbol> symbols = {
+      {"a", SymbolScope::kBuiltin, 0},
+      {"c", SymbolScope::kBuiltin, 1},
+      {"e", SymbolScope::kBuiltin, 2},
+      {"f", SymbolScope::kBuiltin, 3},
+  };
+
+  for (const auto& sym : symbols) {
+    global.DefineBuiltin(sym.name, sym.index);
+  }
+
+  std::vector<SymbolTable*> tables{&global, &local1, &local2};
+  for (const auto& table : tables) {
+    for (const auto& sym : symbols) {
+      auto res = table->Resolve(sym.name);
+      ASSERT_TRUE(res.has_value());
+      EXPECT_EQ(*res, sym);
+    }
   }
 }
 

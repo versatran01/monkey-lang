@@ -27,8 +27,8 @@ const auto gObjectTypeStrings = absl::flat_hash_map<ObjectType, std::string>{
     {ObjectType::kArray, "ARRAY"},
     {ObjectType::kDict, "DICT"},
     {ObjectType::kQuote, "QUOTE"},
-    {ObjectType::kBuiltin, "BUILTIN"},
     {ObjectType::kCompiled, "COMPILED"},
+    {ObjectType::kBuiltinFunc, "BUILTIN_FUNC"},
 };
 
 }  // namespace
@@ -71,8 +71,8 @@ std::string Object::Inspect() const {
       return absl::any_cast<std::string>(value);
     case ObjectType::kFunc:
       return Cast<FuncObject>().Inspect();
-    case ObjectType::kBuiltin:
-      return fmt::format("{}()", Cast<Builtin>().name);
+    case ObjectType::kBuiltinFunc:
+      return Cast<BuiltinFunc>().name + "()";
     case ObjectType::kDict: {
       const auto pf = absl::PairFormatter(ObjFmt{}, ": ", ObjFmt{});
       return fmt::format("{{{}}}", absl::StrJoin(Cast<Dict>(), ", ", pf));
@@ -102,7 +102,9 @@ Object FuncObj(const FuncObject& fn) { return {ObjectType::kFunc, fn}; }
 Object ArrayObj(Array arr) { return {ObjectType::kArray, std::move(arr)}; }
 Object DictObj(Dict dict) { return {ObjectType::kDict, std::move(dict)}; }
 Object QuoteObj(const ExprNode& expr) { return {ObjectType::kQuote, expr}; }
-Object BuiltinObj(const Builtin& fn) { return {ObjectType::kBuiltin, fn}; }
+Object BuiltinObj(const BuiltinFunc& fn) {
+  return {ObjectType::kBuiltinFunc, fn};
+}
 Object CompiledObj(CompiledFunc comp) {
   return {ObjectType::kCompiled, std::move(comp)};
 }

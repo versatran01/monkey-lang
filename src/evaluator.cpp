@@ -17,7 +17,7 @@ const std::string kTypeMismatch = "type mismatch";
 const std::string kIdentNotFound = "identifier not found";
 const std::string kIndexOpNotSupported = "index operator not supported";
 
-const BuiltinMap gBuiltins = MakeBuiltins();
+const auto gBuiltins = MakeBuiltins();
 
 // Some const objects
 const Object kTrueObject = BoolObj(true);
@@ -53,12 +53,12 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
     case NodeType::kBlockStmt:
       return EvalBlockStmt(*node.PtrCast<BlockStmt>(), env);
     case NodeType::kReturnStmt: {
-      const auto obj = Evaluate(GetExpr(node), env);
+      auto obj = Evaluate(GetExpr(node), env);
       if (IsObjError(obj)) return obj;
       return ReturnObj(obj);
     }
     case NodeType::kLetStmt: {
-      const auto obj = Evaluate(GetExpr(node), env);
+      auto obj = Evaluate(GetExpr(node), env);
       if (IsObjError(obj)) return obj;
       return env.Set(node.PtrCast<LetStmt>()->name.String(), obj);
     }
@@ -82,10 +82,10 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
     }
     case NodeType::kInfixExpr: {
       const auto* ie_ptr = node.PtrCast<InfixExpr>();
-      const auto lhs = Evaluate(ie_ptr->lhs, env);
+      auto lhs = Evaluate(ie_ptr->lhs, env);
       if (IsObjError(lhs)) return lhs;
 
-      const auto rhs = Evaluate(ie_ptr->rhs, env);
+      auto rhs = Evaluate(ie_ptr->rhs, env);
       if (IsObjError(rhs)) return rhs;
 
       return EvalInfixExpr(lhs, ie_ptr->op, rhs);
@@ -114,10 +114,10 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
     case NodeType::kIndexExpr: {
       const auto* expr = node.PtrCast<IndexExpr>();
 
-      const auto lhs = Evaluate(expr->lhs, env);
+      auto lhs = Evaluate(expr->lhs, env);
       if (IsObjError(lhs)) return lhs;
 
-      const auto index = Evaluate(expr->index, env);
+      auto index = Evaluate(expr->index, env);
       if (IsObjError(index)) return index;
 
       return EvalIndexExpr(lhs, index);
@@ -130,10 +130,10 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
         return QuoteObj(ptr->args.front());
       }
 
-      const auto func = Evaluate(ptr->func, env);
+      auto func = Evaluate(ptr->func, env);
       if (IsObjError(func)) return func;
 
-      const auto args = EvalExprs(ptr->args, env);
+      auto args = EvalExprs(ptr->args, env);
 
       // Handle argument evaluation failure
       if (args.size() == 1 && IsObjError(args.front())) {
@@ -161,13 +161,17 @@ Object Evaluator::EvalProgram(const Program& program, Environment& env) const {
 
 Object Evaluator::EvalIdentifier(const Identifier& ident,
                                  const Environment& env) const {
-  const auto obj = env.Get(ident.value);
+  auto obj = env.Get(ident.value);
   if (obj.Ok()) return obj;
 
-  const auto it = gBuiltins.find(ident.value);
-  if (it != gBuiltins.end()) return it->second;
+  const auto it = std::find_if(
+      gBuiltins.begin(), gBuiltins.end(), [&ident](const Object& obj) {
+        return obj.Cast<BuiltinFunc>().name == ident.value;
+      });
+  if (it != gBuiltins.end()) return *it;
 
-  return ErrorObj(fmt::format("{}: {}", kIdentNotFound, ident.value));
+  obj = ErrorObj(fmt::format("{}: {}", kIdentNotFound, ident.value));
+  return obj;
 }
 
 Object Evaluator::EvalPrefixExpr(const std::string& op,
@@ -247,8 +251,8 @@ Object Evaluator::EvalStrInfixExpr(const Object& lhs,
   CHECK_EQ(lhs.Type(), ObjectType::kStr);
   CHECK_EQ(rhs.Type(), ObjectType::kStr);
 
-  const auto lv = lhs.Cast<std::string>();
-  const auto rv = rhs.Cast<std::string>();
+  const auto& lv = lhs.Cast<std::string>();
+  const auto& rv = rhs.Cast<std::string>();
   return StrObj(lv + rv);
 }
 
@@ -272,7 +276,7 @@ Object Evaluator::EvalDictLiteral(const DictLiteral& expr,
   Dict dict;
 
   for (const auto& [k, v] : expr.pairs) {
-    const auto key = Evaluate(k, env);
+    auto key = Evaluate(k, env);
 
     if (IsObjError(key)) return key;
 
@@ -281,7 +285,7 @@ Object Evaluator::EvalDictLiteral(const DictLiteral& expr,
       return ErrorObj(fmt::format("unusable as dict key: {}", key.Type()));
     }
 
-    const auto val = Evaluate(v, env);
+    auto val = Evaluate(v, env);
     if (IsObjError(val)) return val;
 
     dict[key] = val;
@@ -362,8 +366,8 @@ Object Evaluator::ApplyFunc(const Object& obj,
       const auto ret_obj = EvalBlockStmt(fn_obj.body, fn_env);
       return UnwrapReturn(ret_obj);
     }
-    case ObjectType::kBuiltin: {
-      const auto& fn_obj = obj.Cast<Builtin>();
+    case ObjectType::kBuiltinFunc: {
+      const auto& fn_obj = obj.Cast<BuiltinFunc>();
       return fn_obj.func(args);
     }
     default:
@@ -372,7 +376,7 @@ Object Evaluator::ApplyFunc(const Object& obj,
 }
 
 Object Evaluator::EvalIfExpr(const IfExpr& expr, Environment& env) const {
-  const auto cond = Evaluate(expr.cond, env);
+  auto cond = Evaluate(expr.cond, env);
   if (IsObjError(cond)) return cond;
 
   if (IsObjTruthy(cond)) {

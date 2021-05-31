@@ -4,6 +4,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "monkey/builtin.h"
 #include "monkey/parser.h"
 
 namespace {
@@ -356,9 +357,6 @@ TEST(CompilerTest, TestFunction) {
 
 TEST(CompilerTest, TestCompilerScope) {
   Compiler comp;
-  ASSERT_EQ(comp.NumScopes(), 0);
-
-  comp.EnterScope();
   ASSERT_EQ(comp.NumScopes(), 1);
 
   comp.Emit(Opcode::kMul);
@@ -460,6 +458,34 @@ TEST(CompilerTest, TestLetStatementScope) {
                      Encode(Opcode::kAdd),
                      Encode(Opcode::kReturnVal)})},
        {Encode(Opcode::kConst, 2), Encode(Opcode::kPop)}},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckCompiler(test);
+  }
+}
+
+TEST(CompilerTest, TestBuiltin) {
+  const std::vector<CompilerTest> tests = {
+      {"len([]); push([], 1);",
+       {IntObj(1)},
+       {Encode(Opcode::kGetBuiltin, static_cast<int>(Builtin::kLen)),
+        Encode(Opcode::kArray, 0),
+        Encode(Opcode::kCall, 1),
+        Encode(Opcode::kPop),
+        Encode(Opcode::kGetBuiltin, static_cast<int>(Builtin::kPush)),
+        Encode(Opcode::kArray, 0),
+        Encode(Opcode::kConst, 0),
+        Encode(Opcode::kCall, 2),
+        Encode(Opcode::kPop)}},
+      {"fn(){len([])};",
+       {CompiledObj(
+           {Encode(Opcode::kGetBuiltin, static_cast<int>(Builtin::kLen)),
+            Encode(Opcode::kArray, 0),
+            Encode(Opcode::kCall, 1),
+            Encode(Opcode::kReturnVal)})},
+       {Encode(Opcode::kConst, 0), Encode(Opcode::kPop)}},
   };
 
   for (const auto& test : tests) {

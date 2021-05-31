@@ -28,7 +28,7 @@ enum class ObjectType {
   kArray,
   kDict,
   kQuote,
-  kBuiltin,
+  kBuiltinFunc,
   kCompiled,
 };
 
@@ -98,7 +98,7 @@ struct Object {
 using Array = std::vector<Object>;
 using Dict = absl::flat_hash_map<Object, Object>;
 
-struct Builtin {
+struct BuiltinFunc {
   std::string name;
   std::function<Object(const std::vector<Object>&)> func;
 };
@@ -132,7 +132,7 @@ Object ErrorObj(StrType str);
 Object ReturnObj(Object obj);
 Object ArrayObj(Array arr);
 Object DictObj(Dict dict);
-Object BuiltinObj(const Builtin& fn);
+Object BuiltinObj(const BuiltinFunc& fn);
 Object FuncObj(const FuncObject& fn);
 Object QuoteObj(const ExprNode& expr);
 Object CompiledObj(CompiledFunc comp);

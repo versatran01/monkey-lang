@@ -24,6 +24,8 @@ struct Bytecode {
 
 class Compiler {
  public:
+  Compiler();
+
   absl::StatusOr<Bytecode> Compile(const Program& program);
 
   const auto& timers() const noexcept { return timers_; }
@@ -88,6 +90,8 @@ class Compiler {
   absl::Status CompileExprStmt(const StmtNode& stmt);
   absl::Status CompileBlockStmt(const StmtNode& stmt);
   absl::Status CompileReturnStmt(const StmtNode& stmt);
+
+  void LoadSymbol(const Symbol& symbol);
 
   std::vector<Scope> scopes_;
   std::vector<Object> consts_;

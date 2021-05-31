@@ -1,16 +1,36 @@
 #include "monkey/symbol.h"
 
 #include <absl/strings/str_join.h>
-#include <fmt/core.h>
+#include <fmt/ostream.h>
+#include <glog/logging.h>
 
 namespace monkey {
+
 namespace {
 struct SymbolFmt {
   void operator()(std::string* out, const Symbol& symbol) const {
     out->append(symbol.Repr());
   }
 };
+
 }  // namespace
+
+std::string Repr(SymbolScope scope) {
+  switch (scope) {
+    case SymbolScope::kBuiltin:
+      return "builtin";
+    case SymbolScope::kGlobal:
+      return "global";
+    case SymbolScope::kLocal:
+      return "local";
+    default:
+      return "unknown scope";
+  }
+}
+
+std::ostream& operator<<(std::ostream& os, SymbolScope scope) {
+  return os << Repr(scope);
+}
 
 std::string Symbol::Repr() const {
   return fmt::format(
@@ -26,6 +46,10 @@ Symbol& SymbolTable::Define(const std::string& name) {
              name,
              IsGlobal() ? SymbolScope::kGlobal : SymbolScope::kLocal,
              num_defs_++};
+}
+
+Symbol& SymbolTable::DefineBuiltin(const std::string& name, size_t index) {
+  return store_[name] = {name, SymbolScope::kBuiltin, index};
 }
 
 absl::optional<Symbol> SymbolTable::Resolve(const std::string& name) const {

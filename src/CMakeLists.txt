@@ -67,7 +67,7 @@ cc_library(
 cc_library(
   NAME compiler
   SRCS "compiler.cpp"
-  DEPS monkey::code monkey::ast monkey::object monkey::symbol absl::statusor
+  DEPS monkey::ast monkey::object monkey::symbol monkey::builtin absl::statusor
   LINKOPTS monkey::timer)
 
 cc_library(

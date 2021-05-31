@@ -6,8 +6,20 @@
 
 namespace monkey {
 
+enum class Builtin {
+  kLen,
+  kFirst,
+  kLast,
+  kRest,
+  kPush,
+  kPuts,
+  kNumBuiltins,
+};
+
+std::string Repr(Builtin bt);
+std::ostream& operator<<(std::ostream& os, Builtin bt);
+
 // Builtins
-using BuiltinMap = absl::flat_hash_map<std::string, Object>;
-BuiltinMap MakeBuiltins();
+std::vector<Object> MakeBuiltins();
 
 }  // namespace monkey

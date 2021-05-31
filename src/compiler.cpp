@@ -3,14 +3,25 @@
 #include <fmt/ostream.h>
 #include <glog/logging.h>
 
+#include "monkey/builtin.h"
+
 namespace monkey {
 
+namespace {
 static constexpr int kPlaceHolder = 0;
+const auto gBuiltins = MakeBuiltins();
+}  // namespace
+
+Compiler::Compiler() {
+  EnterScope();
+
+  for (size_t i = 0; i < gBuiltins.size(); ++i) {
+    CurrTable().DefineBuiltin(gBuiltins[i].Cast<BuiltinFunc>().name, i);
+  }
+}
 
 absl::StatusOr<Bytecode> Compiler::Compile(const Program& program) {
   auto _ = timers_.Scoped("CompileProgram");
-
-  EnterScope();
 
   for (const auto& stmt : program.statements) {
     auto status = CompileImpl(stmt);
@@ -308,13 +319,7 @@ absl::Status Compiler::CompileIdentifier(const ExprNode& expr) {
   if (!symbol.has_value()) {
     return MakeError("Undefined variable " + name);
   }
-
-  const auto index = static_cast<int>(symbol->index);
-  if (symbol->IsGlobal()) {
-    Emit(Opcode::kGetGlobal, index);
-  } else {
-    Emit(Opcode::kGetLocal, index);
-  }
+  LoadSymbol(*symbol);
   return kOkStatus;
 }
 
@@ -322,6 +327,7 @@ absl::Status Compiler::CompileFuncLiteral(const ExprNode& expr) {
   EnterScope();
 
   const auto* ptr = expr.PtrCast<FuncLiteral>();
+  CHECK_NOTNULL(ptr);
 
   // After entering a new scope and right before compiling the functions' body
   // we define each parameter in the scope of the function.
@@ -406,6 +412,25 @@ absl::Status Compiler::CompileReturnStmt(const StmtNode& stmt) {
 
   Emit(Opcode::kReturnVal);
   return kOkStatus;
+}
+
+void Compiler::LoadSymbol(const Symbol& symbol) {
+  const auto index = static_cast<int>(symbol.index);
+  switch (symbol.scope) {
+    case SymbolScope::kGlobal:
+      Emit(Opcode::kGetGlobal, index);
+      break;
+    case SymbolScope::kLocal:
+      Emit(Opcode::kGetLocal, index);
+      break;
+    case SymbolScope::kBuiltin:
+      Emit(Opcode::kGetBuiltin, index);
+      break;
+    default:
+      // Shouldn't reach here
+      CHECK(false) << "should not reach here";
+      return;
+  }
 }
 
 }  // namespace monkey

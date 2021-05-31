@@ -2,11 +2,23 @@
 
 #include <fmt/ostream.h>
 
+#include <array>
+
 namespace monkey {
 
 namespace {
 
 const std::string kWrongNumArgs = "wrong number of arguments";
+
+const std::array<std::string, static_cast<size_t>(Builtin::kNumBuiltins)>
+    gBuiltinStrs = {
+        "len",
+        "first",
+        "last",
+        "rest",
+        "push",
+        "puts",
+};
 
 Object BuiltinLen(const std::vector<Object>& args) {
   if (args.size() != 1) {
@@ -112,15 +124,23 @@ Object BuiltinPuts(const std::vector<Object>& args) {
 
 }  // namespace
 
-BuiltinMap MakeBuiltins() {
-  BuiltinMap map;
-  map["len"] = BuiltinObj({"len", BuiltinLen});
-  map["first"] = BuiltinObj({"first", BuiltinFirst});
-  map["last"] = BuiltinObj({"last", BuiltinLast});
-  map["rest"] = BuiltinObj({"rest", BuiltinRest});
-  map["push"] = BuiltinObj({"push", BuiltinPush});
-  map["puts"] = BuiltinObj({"puts", BuiltinPuts});
-  return map;
+std::vector<Object> MakeBuiltins() {
+  std::vector<Object> v(static_cast<size_t>(Builtin::kNumBuiltins));
+  v[static_cast<size_t>(Builtin::kLen)] = BuiltinObj({"len", BuiltinLen});
+  v[static_cast<size_t>(Builtin::kFirst)] = BuiltinObj({"first", BuiltinFirst});
+  v[static_cast<size_t>(Builtin::kLast)] = BuiltinObj({"last", BuiltinLast});
+  v[static_cast<size_t>(Builtin::kRest)] = BuiltinObj({"rest", BuiltinRest});
+  v[static_cast<size_t>(Builtin::kPush)] = BuiltinObj({"push", BuiltinPush});
+  v[static_cast<size_t>(Builtin::kPuts)] = BuiltinObj({"puts", BuiltinPuts});
+  return v;
+}
+
+std::string Repr(Builtin bt) {
+  return gBuiltinStrs.at(static_cast<size_t>(bt));
+}
+
+std::ostream& operator<<(std::ostream& os, Builtin bt) {
+  return os << Repr(bt);
 }
 
 }  // namespace monkey
