@@ -117,6 +117,7 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         break;
       }
       case Opcode::kCall: {
+        ip += 1;
         // This compiled will be popped when function returns
         const Object& obj = StackTop();
 
@@ -134,14 +135,12 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         const auto frame = PopFrame();
         sp_ = frame.bp - 1;  // restore sp
         PushStack(std::move(ret));
-        //        ReplaceStackTop(std::move(ret));
         continue;  // we do not want to increment ip if we just popped the frame
       }
       case Opcode::kReturn: {
         const auto frame = PopFrame();
         sp_ = frame.bp - 1;
         PushStack(NullObj());
-        //        ReplaceStackTop(NullObj());
         continue;
       }
       default:

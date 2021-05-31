@@ -238,10 +238,17 @@ absl::Status Compiler::CompileIfExpr(const ExprNode& expr) {
 absl::Status Compiler::CompileCallExpr(const ExprNode& expr) {
   const auto* ptr = expr.PtrCast<CallExpr>();
   CHECK_NOTNULL(ptr);
-  auto status = CompileImpl(ptr->func);
+  auto status = kOkStatus;
+  status.Update(CompileImpl(ptr->func));
   if (!status.ok()) return status;
-  Emit(Opcode::kCall);
-  return kOkStatus;
+
+  for (const auto& arg : ptr->args) {
+    status.Update(CompileImpl(arg));
+    if (!status.ok()) return status;
+  }
+
+  Emit(Opcode::kCall, static_cast<int>(ptr->args.size()));
+  return status;
 }
 
 absl::Status Compiler::CompileIndexExpr(const ExprNode& expr) {
@@ -321,10 +328,11 @@ absl::Status Compiler::CompileIdentifier(const ExprNode& expr) {
     return MakeError("Undefined variable " + name);
   }
 
+  const auto index = static_cast<int>(symbol->index);
   if (symbol->IsGlobal()) {
-    Emit(Opcode::kGetGlobal, symbol->index);
+    Emit(Opcode::kGetGlobal, index);
   } else {
-    Emit(Opcode::kGetLocal, symbol->index);
+    Emit(Opcode::kGetLocal, index);
   }
   return kOkStatus;
 }
@@ -338,10 +346,11 @@ absl::Status Compiler::CompileLetStmt(const StmtNode& stmt) {
 
   // Add to symbol table
   const auto& symbol = CurrTable().Define(ptr->name.value);
+  const auto index = static_cast<int>(symbol.index);
   if (symbol.IsGlobal()) {
-    Emit(Opcode::kSetGlobal, symbol.index);
+    Emit(Opcode::kSetGlobal, index);
   } else {
-    Emit(Opcode::kSetLocal, symbol.index);
+    Emit(Opcode::kSetLocal, index);
   }
   return kOkStatus;
 }
