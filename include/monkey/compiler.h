@@ -64,7 +64,6 @@ class Compiler {
   size_t Emit(Opcode op, int operand);
 
  private:
-  void Reset();
   absl::Status CompileImpl(const AstNode& node);
 
   /// Returns the index of the added object

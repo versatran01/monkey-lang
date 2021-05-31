@@ -3,6 +3,7 @@
 #include <absl/container/flat_hash_map.h>
 #include <absl/hash/hash.h>
 #include <absl/types/any.h>
+#include <absl/types/span.h>
 
 #include <functional>
 #include <memory>
@@ -100,7 +101,7 @@ using Dict = absl::flat_hash_map<Object, Object>;
 
 struct BuiltinFunc {
   std::string name;
-  std::function<Object(const std::vector<Object>&)> func;
+  std::function<Object(absl::Span<const Object>)> func;
 };
 
 struct FuncObject {
@@ -132,7 +133,7 @@ Object ErrorObj(StrType str);
 Object ReturnObj(Object obj);
 Object ArrayObj(Array arr);
 Object DictObj(Dict dict);
-Object BuiltinObj(const BuiltinFunc& fn);
+Object BuiltinObj(BuiltinFunc fn);
 Object FuncObj(const FuncObject& fn);
 Object QuoteObj(const ExprNode& expr);
 Object CompiledObj(CompiledFunc comp);

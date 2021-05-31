@@ -49,7 +49,8 @@ void CheckVmError(const VmTest& test) {
   const auto status = vm.Run(bc.value());
 
   ASSERT_EQ(test.value.index(), 3);
-  EXPECT_EQ(status.message(), std::get<3>(test.value));
+  const std::string msg = std::get<3>(test.value);
+  EXPECT_EQ(std::string{status.message()}, msg);
 }
 
 void CheckVm(const VmTest& test) {
@@ -384,6 +385,42 @@ TEST(VmTest, TestCallFunctionWithWrongArguments) {
   };
 
   for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckVmError(test);
+  }
+}
+
+TEST(VmTest, TestBuiltinFunctions) {
+  const std::vector<VmTest> tests = {
+      {R"r(len(""))r", 0},
+      {R"r(len("four"))r", 4},
+      {R"r(len("hello world"))r", 11},
+      {"len([1,2,3])", 3},
+      {"len([])", 0},
+      {R"r(puts("hello", "world!")r", nullptr},
+      {"first([1,2,3])", 1},
+      {"first([])", nullptr},
+      {"last([1,2,3])", 3},
+      {"last([])", nullptr},
+      {"rest([1,2,3])", IntVec{2, 3}},
+      {"rest([])", nullptr},
+      {"push([], 1)", IntVec{1}},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckVm(test);
+  }
+
+  const std::vector<VmTest> errors = {
+      {"len(1)", "argument to `len` not supported, got INT"s},
+      {R"r(len("one", "two"))r", "wrong number of arguments. got=2, want=1"s},
+      {"first(1)", "argument to `first` must be ARRAY, got INT"s},
+      {"last(1)", "argument to `last` must be ARRAY, got INT"s},
+      {"push(1, 1)", "argument to `push` must be ARRAY, got INT"s},
+  };
+
+  for (const auto& test : errors) {
     SCOPED_TRACE(test.input);
     CheckVmError(test);
   }

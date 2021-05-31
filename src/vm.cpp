@@ -3,6 +3,8 @@
 #include <fmt/ostream.h>
 #include <glog/logging.h>
 
+#include "monkey/builtin.h"
+
 namespace monkey {
 
 absl::Status VirtualMachine::Run(const Bytecode& bc) {
@@ -102,6 +104,13 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         PushStack(stack_.at(frame.bp + index));
         break;
       }
+      case Opcode::kGetBuiltin: {
+        const auto index = ins.ByteAt(ip + 1);
+        ip += 1;
+        CHECK_LT(index, static_cast<size_t>(Builtin::kNumBuiltins));
+        PushStack(GetBuiltins().at(index));
+        break;
+      }
       case Opcode::kArray: {
         const auto size = ReadUint16(ins.BytePtr(ip + 1));
         ip += 2;
@@ -119,8 +128,7 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
       case Opcode::kCall: {
         const size_t num_args = ins.ByteAt(ip + 1);
         ip += 1;
-        const Object& obj = StackTop(num_args);
-        status.Update(ExecFuncCall(obj, num_args));
+        status.Update(ExecFuncCall(StackTop(num_args), num_args));
         break;
       }
       case Opcode::kReturnVal: {
@@ -294,23 +302,41 @@ absl::Status VirtualMachine::ExecFuncCall(const Object& obj, size_t num_args) {
   // calculate its position by decoding the operand and subtracting it
   // from the top
 
-  if (obj.Type() != ObjectType::kCompiled) {
-    status.Update(MakeError("calling non-function: " + Repr(obj.Type())));
-    return status;
+  switch (obj.Type()) {
+    case ObjectType::kCompiled: {
+      const auto& func = obj.Cast<CompiledFunc>();
+      if (num_args != func.num_params) {
+        status.Update(
+            MakeError(fmt::format("wrong number of arguments: want={}, got={}",
+                                  func.num_params,
+                                  num_args)));
+      } else {
+        PushFrame(Frame{func, sp_ - num_args});
+        AllocateLocal(func.num_locals);
+      }
+      break;
+    }
+    case ObjectType::kBuiltinFunc: {
+      const auto& builtin = obj.Cast<BuiltinFunc>();
+      // Since we are using deque it is not contiguous so we have to construct a
+      // vector
+      std::vector<Object> args{stack_.begin() + sp_ - num_args,
+                               stack_.begin() + sp_};
+      auto res = builtin.func(args);
+
+      // decrease sp to take the arguments and function of the stack
+      sp_ = sp_ - num_args - 1;
+
+      if (res.Type() == ObjectType::kError) {
+        status.Update(MakeError(res.Inspect()));
+      } else {
+        PushStack(std::move(res));
+      }
+      break;
+    }
+    default:
+      status.Update(MakeError("calling non-function: " + Repr(obj.Type())));
   }
-
-  const auto& func = obj.Cast<CompiledFunc>();
-
-  if (num_args != func.num_params) {
-    status.Update(
-        MakeError(fmt::format("wrong number of arguments: want={}, got={}",
-                              func.num_params,
-                              num_args)));
-    return status;
-  }
-
-  PushFrame(Frame{func, sp_ - num_args});
-  AllocateLocal(func.num_locals);
 
   return status;
 }

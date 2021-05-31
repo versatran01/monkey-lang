@@ -20,7 +20,8 @@ const std::array<std::string, static_cast<size_t>(Builtin::kNumBuiltins)>
         "puts",
 };
 
-Object BuiltinLen(const std::vector<Object>& args) {
+// Object BuiltinLen(const std::vector<Object>& args) {
+Object BuiltinLen(absl::Span<const Object> args) {
   if (args.size() != 1) {
     return ErrorObj(
         fmt::format("{}. got={}, want=1", kWrongNumArgs, args.size()));
@@ -38,7 +39,8 @@ Object BuiltinLen(const std::vector<Object>& args) {
   }
 }
 
-Object BuiltinFirst(const std::vector<Object>& args) {
+// Object BuiltinFirst(const std::vector<Object>& args) {
+Object BuiltinFirst(absl::Span<const Object> args) {
   if (args.size() != 1) {
     return ErrorObj(
         fmt::format("{}. got={}, want=1", kWrongNumArgs, args.size()));
@@ -47,17 +49,16 @@ Object BuiltinFirst(const std::vector<Object>& args) {
   const auto& arg = args.front();
   if (arg.Type() != ObjectType::kArray) {
     return ErrorObj(
-        fmt::format("arguent to `first` must be ARRAY, got {}", arg.Type()));
+        fmt::format("argument to `first` must be ARRAY, got {}", arg.Type()));
   }
 
   const auto& arr = arg.Cast<Array>();
-  if (arr.empty()) {
-    return NullObj();
-  }
+  if (arr.empty()) return NullObj();
   return arr.front();
 }
 
-Object BuiltinLast(const std::vector<Object>& args) {
+// Object BuiltinLast(const std::vector<Object>& args) {
+Object BuiltinLast(absl::Span<const Object> args) {
   if (args.size() != 1) {
     return ErrorObj(
         fmt::format("{}. got={}, want=1", kWrongNumArgs, args.size()));
@@ -66,17 +67,16 @@ Object BuiltinLast(const std::vector<Object>& args) {
   const auto& arg = args.front();
   if (arg.Type() != ObjectType::kArray) {
     return ErrorObj(
-        fmt::format("arguent to `last` must be ARRAY, got {}", arg.Type()));
+        fmt::format("argument to `last` must be ARRAY, got {}", arg.Type()));
   }
 
   const auto& arr = arg.Cast<Array>();
-  if (arr.empty()) {
-    return NullObj();
-  }
+  if (arr.empty()) return NullObj();
   return arr.back();
 }
 
-Object BuiltinRest(const std::vector<Object>& args) {
+// Object BuiltinRest(const std::vector<Object>& args) {
+Object BuiltinRest(absl::Span<const Object> args) {
   if (args.size() != 1) {
     return ErrorObj(
         fmt::format("{}. got={}, want=1", kWrongNumArgs, args.size()));
@@ -85,19 +85,18 @@ Object BuiltinRest(const std::vector<Object>& args) {
   const auto& arg = args.front();
   if (arg.Type() != ObjectType::kArray) {
     return ErrorObj(
-        fmt::format("arguent to `rest` must be ARRAY, got {}", arg.Type()));
+        fmt::format("argument to `rest` must be ARRAY, got {}", arg.Type()));
   }
 
   const auto& arr = arg.Cast<Array>();
-  if (arr.empty()) {
-    return NullObj();
-  }
+  if (arr.empty()) return NullObj();
 
   //  std::vector<Object> rest{arr.begin() + 1, arr.end()};
   return ArrayObj({arr.begin() + 1, arr.end()});
 }
 
-Object BuiltinPush(const std::vector<Object>& args) {
+// Object BuiltinPush(const std::vector<Object>& args) {
+Object BuiltinPush(absl::Span<const Object> args) {
   if (args.size() != 2) {
     return ErrorObj(
         fmt::format("{}. got={}, want=2", kWrongNumArgs, args.size()));
@@ -115,7 +114,8 @@ Object BuiltinPush(const std::vector<Object>& args) {
   return ArrayObj(std::move(copy));
 }
 
-Object BuiltinPuts(const std::vector<Object>& args) {
+// Object BuiltinPuts(const std::vector<Object>& args) {
+Object BuiltinPuts(absl::Span<const Object> args) {
   for (const auto& arg : args) {
     fmt::print("{}\n", arg.Inspect());
   }
@@ -141,6 +141,11 @@ std::string Repr(Builtin bt) {
 
 std::ostream& operator<<(std::ostream& os, Builtin bt) {
   return os << Repr(bt);
+}
+
+const std::vector<Object>& GetBuiltins() {
+  static std::vector<Object> builtins = MakeBuiltins();
+  return builtins;
 }
 
 }  // namespace monkey

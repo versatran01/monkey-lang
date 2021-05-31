@@ -102,8 +102,8 @@ Object FuncObj(const FuncObject& fn) { return {ObjectType::kFunc, fn}; }
 Object ArrayObj(Array arr) { return {ObjectType::kArray, std::move(arr)}; }
 Object DictObj(Dict dict) { return {ObjectType::kDict, std::move(dict)}; }
 Object QuoteObj(const ExprNode& expr) { return {ObjectType::kQuote, expr}; }
-Object BuiltinObj(const BuiltinFunc& fn) {
-  return {ObjectType::kBuiltinFunc, fn};
+Object BuiltinObj(BuiltinFunc fn) {
+  return {ObjectType::kBuiltinFunc, std::move(fn)};
 }
 Object CompiledObj(CompiledFunc comp) {
   return {ObjectType::kCompiled, std::move(comp)};

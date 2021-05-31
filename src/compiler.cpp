@@ -9,14 +9,13 @@ namespace monkey {
 
 namespace {
 static constexpr int kPlaceHolder = 0;
-const auto gBuiltins = MakeBuiltins();
 }  // namespace
 
 Compiler::Compiler() {
   EnterScope();
 
-  for (size_t i = 0; i < gBuiltins.size(); ++i) {
-    CurrTable().DefineBuiltin(gBuiltins[i].Cast<BuiltinFunc>().name, i);
+  for (size_t i = 0; i < GetBuiltins().size(); ++i) {
+    CurrTable().DefineBuiltin(GetBuiltins()[i].Cast<BuiltinFunc>().name, i);
   }
 }
 
@@ -29,9 +28,7 @@ absl::StatusOr<Bytecode> Compiler::Compile(const Program& program) {
   }
 
   // Maybe don't use move
-  Bytecode bc{std::move(ScopedIns()), std::move(consts_)};
-  Reset();
-  return bc;
+  return Bytecode{ScopedIns(), consts_};
 }
 
 void Compiler::EnterScope() {
@@ -47,12 +44,6 @@ Instruction Compiler::ExitScope() {
   scopes_.pop_back();
   tables_.pop_back();
   return ins;
-}
-
-void Compiler::Reset() {
-  scopes_.clear();
-  consts_.clear();
-  tables_.clear();
 }
 
 absl::Status Compiler::CompileImpl(const AstNode& node) {

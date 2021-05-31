@@ -17,8 +17,6 @@ const std::string kTypeMismatch = "type mismatch";
 const std::string kIdentNotFound = "identifier not found";
 const std::string kIndexOpNotSupported = "index operator not supported";
 
-const auto gBuiltins = MakeBuiltins();
-
 // Some const objects
 const Object kTrueObject = BoolObj(true);
 const Object kFalseObject = BoolObj(false);
@@ -165,10 +163,10 @@ Object Evaluator::EvalIdentifier(const Identifier& ident,
   if (obj.Ok()) return obj;
 
   const auto it = std::find_if(
-      gBuiltins.begin(), gBuiltins.end(), [&ident](const Object& obj) {
+      GetBuiltins().begin(), GetBuiltins().end(), [&ident](const Object& obj) {
         return obj.Cast<BuiltinFunc>().name == ident.value;
       });
-  if (it != gBuiltins.end()) return *it;
+  if (it != GetBuiltins().end()) return *it;
 
   obj = ErrorObj(fmt::format("{}: {}", kIdentNotFound, ident.value));
   return obj;

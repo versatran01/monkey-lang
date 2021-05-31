@@ -20,6 +20,6 @@ std::string Repr(Builtin bt);
 std::ostream& operator<<(std::ostream& os, Builtin bt);
 
 // Builtins
-std::vector<Object> MakeBuiltins();
+const std::vector<Object>& GetBuiltins();
 
 }  // namespace monkey
