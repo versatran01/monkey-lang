@@ -116,6 +116,7 @@ struct CompiledFunc {
 
   Instruction ins;
   size_t num_locals{0};
+  size_t num_params{0};
 };
 
 bool IsObjTruthy(const Object& obj);

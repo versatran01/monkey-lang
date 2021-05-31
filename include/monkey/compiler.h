@@ -66,7 +66,7 @@ class Compiler {
   absl::Status CompileImpl(const AstNode& node);
 
   /// Returns the index of the added object
-  size_t AddConstant(const Object& obj);
+  size_t AddConstant(Object obj);
   /// Returns the index of the added instruction
   size_t AddInstruction(const Instruction& ins);
 
@@ -82,6 +82,7 @@ class Compiler {
   absl::Status CompileInfixExpr(const ExprNode& expr);
   absl::Status CompilePrefixExpr(const ExprNode& expr);
   absl::Status CompileIdentifier(const ExprNode& expr);
+  absl::Status CompileFuncLiteral(const ExprNode& expr);
   /// Compile statement
   absl::Status CompileLetStmt(const StmtNode& stmt);
   absl::Status CompileExprStmt(const StmtNode& stmt);

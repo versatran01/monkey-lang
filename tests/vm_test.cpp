@@ -39,6 +39,19 @@ Program Parse(const std::string& input) {
   return parser.ParseProgram();
 }
 
+void CheckVmError(const VmTest& test) {
+  const auto program = Parse(test.input);
+  Compiler comp;
+  const auto bc = comp.Compile(program);
+  ASSERT_TRUE(bc.ok());
+
+  VirtualMachine vm;
+  const auto status = vm.Run(bc.value());
+
+  ASSERT_EQ(test.value.index(), 3);
+  EXPECT_EQ(status.message(), std::get<3>(test.value));
+}
+
 void CheckVm(const VmTest& test) {
   const auto program = Parse(test.input);
   Compiler comp;
@@ -327,6 +340,52 @@ TEST(VmTest, TestCallFunctionWithBinding) {
   for (const auto& test : tests) {
     SCOPED_TRACE(test.input);
     CheckVm(test);
+  }
+}
+
+TEST(VmTest, TestCallFunctionWithArgsAndBindings) {
+  const std::vector<VmTest> tests = {
+      {"let identity = fn(a) { a; }; identity(4);", 4},
+      {"let sum = fn(a, b) { a + b; }; sum(1, 2);", 3},
+      {"let sum = fn(a, b) { let c = a + b; c; }; sum(1, 2);", 3},
+      {"let sum = fn(a, b) { let c = a + b; c; }; sum(1, 2) + sum(3, 4);", 10},
+      {R"r(let sum = fn(a, b) {
+            let c = a + b;
+            c;
+        };
+        let outer = fn() {
+            sum(1, 2) + sum(3, 4);
+        };
+        outer();)r",
+       10},
+      {R"r(let globalNum = 10;
+        let sum = fn(a, b) {
+            let c = a + b;
+            c + globalNum;
+        };
+        let outer = fn() {
+            sum(1, 2) + sum(3, 4) + globalNum;
+        };
+        outer() + globalNum;)r",
+       50},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckVm(test);
+  }
+}
+
+TEST(VmTest, TestCallFunctionWithWrongArguments) {
+  const std::vector<VmTest> tests = {
+      {"fn() { 1; }(1);", "wrong number of arguments: want=0, got=1"s},
+      {"fn(a) { a; }()", "wrong number of arguments: want=1, got=0"s},
+      {"fn(a, b) { a + b; }(1);", "wrong number of arguments: want=2, got=1"s},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckVmError(test);
   }
 }
 

@@ -17,7 +17,7 @@ cc_library(
 cc_library(
   NAME lexer
   SRCS "lexer.cpp"
-  DEPS monkey::token)
+  DEPS monkey::token monkey::base)
 
 cc_library(
   NAME ast

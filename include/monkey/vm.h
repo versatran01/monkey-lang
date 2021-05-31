@@ -20,7 +20,7 @@ struct Frame {
 class VirtualMachine {
  public:
   absl::Status Run(const Bytecode& bc);
-  const Object& StackTop() const;
+  const Object& StackTop(size_t offset = 0) const;
   const Object& Last() const;
 
  private:
@@ -37,6 +37,7 @@ class VirtualMachine {
   absl::Status ExecIndexExpr(const Object& lhs, const Object& index);
   absl::Status ExecDictIndex(const Object& lhs, const Object& index);
   absl::Status ExecArrayIndex(const Object& lhs, const Object& index);
+  absl::Status ExecFuncCall(const Object& func, size_t num_args);
 
   Object BuildArray(size_t size);
   Object BuildDict(size_t size);

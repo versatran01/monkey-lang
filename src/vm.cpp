@@ -117,17 +117,10 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         break;
       }
       case Opcode::kCall: {
+        const size_t num_args = ins.ByteAt(ip + 1);
         ip += 1;
-        // This compiled will be popped when function returns
-        const Object& obj = StackTop();
-
-        if (obj.Type() != ObjectType::kCompiled) {
-          status.Update(MakeError("calling non-function: " + Repr(obj.Type())));
-        } else {
-          const auto& func = obj.Cast<CompiledFunc>();
-          PushFrame(Frame{func, sp_});
-          AllocateLocal(func.num_locals);
-        }
+        const Object& obj = StackTop(num_args);
+        status.Update(ExecFuncCall(obj, num_args));
         break;
       }
       case Opcode::kReturnVal: {
@@ -294,6 +287,34 @@ absl::Status VirtualMachine::ExecArrayIndex(const Object& lhs,
   return kOkStatus;
 }
 
+absl::Status VirtualMachine::ExecFuncCall(const Object& obj, size_t num_args) {
+  auto status = kOkStatus;
+  // This obj will be popped of the stack when function returns
+  // Instead of grabbing the function off the top of the stack, we
+  // calculate its position by decoding the operand and subtracting it
+  // from the top
+
+  if (obj.Type() != ObjectType::kCompiled) {
+    status.Update(MakeError("calling non-function: " + Repr(obj.Type())));
+    return status;
+  }
+
+  const auto& func = obj.Cast<CompiledFunc>();
+
+  if (num_args != func.num_params) {
+    status.Update(
+        MakeError(fmt::format("wrong number of arguments: want={}, got={}",
+                              func.num_params,
+                              num_args)));
+    return status;
+  }
+
+  PushFrame(Frame{func, sp_ - num_args});
+  AllocateLocal(func.num_locals);
+
+  return status;
+}
+
 Object VirtualMachine::BuildArray(size_t size) {
   Array arr;
   arr.reserve(size);
@@ -359,9 +380,9 @@ absl::Status VirtualMachine::ExecMinusOp() {
   return kOkStatus;
 }
 
-const Object& VirtualMachine::StackTop() const {
+const Object& VirtualMachine::StackTop(size_t offset) const {
   CHECK_GT(sp_, 0) << "Calling Top() when Stack is empty";
-  return stack_[sp_ - 1];
+  return stack_[sp_ - 1 - offset];
 }
 
 const Object& VirtualMachine::Last() const {

@@ -1,7 +1,7 @@
 cc_binary(
   NAME rlpl
   SRCS "rlpl.cpp"
-  DEPS monkey::lexer)
+  DEPS monkey::lexer monkey::base)
 
 cc_binary(
   NAME rppl

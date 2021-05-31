@@ -24,7 +24,9 @@ absl::StatusOr<Bytecode> Compiler::Compile(const Program& program) {
 }
 
 void Compiler::EnterScope() {
+  // Add a new scope
   scopes_.push_back({});
+  // Create a new enclosed local symbol table unless it's the first global one
   const auto* outer = tables_.empty() ? nullptr : tables_.back().get();
   tables_.push_back(std::make_unique<SymbolTable>(outer));
 }
@@ -117,28 +119,7 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
       break;
     }
     case NodeType::kFuncLiteral: {
-      EnterScope();
-
-      const auto* ptr = node.PtrCast<FuncLiteral>();
-      auto status = CompileImpl(ptr->body);
-
-      if (ScopedLast().op == Opcode::kPop) {
-        // Replace last pop with return
-        const auto last_pos = ScopedLast().pos;
-        ReplaceInstruction(last_pos, Encode(Opcode::kReturnVal));
-        ScopedLast().op = Opcode::kReturnVal;
-      }
-
-      if (ScopedLast().op != Opcode::kReturnVal) Emit(Opcode::kReturn);
-
-      const auto num_locals = CurrTable().NumDefs();
-      auto ins = ExitScope();
-
-      Emit(Opcode::kConst,
-           static_cast<int>(
-               AddConstant(CompiledObj({std::move(ins), num_locals}))));
-
-      break;
+      return CompileFuncLiteral(node);
     }
     default:
       return MakeError("Internal Compiler Error: Unhandled ast node: " +
@@ -148,8 +129,8 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
   return kOkStatus;
 }
 
-size_t Compiler::AddConstant(const Object& obj) {
-  consts_.push_back(obj);
+size_t Compiler::AddConstant(Object obj) {
+  consts_.push_back(std::move(obj));
   return consts_.size() - 1;
 }
 
@@ -335,6 +316,43 @@ absl::Status Compiler::CompileIdentifier(const ExprNode& expr) {
     Emit(Opcode::kGetLocal, index);
   }
   return kOkStatus;
+}
+
+absl::Status Compiler::CompileFuncLiteral(const ExprNode& expr) {
+  EnterScope();
+
+  const auto* ptr = expr.PtrCast<FuncLiteral>();
+
+  // After entering a new scope and right before compiling the functions' body
+  // we define each parameter in the scope of the function.
+  // This allows the symbol table to resolve the new refernces and treat them as
+  // locals when compiling the function's body
+  for (const auto& param : ptr->params) {
+    CurrTable().Define(param.String());
+  }
+
+  // Compile function body
+  auto status = CompileImpl(ptr->body);
+  if (!status.ok()) return status;
+
+  if (ScopedLast().op == Opcode::kPop) {
+    // Replace last pop with return
+    const auto last_pos = ScopedLast().pos;
+    ReplaceInstruction(last_pos, Encode(Opcode::kReturnVal));
+    ScopedLast().op = Opcode::kReturnVal;
+  }
+
+  if (ScopedLast().op != Opcode::kReturnVal) Emit(Opcode::kReturn);
+
+  const auto num_locals = CurrTable().NumDefs();
+  const auto num_params = ptr->params.size();
+  auto ins = ExitScope();
+
+  Emit(Opcode::kConst,
+       static_cast<int>(
+           AddConstant(CompiledObj({std::move(ins), num_locals, num_params}))));
+
+  return status;
 }
 
 absl::Status Compiler::CompileLetStmt(const StmtNode& stmt) {
