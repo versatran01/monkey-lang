@@ -13,14 +13,15 @@ struct Frame {
   const Instruction& Ins() const noexcept { return func.ins; }
 
   CompiledFunc func;
-  mutable size_t ip{0};
+  size_t bp{0};  // base pointer
+  size_t ip{0};  // instruction pointer
 };
 
 class VirtualMachine {
  public:
   absl::Status Run(const Bytecode& bc);
-  const Object& Top() const;
-  const Object& Last() const { return last_; }
+  const Object& StackTop() const;
+  const Object& Last() const;
 
  private:
   absl::Status ExecBinaryOp(Opcode op);
@@ -41,17 +42,21 @@ class VirtualMachine {
   Object BuildDict(size_t size);
 
   // Returns the stored last object on stack
-  const Object& PopStack();
+  Object PopStack();
   void PushStack(Object obj);
   void ReplaceStackTop(Object obj);
 
   Frame PopFrame();
   void PushFrame(Frame frame);
 
-  const auto& CurrFrame() const { return frames_.top(); }
+  const Frame& CurrFrame() const { return frames_.top(); }
+  Frame& CurrFrame() { return frames_.top(); }
 
+  void AllocateLocal(size_t num_locals);
+
+  size_t sp_{0};  // sp -> last, sp-1 -> top
   Object last_;
-  std::stack<Object> stack_;
+  std::deque<Object> stack_;
   std::stack<Frame> frames_;
   absl::flat_hash_map<int, Object> globals_;
 };

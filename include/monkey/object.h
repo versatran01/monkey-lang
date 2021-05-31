@@ -115,6 +115,7 @@ struct CompiledFunc {
   std::string Inspect() const;
 
   Instruction ins;
+  size_t num_locals{0};
 };
 
 bool IsObjTruthy(const Object& obj);
@@ -133,7 +134,7 @@ Object DictObj(Dict dict);
 Object BuiltinObj(const Builtin& fn);
 Object FuncObj(const FuncObject& fn);
 Object QuoteObj(const ExprNode& expr);
-Object CompiledObj(Instruction ins);
+Object CompiledObj(CompiledFunc comp);
 Object CompiledObj(const std::vector<Instruction>& ins);
 
 // Directly create object from ast node

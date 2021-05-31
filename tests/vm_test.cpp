@@ -284,6 +284,44 @@ TEST(VmTest, TestFirstClassFunction) {
       {"let returnsOne = fn() { 1; }; let returnsOneReturner = fn() { "
        "returnsOne; }; returnsOneReturner()();",
        1},
+      {R"r(let returnsOneReturner = fn() {
+            let returnsOne = fn() { 1; };
+            returnsOne;
+            };
+            returnsOneReturner()();)r",
+       1}};
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckVm(test);
+  }
+}
+
+TEST(VmTest, TestCallFunctionWithBinding) {
+  const std::vector<VmTest> tests = {
+      {"let one = fn() { let one = 1; one }; one();", 1},
+      {"let oneAndTwo = fn() { let one = 1; let two = 2; one + two; }; "
+       "oneAndTwo();",
+       3},
+      {"let oneAndTwo = fn() { let one = 1; let two = 2; one + two; }; let "
+       "threeAndFour = fn() { let three = 3; let four = 4; three + four; }; "
+       "oneAndTwo() + threeAndFour();",
+       10},
+      {R"r(let firstFoobar = fn() { let foobar = 50; foobar; };
+            let secondFoobar = fn() { let foobar = 100; foobar; };
+            firstFoobar() + secondFoobar();)r",
+       150},
+      {R"r(let globalSeed = 50;
+        let minusOne = fn() {
+            let num = 1;
+            globalSeed - num;
+        };
+        let minusTwo = fn() {
+            let num = 2;
+            globalSeed - num;
+        };
+        minusOne() + minusTwo();)r",
+       97},
   };
 
   for (const auto& test : tests) {

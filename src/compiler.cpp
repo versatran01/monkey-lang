@@ -131,9 +131,12 @@ absl::Status Compiler::CompileImpl(const AstNode& node) {
 
       if (ScopedLast().op != Opcode::kReturnVal) Emit(Opcode::kReturn);
 
+      const auto num_locals = CurrTable().NumDefs();
       auto ins = ExitScope();
+
       Emit(Opcode::kConst,
-           static_cast<int>(AddConstant(CompiledObj(std::move(ins)))));
+           static_cast<int>(
+               AddConstant(CompiledObj({std::move(ins), num_locals}))));
 
       break;
     }
@@ -312,9 +315,11 @@ absl::Status Compiler::CompilePrefixExpr(const ExprNode& expr) {
 }
 
 absl::Status Compiler::CompileIdentifier(const ExprNode& expr) {
-  const auto name = expr.String();
+  const auto name = expr.TokenLiteral();
   const auto symbol = CurrTable().Resolve(name);
-  if (!symbol.has_value()) return MakeError("Undefiend variable " + name);
+  if (!symbol.has_value()) {
+    return MakeError("Undefined variable " + name);
+  }
 
   if (symbol->IsGlobal()) {
     Emit(Opcode::kGetGlobal, symbol->index);
@@ -330,6 +335,7 @@ absl::Status Compiler::CompileLetStmt(const StmtNode& stmt) {
 
   auto status = CompileImpl(ptr->expr);
   if (!status.ok()) return status;
+
   // Add to symbol table
   const auto& symbol = CurrTable().Define(ptr->name.value);
   if (symbol.IsGlobal()) {

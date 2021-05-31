@@ -88,6 +88,20 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         PushStack(globals_.at(index));
         break;
       }
+      case Opcode::kSetLocal: {
+        const size_t index = ins.ByteAt(ip + 1);
+        ip += 1;
+        const auto& frame = CurrFrame();
+        stack_.at(frame.bp + index) = PopStack();
+        break;
+      }
+      case Opcode::kGetLocal: {
+        const size_t index = ins.ByteAt(ip + 1);
+        ip += 1;
+        const auto& frame = CurrFrame();
+        PushStack(stack_.at(frame.bp + index));
+        break;
+      }
       case Opcode::kArray: {
         const auto size = ReadUint16(ins.BytePtr(ip + 1));
         ip += 2;
@@ -103,25 +117,31 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         break;
       }
       case Opcode::kCall: {
-        // This will be popped when function returns
-        auto obj = Top();
+        // This compiled will be popped when function returns
+        const Object& obj = StackTop();
 
         if (obj.Type() != ObjectType::kCompiled) {
           status.Update(MakeError("calling non-function: " + Repr(obj.Type())));
         } else {
-          PushFrame(Frame{std::move(obj.MutCast<CompiledFunc>())});
+          const auto& func = obj.Cast<CompiledFunc>();
+          PushFrame(Frame{func, sp_});
+          AllocateLocal(func.num_locals);
         }
         break;
       }
       case Opcode::kReturnVal: {
         auto ret = PopStack();
-        PopFrame();
-        ReplaceStackTop(std::move(ret));
+        const auto frame = PopFrame();
+        sp_ = frame.bp - 1;  // restore sp
+        PushStack(std::move(ret));
+        //        ReplaceStackTop(std::move(ret));
         continue;  // we do not want to increment ip if we just popped the frame
       }
       case Opcode::kReturn: {
-        PopFrame();
-        ReplaceStackTop(NullObj());
+        const auto frame = PopFrame();
+        sp_ = frame.bp - 1;
+        PushStack(NullObj());
+        //        ReplaceStackTop(NullObj());
         continue;
       }
       default:
@@ -340,23 +360,36 @@ absl::Status VirtualMachine::ExecMinusOp() {
   return kOkStatus;
 }
 
-const Object& VirtualMachine::Top() const {
-  CHECK(!stack_.empty());
-  return stack_.top();
+const Object& VirtualMachine::StackTop() const {
+  CHECK_GT(sp_, 0) << "Calling Top() when Stack is empty";
+  return stack_[sp_ - 1];
 }
 
-const Object& VirtualMachine::PopStack() {
-  CHECK(!stack_.empty());
-  last_ = std::move(stack_.top());
-  stack_.pop();
-  return last_;
+const Object& VirtualMachine::Last() const {
+  CHECK_LT(sp_, stack_.size());
+  return stack_.at(sp_);
 }
 
-void VirtualMachine::PushStack(Object obj) { stack_.emplace(std::move(obj)); }
+Object VirtualMachine::PopStack() {
+  Object o = StackTop();  // Will check empty in Top();
+  --sp_;
+  return o;
+}
+
+void VirtualMachine::PushStack(Object obj) {
+  if (sp_ == stack_.size()) {
+    stack_.emplace_back(std::move(obj));
+  } else {
+    stack_.at(sp_) = std::move(obj);
+  }
+
+  ++sp_;
+  CHECK_LE(sp_, stack_.size());
+}
 
 void VirtualMachine::ReplaceStackTop(Object obj) {
-  last_ = Top();
-  stack_.top() = std::move(obj);
+  CHECK_GT(sp_, 0) << "Calling Top() when Stack is empty";
+  stack_.at(sp_ - 1) = std::move(obj);
 }
 
 Frame VirtualMachine::PopFrame() {
@@ -368,6 +401,13 @@ Frame VirtualMachine::PopFrame() {
 
 void VirtualMachine::PushFrame(Frame frame) {
   frames_.emplace(std::move(frame));
+}
+
+void VirtualMachine::AllocateLocal(size_t num_locals) {
+  if (sp_ + num_locals >= stack_.size()) {
+    stack_.resize(sp_ + num_locals);
+  }
+  sp_ += num_locals;
 }
 
 }  // namespace monkey

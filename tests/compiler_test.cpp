@@ -204,7 +204,6 @@ TEST(CompilerTest, TestGlobalLetStatement) {
   }
 }
 
-
 TEST(CompilerTest, TestStringExpression) {
   const std::vector<CompilerTest> tests = {
       {R"r("monkey")r",
@@ -345,7 +344,7 @@ TEST(CompilerTest, TestFunction) {
                      Encode(Opcode::kReturnVal)})},
        {Encode(Opcode::kConst, 2), Encode(Opcode::kPop)}},
       {"fn() { }",
-       {CompiledObj(Encode(Opcode::kReturn))},
+       {CompiledObj({Encode(Opcode::kReturn), 0})},
        {Encode(Opcode::kConst, 0), Encode(Opcode::kPop)}},
   };
 

@@ -103,8 +103,8 @@ Object ArrayObj(Array arr) { return {ObjectType::kArray, std::move(arr)}; }
 Object DictObj(Dict dict) { return {ObjectType::kDict, std::move(dict)}; }
 Object QuoteObj(const ExprNode& expr) { return {ObjectType::kQuote, expr}; }
 Object BuiltinObj(const Builtin& fn) { return {ObjectType::kBuiltin, fn}; }
-Object CompiledObj(Instruction ins) {
-  return {ObjectType::kCompiled, CompiledFunc{std::move(ins)}};
+Object CompiledObj(CompiledFunc comp) {
+  return {ObjectType::kCompiled, std::move(comp)};
 }
 Object CompiledObj(const std::vector<Instruction>& ins) {
   return {ObjectType::kCompiled, CompiledFunc{ConcatInstructions(ins)}};

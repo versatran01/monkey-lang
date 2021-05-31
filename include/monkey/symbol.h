@@ -16,7 +16,7 @@ enum class SymbolScope {
 struct Symbol {
   std::string name;
   SymbolScope scope;
-  int index;
+  size_t index;
 
   bool IsGlobal() const noexcept { return scope == SymbolScope::kGlobal; }
 
@@ -43,11 +43,14 @@ class SymbolTable {
   absl::optional<Symbol> Resolve(const std::string& name) const;
   bool IsGlobal() const noexcept { return outer_ == nullptr; }
 
-  int NumDefs() const noexcept { return num_defs_; }
+  size_t NumDefs() const noexcept { return num_defs_; }
+
+  std::string Repr() const;
+  friend std::ostream& operator<<(std::ostream& os, const SymbolTable& table);
 
  private:
   SymbolDict store_;
-  int num_defs_{0};
+  size_t num_defs_{0};
   const SymbolTable* outer_;
 };
 

@@ -1,11 +1,20 @@
 #include "monkey/symbol.h"
 
+#include <absl/strings/str_join.h>
 #include <fmt/core.h>
 
 namespace monkey {
+namespace {
+struct SymbolFmt {
+  void operator()(std::string* out, const Symbol& symbol) const {
+    out->append(symbol.Repr());
+  }
+};
+}  // namespace
 
 std::string Symbol::Repr() const {
-  return fmt::format("Symbol(name={}, scope={}, ind={})", name, scope, index);
+  return fmt::format(
+      "Symbol({}, {}, {})", name, IsGlobal() ? "global" : "local", index);
 }
 
 std::ostream& operator<<(std::ostream& os, const Symbol& symbol) {
@@ -29,6 +38,17 @@ absl::optional<Symbol> SymbolTable::Resolve(const std::string& name) const {
     return outer_->Resolve(name);
   }
   return it->second;
+}
+
+std::string SymbolTable::Repr() const {
+  auto pf = absl::PairFormatter(absl::AlphaNumFormatter(), ": ", SymbolFmt{});
+  return fmt::format("{}{{{}}}",
+                     IsGlobal() ? "Global" : "Local",
+                     absl::StrJoin(store_, ", ", pf));
+}
+
+std::ostream& operator<<(std::ostream& os, const SymbolTable& table) {
+  return os << table.Repr();
 }
 
 }  // namespace monkey
