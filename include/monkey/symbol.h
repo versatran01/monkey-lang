@@ -3,18 +3,22 @@
 #include <absl/container/flat_hash_map.h>
 #include <absl/types/optional.h>
 
+#include <memory>
 #include <string>
 
 namespace monkey {
 
-using SymbolScope = std::string;
-static const SymbolScope kGlobalScope = "GLOBAL";
-static const SymbolScope kLocalScope = "LOCAL";
+enum class SymbolScope {
+  kGlobal,
+  kLocal,
+};
 
 struct Symbol {
   std::string name;
   SymbolScope scope;
   int index;
+
+  bool IsGlobal() const noexcept { return scope == SymbolScope::kGlobal; }
 
   std::string Repr() const;
   friend std::ostream& operator<<(std::ostream& os, const Symbol& symbol);
@@ -44,9 +48,9 @@ class SymbolTable {
  private:
   SymbolDict store_;
   int num_defs_{0};
-  const SymbolTable* outer_{nullptr};
+  const SymbolTable* outer_;
 };
 
-SymbolTable MakeEnclosedSymbolTable(const SymbolTable* table);
+using SymbolTablePtr = std::unique_ptr<SymbolTable>;
 
 }  // namespace monkey

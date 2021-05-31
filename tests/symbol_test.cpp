@@ -8,12 +8,12 @@ using namespace monkey;
 
 TEST(CompilerTest, TestSymbolDefine) {
   const SymbolDict tests = {
-      {"a", {"a", kGlobalScope, 0}},
-      {"b", {"b", kGlobalScope, 1}},
-      {"c", {"c", kLocalScope, 0}},
-      {"d", {"d", kLocalScope, 1}},
-      {"e", {"e", kLocalScope, 0}},
-      {"f", {"f", kLocalScope, 1}},
+      {"a", {"a", SymbolScope::kGlobal, 0}},
+      {"b", {"b", SymbolScope::kGlobal, 1}},
+      {"c", {"c", SymbolScope::kLocal, 0}},
+      {"d", {"d", SymbolScope::kLocal, 1}},
+      {"e", {"e", SymbolScope::kLocal, 0}},
+      {"f", {"f", SymbolScope::kLocal, 1}},
   };
 
   SymbolTable global;
@@ -26,7 +26,7 @@ TEST(CompilerTest, TestSymbolDefine) {
   EXPECT_EQ(b, tests.at("b"));
   EXPECT_EQ(global.NumDefs(), 2);
 
-  auto local1 = MakeEnclosedSymbolTable(&global);
+  auto local1 = SymbolTable(&global);
   EXPECT_FALSE(local1.IsGlobal());
   auto& c = local1.Define("c");
   EXPECT_EQ(c, tests.at("c"));
@@ -34,7 +34,7 @@ TEST(CompilerTest, TestSymbolDefine) {
   auto& d = local1.Define("d");
   EXPECT_EQ(d, tests.at("d"));
 
-  auto local2 = MakeEnclosedSymbolTable(&local1);
+  auto local2 = SymbolTable(&local1);
   EXPECT_FALSE(local2.IsGlobal());
   auto& e = local2.Define("e");
   EXPECT_EQ(e, tests.at("e"));
@@ -45,8 +45,8 @@ TEST(CompilerTest, TestSymbolDefine) {
 
 TEST(CompilerTest, TestSymbolResolve) {
   const std::vector<Symbol> tests = {
-      {"a", kGlobalScope, 0},
-      {"b", kGlobalScope, 1},
+      {"a", SymbolScope::kGlobal, 0},
+      {"b", SymbolScope::kGlobal, 1},
   };
 
   SymbolTable global;
@@ -71,15 +71,15 @@ TEST(CompilerTest, TestResolveLocal) {
   global.Define("a");
   global.Define("b");
 
-  auto local = MakeEnclosedSymbolTable(&global);
+  auto local = SymbolTable(&global);
   local.Define("c");
   local.Define("d");
 
   const std::vector<Symbol> symbols = {
-      {"a", kGlobalScope, 0},
-      {"b", kGlobalScope, 1},
-      {"c", kLocalScope, 0},
-      {"d", kLocalScope, 1},
+      {"a", SymbolScope::kGlobal, 0},
+      {"b", SymbolScope::kGlobal, 1},
+      {"c", SymbolScope::kLocal, 0},
+      {"d", SymbolScope::kLocal, 1},
   };
 
   for (const auto& sym : symbols) {
@@ -94,19 +94,19 @@ TEST(CompilerTest, TestResolveNestedLocal) {
   global.Define("a");
   global.Define("b");
 
-  auto local1 = MakeEnclosedSymbolTable(&global);
+  auto local1 = SymbolTable(&global);
   local1.Define("c");
   local1.Define("d");
 
-  auto local2 = MakeEnclosedSymbolTable(&local1);
+  auto local2 = SymbolTable(&local1);
   local2.Define("e");
   local2.Define("f");
 
   const std::vector<Symbol> symbols1 = {
-      {"a", kGlobalScope, 0},
-      {"b", kGlobalScope, 1},
-      {"c", kLocalScope, 0},
-      {"d", kLocalScope, 1},
+      {"a", SymbolScope::kGlobal, 0},
+      {"b", SymbolScope::kGlobal, 1},
+      {"c", SymbolScope::kLocal, 0},
+      {"d", SymbolScope::kLocal, 1},
   };
 
   for (const auto& sym : symbols1) {
@@ -116,10 +116,10 @@ TEST(CompilerTest, TestResolveNestedLocal) {
   }
 
   const std::vector<Symbol> symbols2 = {
-      {"a", kGlobalScope, 0},
-      {"b", kGlobalScope, 1},
-      {"e", kLocalScope, 0},
-      {"f", kLocalScope, 1},
+      {"a", SymbolScope::kGlobal, 0},
+      {"b", SymbolScope::kGlobal, 1},
+      {"e", SymbolScope::kLocal, 0},
+      {"f", SymbolScope::kLocal, 1},
   };
 
   for (const auto& sym : symbols2) {

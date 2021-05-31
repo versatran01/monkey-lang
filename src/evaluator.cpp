@@ -26,7 +26,7 @@ const Object kNullObject = NullObj();
 
 Environment ExtendFunctionEnv(const FuncObject& func,
                               const std::vector<Object>& args) {
-  auto env = MakeEnclosedEnv(func.env.get());
+  Environment env{func.env.get()};
 
   for (size_t i = 0; i < func.params.size(); ++i) {
     env.Set(func.params[i].value, args[i]);

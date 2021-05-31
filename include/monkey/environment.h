@@ -26,6 +26,4 @@ class Environment {
   const Environment* outer_{nullptr};
 };
 
-Environment MakeEnclosedEnv(const Environment* env);
-
 }  // namespace monkey

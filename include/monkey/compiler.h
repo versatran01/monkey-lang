@@ -40,20 +40,22 @@ class Compiler {
     Emitted prev;
   };
 
+  /// Scope related
   Instruction& ScopedIns() { return CurrScope().ins; }
   const Instruction& ScopedIns() const { return CurrScope().ins; }
-
   Emitted& ScopedLast() { return CurrScope().last; }
   const Emitted& ScopedLast() const { return CurrScope().last; }
-
   const Emitted& ScopedPrev() const { return CurrScope().prev; }
 
-  /// Scope related
   void EnterScope();
   Instruction ExitScope();
   Scope& CurrScope() { return scopes_.back(); }
   const Scope& CurrScope() const { return scopes_.back(); }
   size_t NumScopes() const noexcept { return scopes_.size(); }
+
+  /// Symbol table
+  SymbolTable& CurrTable() { return *tables_.back(); }
+  const SymbolTable& CurrTable() const { return *tables_.back(); }
 
   /// Returns the index of the added instruction
   size_t Emit(Opcode op, const std::vector<int>& operands = {});
@@ -86,9 +88,10 @@ class Compiler {
   absl::Status CompileBlockStmt(const StmtNode& stmt);
   absl::Status CompileReturnStmt(const StmtNode& stmt);
 
-  SymbolTable stable_;
   std::vector<Scope> scopes_;
   std::vector<Object> consts_;
+  std::vector<SymbolTablePtr> tables_;
+
   mutable TimerManager timers_;
 };
 

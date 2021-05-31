@@ -14,7 +14,9 @@ std::ostream& operator<<(std::ostream& os, const Symbol& symbol) {
 
 Symbol& SymbolTable::Define(const std::string& name) {
   return store_[name] = {
-             name, outer_ == nullptr ? kGlobalScope : kLocalScope, num_defs_++};
+             name,
+             IsGlobal() ? SymbolScope::kGlobal : SymbolScope::kLocal,
+             num_defs_++};
 }
 
 absl::optional<Symbol> SymbolTable::Resolve(const std::string& name) const {
@@ -27,10 +29,6 @@ absl::optional<Symbol> SymbolTable::Resolve(const std::string& name) const {
     return outer_->Resolve(name);
   }
   return it->second;
-}
-
-SymbolTable MakeEnclosedSymbolTable(const SymbolTable* table) {
-  return SymbolTable{table};
 }
 
 }  // namespace monkey

@@ -23,17 +23,23 @@ absl::StatusOr<Bytecode> Compiler::Compile(const Program& program) {
   return bc;
 }
 
-void Compiler::EnterScope() { scopes_.push_back({}); }
+void Compiler::EnterScope() {
+  scopes_.push_back({});
+  const auto* outer = tables_.empty() ? nullptr : tables_.back().get();
+  tables_.push_back(std::make_unique<SymbolTable>(outer));
+}
 
 Instruction Compiler::ExitScope() {
-  Instruction ins = ScopedIns();
+  Instruction ins = std::move(ScopedIns());
   scopes_.pop_back();
+  tables_.pop_back();
   return ins;
 }
 
 void Compiler::Reset() {
   scopes_.clear();
   consts_.clear();
+  tables_.clear();
 }
 
 absl::Status Compiler::CompileImpl(const AstNode& node) {
@@ -307,20 +313,30 @@ absl::Status Compiler::CompilePrefixExpr(const ExprNode& expr) {
 
 absl::Status Compiler::CompileIdentifier(const ExprNode& expr) {
   const auto name = expr.String();
-  const auto symbol = stable_.Resolve(name);
+  const auto symbol = CurrTable().Resolve(name);
   if (!symbol.has_value()) return MakeError("Undefiend variable " + name);
-  Emit(Opcode::kGetGlobal, symbol->index);
+
+  if (symbol->IsGlobal()) {
+    Emit(Opcode::kGetGlobal, symbol->index);
+  } else {
+    Emit(Opcode::kGetLocal, symbol->index);
+  }
   return kOkStatus;
 }
 
 absl::Status Compiler::CompileLetStmt(const StmtNode& stmt) {
   const auto* ptr = stmt.PtrCast<LetStmt>();
   CHECK_NOTNULL(ptr);
+
   auto status = CompileImpl(ptr->expr);
   if (!status.ok()) return status;
   // Add to symbol table
-  const auto& symbol = stable_.Define(ptr->name.value);
-  Emit(Opcode::kSetGlobal, symbol.index);
+  const auto& symbol = CurrTable().Define(ptr->name.value);
+  if (symbol.IsGlobal()) {
+    Emit(Opcode::kSetGlobal, symbol.index);
+  } else {
+    Emit(Opcode::kSetLocal, symbol.index);
+  }
   return kOkStatus;
 }
 
