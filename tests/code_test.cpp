@@ -21,6 +21,9 @@ TEST(CodeTest, TestEncode) {
       {Opcode::kConst, {65534}, {ToByte(Opcode::kConst), 255, 254}},
       {Opcode::kAdd, {}, {ToByte(Opcode::kAdd)}},
       {Opcode::kGetLocal, {255}, {ToByte(Opcode::kGetLocal), 255}},
+      {Opcode::kClosure,
+       {65534, 255},
+       {ToByte(Opcode::kClosure), 255, 254, 255}},
   };
 
   for (const auto& test : tests) {
@@ -78,19 +81,24 @@ TEST(CodeTest, TestInstructionString) {
       Encode(Opcode::kGetLocal, 1),
       Encode(Opcode::kConst, 2),
       Encode(Opcode::kConst, 65534),
+      Encode(Opcode::kClosure, {65534, 255}),
   };
 
-  const std::vector<std::string> expected = {"0000 OpAdd",
-                                             "0000 OpGetLocal 1",
-                                             "0000 OpConst 2",
-                                             "0000 OpConst 65534"};
+  const std::vector<std::string> expected = {
+      "0000 OpAdd",
+      "0000 OpGetLocal 1",
+      "0000 OpConst 2",
+      "0000 OpConst 65534",
+      "0000 OpClosure 65534 255",
+  };
 
   for (size_t i = 0; i < instructions.size(); ++i) {
     EXPECT_EQ(instructions[i].Repr(), expected[i]);
   }
 
   const std::string fullstr =
-      "0000 OpAdd\n0001 OpGetLocal 1\n0003 OpConst 2\n0006 OpConst 65534";
+      "0000 OpAdd\n0001 OpGetLocal 1\n0003 OpConst 2\n0006 OpConst 65534\n0009 "
+      "OpClosure 65534 255";
 
   const auto instr = ConcatInstructions(instructions);
   EXPECT_EQ(instr.Repr(), fullstr);

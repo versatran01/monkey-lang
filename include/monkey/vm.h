@@ -10,9 +10,11 @@
 namespace monkey {
 
 struct Frame {
-  const Instruction& Ins() const noexcept { return func.ins; }
+  //  const Instruction& Ins() const noexcept { return func.ins; }
+  //  CompiledFunc func;
+  const Instruction& Ins() const noexcept { return closure.func.ins; }
 
-  CompiledFunc func;
+  Closure closure;
   size_t bp{0};  // base pointer
   size_t ip{0};  // instruction pointer
 };

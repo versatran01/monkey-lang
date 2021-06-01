@@ -40,6 +40,7 @@ enum class Opcode : Byte {
   kGetLocal,
   kSetLocal,
   kGetBuiltin,
+  kClosure,
 };
 
 std::string Repr(Opcode op);

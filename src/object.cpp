@@ -29,6 +29,7 @@ const auto gObjectTypeStrings = absl::flat_hash_map<ObjectType, std::string>{
     {ObjectType::kQuote, "QUOTE"},
     {ObjectType::kCompiled, "COMPILED"},
     {ObjectType::kBuiltinFunc, "BUILTIN_FUNC"},
+    {ObjectType::kClosure, "CLOSURE"},
 };
 
 }  // namespace
@@ -83,6 +84,8 @@ std::string Object::Inspect() const {
       return Cast<ExprNode>().String();
     case ObjectType::kCompiled:
       return Cast<CompiledFunc>().Inspect();
+    case ObjectType::kClosure:
+      return Cast<Closure>().Inspect();
     default:
       return fmt::format("Unknown type: {}", Type());
   }
@@ -105,29 +108,29 @@ Object QuoteObj(const ExprNode& expr) { return {ObjectType::kQuote, expr}; }
 Object BuiltinObj(BuiltinFunc fn) {
   return {ObjectType::kBuiltinFunc, std::move(fn)};
 }
-Object CompiledObj(CompiledFunc comp) {
-  return {ObjectType::kCompiled, std::move(comp)};
+Object CompiledObj(CompiledFunc fn) {
+  return {ObjectType::kCompiled, std::move(fn)};
 }
 Object CompiledObj(const std::vector<Instruction>& ins) {
   return {ObjectType::kCompiled, CompiledFunc{ConcatInstructions(ins)}};
 }
+Object ClosureObj(CompiledFunc fn) {
+  return {ObjectType::kClosure, Closure{std::move(fn)}};
+}
 
 Object ToIntObj(const ExprNode& expr) {
-  CHECK_EQ(expr.Type(), NodeType::kIntLiteral);
   const auto* ptr = expr.PtrCast<IntLiteral>();
   CHECK_NOTNULL(ptr);
   return IntObj(ptr->value);
 }
 
 Object ToBoolObj(const ExprNode& expr) {
-  CHECK_EQ(expr.Type(), NodeType::kBoolLiteral);
   const auto* ptr = expr.PtrCast<BoolLiteral>();
   CHECK_NOTNULL(ptr);
   return BoolObj(ptr->value);
 }
 
 Object ToStrObj(const ExprNode& expr) {
-  CHECK_EQ(expr.Type(), NodeType::kStrLiteral);
   const auto* ptr = expr.PtrCast<StrLiteral>();
   CHECK_NOTNULL(ptr);
   return StrObj(ptr->value);
@@ -167,5 +170,7 @@ bool operator==(const Object& lhs, const Object& rhs) {
   }
   return lhs.Inspect() == rhs.Inspect();
 }
+
+std::string Closure::Inspect() const { return "Not Implemented"; }
 
 }  // namespace monkey

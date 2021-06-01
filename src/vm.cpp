@@ -8,7 +8,7 @@
 namespace monkey {
 
 absl::Status VirtualMachine::Run(const Bytecode& bc) {
-  frames_.push({CompiledFunc{bc.ins}});
+  frames_.push(Frame{Closure{CompiledFunc{bc.ins}}});
 
   auto status = kOkStatus;
 
@@ -143,6 +143,15 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
         sp_ = frame.bp - 1;
         PushStack(NullObj());
         continue;
+      }
+      case Opcode::kClosure: {
+        const auto index = ReadUint16(ins.BytePtr(ip + 1));
+        //        const auto num_free = ins.ByteAt(ip + 3);
+        ip += 3;
+        const auto& obj = bc.consts[index];
+        const auto& func = obj.Cast<CompiledFunc>();
+        PushStack(ClosureObj(func));
+        break;
       }
       default:
         return MakeError("Unhandled Opcode: " + Repr(op));
@@ -303,15 +312,16 @@ absl::Status VirtualMachine::ExecFuncCall(const Object& obj, size_t num_args) {
   // from the top
 
   switch (obj.Type()) {
-    case ObjectType::kCompiled: {
-      const auto& func = obj.Cast<CompiledFunc>();
+    case ObjectType::kClosure: {
+      const auto& closure = obj.Cast<Closure>();
+      const auto& func = closure.func;
       if (num_args != func.num_params) {
         status.Update(
             MakeError(fmt::format("wrong number of arguments: want={}, got={}",
                                   func.num_params,
                                   num_args)));
       } else {
-        PushFrame(Frame{func, sp_ - num_args});
+        PushFrame(Frame{closure, sp_ - num_args});
         AllocateLocal(func.num_locals);
       }
       break;
@@ -327,7 +337,7 @@ absl::Status VirtualMachine::ExecFuncCall(const Object& obj, size_t num_args) {
       // decrease sp to take the arguments and function of the stack
       sp_ = sp_ - num_args - 1;
 
-      if (res.Type() == ObjectType::kError) {
+      if (IsObjError(res)) {
         status.Update(MakeError(res.Inspect()));
       } else {
         PushStack(std::move(res));

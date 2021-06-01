@@ -71,7 +71,7 @@ class Compiler {
   /// Returns the index of the added instruction
   size_t AddInstruction(const Instruction& ins);
 
-  void SetEmitted(Opcode op, size_t pos);
+  void SaveEmitted(Opcode op, size_t pos);
   void RemoveLastOp(Opcode expected);
   void ReplaceInstruction(size_t pos, const Instruction& ins);
   void ChangeOperand(size_t pos, int operand);

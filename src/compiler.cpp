@@ -145,17 +145,17 @@ size_t Compiler::AddInstruction(const Instruction& ins) {
 
 size_t Compiler::Emit(Opcode op, const std::vector<int>& operands) {
   const auto pos = AddInstruction(Encode(op, operands));
-  SetEmitted(op, pos);
+  SaveEmitted(op, pos);
   return pos;
 }
 
 size_t Compiler::Emit(Opcode op, int operand) {
   const auto pos = AddInstruction(Encode(op, operand));
-  SetEmitted(op, pos);
+  SaveEmitted(op, pos);
   return pos;
 }
 
-void Compiler::SetEmitted(Opcode op, size_t pos) {
+void Compiler::SaveEmitted(Opcode op, size_t pos) {
   CurrScope().prev = CurrScope().last;
   CurrScope().last = {op, pos};
 }
@@ -345,9 +345,9 @@ absl::Status Compiler::CompileFuncLiteral(const ExprNode& expr) {
   const auto num_params = ptr->params.size();
   auto ins = ExitScope();
 
-  Emit(Opcode::kConst,
-       static_cast<int>(
-           AddConstant(CompiledObj({std::move(ins), num_locals, num_params}))));
+  const auto fn_index = static_cast<int>(
+      AddConstant(CompiledObj({std::move(ins), num_locals, num_params})));
+  Emit(Opcode::kClosure, {fn_index, 0});
 
   return status;
 }

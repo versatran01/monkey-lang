@@ -31,6 +31,7 @@ enum class ObjectType {
   kQuote,
   kBuiltinFunc,
   kCompiled,
+  kClosure,
 };
 
 std::string Repr(ObjectType type);
@@ -109,7 +110,7 @@ struct FuncObject {
 
   std::vector<Identifier> params;
   BlockStmt body;
-  std::shared_ptr<Environment> env{nullptr};
+  std::shared_ptr<const Environment> env{nullptr};
 };
 
 struct CompiledFunc {
@@ -118,6 +119,13 @@ struct CompiledFunc {
   Instruction ins;
   size_t num_locals{0};
   size_t num_params{0};
+};
+
+struct Closure {
+  std::string Inspect() const;
+
+  CompiledFunc func;
+  std::vector<Object> free;
 };
 
 bool IsObjTruthy(const Object& obj);
@@ -136,8 +144,9 @@ Object DictObj(Dict dict);
 Object BuiltinObj(BuiltinFunc fn);
 Object FuncObj(const FuncObject& fn);
 Object QuoteObj(const ExprNode& expr);
-Object CompiledObj(CompiledFunc comp);
+Object CompiledObj(CompiledFunc fn);
 Object CompiledObj(const std::vector<Instruction>& ins);
+Object ClosureObj(CompiledFunc fn);
 
 // Directly create object from ast node
 Object ToIntObj(const ExprNode& expr);

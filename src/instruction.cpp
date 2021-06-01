@@ -19,6 +19,8 @@ std::string FormatInstruction(const Definition& def,
       return def.name;
     case 1:
       return fmt::format("{} {}", def.name, operands[0]);
+    case 2:
+      return fmt::format("{} {} {}", def.name, operands[0], operands[1]);
     default:
       CHECK(false) << "Should not reach here";
   }

@@ -43,7 +43,7 @@ void CheckLiteral(const Object& obj, const LiteralType& value) {
     }
     case 3: {  // str
       const auto& str = std::get<3>(value);
-      if (obj.Type() == ObjectType::kError) {
+      if (IsObjError(obj)) {
         EXPECT_EQ(obj.Inspect(), str);
       } else {
         ASSERT_EQ(obj.Type(), ObjectType::kStr);

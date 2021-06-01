@@ -36,6 +36,7 @@ const absl::flat_hash_map<Opcode, Definition> gOpcodeDefinitions = {
     {Opcode::kGetLocal, {"OpGetLocal", {1}}},
     {Opcode::kSetLocal, {"OpSetLocal", {1}}},
     {Opcode::kGetBuiltin, {"OpGetBuiltin", {1}}},
+    {Opcode::kClosure, {"OpClosure", {2, 1}}},
 };
 
 }  // namespace
