@@ -1,10 +1,13 @@
 #include "monkey/symbol.h"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 namespace {
 
 using namespace monkey;
+using namespace std::string_literals;
+using ::testing::ContainerEq;
 
 TEST(SymbolTest, TestSymbolDefine) {
   const SymbolDict tests = {
@@ -152,6 +155,96 @@ TEST(SymbolTest, TestDefineResolveBuiltin) {
       ASSERT_TRUE(res.has_value());
       EXPECT_EQ(*res, sym);
     }
+  }
+}
+
+struct SymbolTest {
+  SymbolTable table;
+  std::vector<Symbol> symbols;
+  std::vector<Symbol> free;
+};
+
+TEST(SymbolTest, TestResolveFree) {
+  auto global = SymbolTable{};
+  global.Define("a");
+  global.Define("b");
+
+  auto local1 = SymbolTable{&global};
+  local1.Define("c");
+  local1.Define("d");
+
+  auto local2 = SymbolTable{&local1};
+  local2.Define("e");
+  local2.Define("f");
+
+  std::vector<SymbolTest> tests = {
+      {
+          local1,
+          {
+              {"a", SymbolScope::kGlobal, 0},
+              {"b", SymbolScope::kGlobal, 1},
+              {"c", SymbolScope::kLocal, 0},
+              {"d", SymbolScope::kLocal, 1},
+          },
+      },
+      {
+          local2,
+          {
+              {"a", SymbolScope::kGlobal, 0},
+              {"b", SymbolScope::kGlobal, 1},
+              {"c", SymbolScope::kFree, 0},
+              {"d", SymbolScope::kFree, 1},
+              {"e", SymbolScope::kLocal, 0},
+              {"f", SymbolScope::kLocal, 1},
+          },
+          {
+              {"c", SymbolScope::kLocal, 0},
+              {"d", SymbolScope::kLocal, 1},
+          },
+      },
+  };
+
+  for (auto& test : tests) {
+    for (const auto& sym : test.symbols) {
+      auto res = test.table.Resolve(sym.name);
+      SCOPED_TRACE(test.table.Repr());
+      ASSERT_TRUE(res.has_value());
+      ASSERT_EQ(*res, sym);
+    }
+
+    // Check free symbols
+    EXPECT_THAT(test.table.FreeSymbols(), ContainerEq(test.free));
+  }
+}
+
+TEST(SymbolTest, TestResolveUnResolvableFree) {
+  auto global = SymbolTable{};
+  global.Define("a");
+
+  auto local1 = SymbolTable{&global};
+  local1.Define("c");
+
+  auto local2 = SymbolTable{&local1};
+  local2.Define("e");
+  local2.Define("f");
+
+  const std::vector<Symbol> symbols = {
+      {"a", SymbolScope::kGlobal, 0},
+      {"c", SymbolScope::kFree, 0},
+      {"e", SymbolScope::kLocal, 0},
+      {"f", SymbolScope::kLocal, 1},
+  };
+
+  for (const auto& sym : symbols) {
+    const auto res = local2.Resolve(sym.name);
+    ASSERT_TRUE(res.has_value());
+    EXPECT_EQ(*res, sym);
+  }
+
+  const std::vector<std::string> names = {"b"s, "d"s};
+  for (const auto& name : names) {
+    const auto res = local2.Resolve(name);
+    EXPECT_FALSE(res.has_value());
   }
 }
 

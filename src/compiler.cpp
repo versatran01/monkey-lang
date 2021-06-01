@@ -35,7 +35,7 @@ void Compiler::EnterScope() {
   // Add a new scope
   scopes_.push_back({});
   // Create a new enclosed local symbol table unless it's the first global one
-  const auto* outer = tables_.empty() ? nullptr : tables_.back().get();
+  auto* outer = tables_.empty() ? nullptr : tables_.back().get();
   tables_.push_back(std::make_unique<SymbolTable>(outer));
 }
 
@@ -416,6 +416,9 @@ void Compiler::LoadSymbol(const Symbol& symbol) {
       break;
     case SymbolScope::kBuiltin:
       Emit(Opcode::kGetBuiltin, index);
+      break;
+    case SymbolScope::kFree:
+      Emit(Opcode::kGetFree, index);
       break;
     default:
       // Shouldn't reach here

@@ -494,4 +494,82 @@ TEST(CompilerTest, TestBuiltin) {
   }
 }
 
+TEST(CompilerTest, TestClosure) {
+  const std::vector<CompilerTest> tests = {
+      {"fn(a) { fn(b) { a + b } }",
+       {CompiledObj({Encode(Opcode::kGetFree, 0),   // a
+                     Encode(Opcode::kGetLocal, 0),  // b
+                     Encode(Opcode::kAdd),          // a + b
+                     Encode(Opcode::kReturnVal)}),
+        CompiledObj({Encode(Opcode::kGetLocal, 0),      // a
+                     Encode(Opcode::kClosure, {0, 1}),  // fn(b)
+                     Encode(Opcode::kReturnVal)})},
+       {Encode(Opcode::kClosure, {1, 0}), Encode(Opcode::kPop)}},
+      {"fn(a) { fn(b) { fn(c) { a + b + c } } }",
+       {CompiledObj({Encode(Opcode::kGetFree, 0),   // a
+                     Encode(Opcode::kGetFree, 0),   // b
+                     Encode(Opcode::kAdd),          // a + b
+                     Encode(Opcode::kGetLocal, 0),  // c
+                     Encode(Opcode::kAdd),          // (a + b) + c
+                     Encode(Opcode::kReturnVal)}),
+        CompiledObj({Encode(Opcode::kGetFree, 0),       // a
+                     Encode(Opcode::kGetLocal, 0),      // b
+                     Encode(Opcode::kClosure, {0, 2}),  // fn(c)
+                     Encode(Opcode::kReturnVal)}),
+        CompiledObj({Encode(Opcode::kGetLocal, 0),      // a
+                     Encode(Opcode::kClosure, {1, 1}),  // fn(b)
+                     Encode(Opcode::kReturnVal)})},
+       {Encode(Opcode::kClosure, {2, 0}), Encode(Opcode::kPop)}},
+      {R"r(let global = 55;
+            fn() {
+                let a = 66;
+                fn() {
+                    let b = 77;
+                    fn() {
+                        let c = 88;
+                        global + a + b + c;
+                    }
+                }
+       })r",
+       {IntObj(55),
+        IntObj(66),
+        IntObj(77),
+        IntObj(88),
+        CompiledObj({Encode(Opcode::kConst, 3),      // 88
+                     Encode(Opcode::kSetLocal, 0),   // c = 88
+                     Encode(Opcode::kGetGlobal, 0),  // global
+                     Encode(Opcode::kGetFree, 0),    // a
+                     Encode(Opcode::kAdd),           // global + a
+                     Encode(Opcode::kGetFree, 1),    // b
+                     Encode(Opcode::kAdd),           // (global + a) + b
+                     Encode(Opcode::kGetLocal, 0),   // c
+                     Encode(Opcode::kAdd),           // ((global + a) + b) + c
+                     Encode(Opcode::kReturnVal)}),
+        CompiledObj({
+            Encode(Opcode::kConst, 2),         // 77
+            Encode(Opcode::kSetLocal, 0),      // b = 77
+            Encode(Opcode::kGetFree, 0),       // a
+            Encode(Opcode::kGetLocal, 0),      // b
+            Encode(Opcode::kClosure, {4, 2}),  // fn() {}
+            Encode(Opcode::kReturnVal),
+        }),
+        CompiledObj({
+            Encode(Opcode::kConst, 1),         // 66
+            Encode(Opcode::kSetLocal, 0),      // a = 66
+            Encode(Opcode::kGetLocal, 0),      // a
+            Encode(Opcode::kClosure, {5, 1}),  // fn() {}
+            Encode(Opcode::kReturnVal),
+        })},
+       {Encode(Opcode::kConst, 0),      // 55
+        Encode(Opcode::kSetGlobal, 0),  // global = 55
+        Encode(Opcode::kClosure, {6, 0}),
+        Encode(Opcode::kPop)}},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckCompiler(test);
+  }
+}
+
 }  // namespace

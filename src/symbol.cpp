@@ -23,6 +23,8 @@ std::string Repr(SymbolScope scope) {
       return "global";
     case SymbolScope::kLocal:
       return "local";
+    case SymbolScope::kFree:
+      return "free";
     default:
       return "unknown scope";
   }
@@ -33,8 +35,7 @@ std::ostream& operator<<(std::ostream& os, SymbolScope scope) {
 }
 
 std::string Symbol::Repr() const {
-  return fmt::format(
-      "Symbol({}, {}, {})", name, IsGlobal() ? "global" : "local", index);
+  return fmt::format("Symbol({}, {}, {})", name, scope, index);
 }
 
 std::ostream& operator<<(std::ostream& os, const Symbol& symbol) {
@@ -52,16 +53,35 @@ Symbol& SymbolTable::DefineBuiltin(const std::string& name, size_t index) {
   return store_[name] = {name, SymbolScope::kBuiltin, index};
 }
 
-absl::optional<Symbol> SymbolTable::Resolve(const std::string& name) const {
-  const auto it = store_.find(name);
+Symbol& SymbolTable::DefineFree(const Symbol& symbol) {
+  free_symbols_.push_back(symbol);
 
-  if (it == store_.end()) {
-    // not found in global scope
-    if (outer_ == nullptr) return absl::nullopt;
-    // try the outer scope
-    return outer_->Resolve(name);
+  return store_[symbol.name] =
+             Symbol{symbol.name, SymbolScope::kFree, NumFree() - 1};
+}
+
+absl::optional<Symbol> SymbolTable::Resolve(const std::string& name) {
+  // Is it found in the current scope?
+  const auto it = store_.find(name);
+  // Yes, return
+  if (it != store_.end()) return it->second;
+
+  // This is the global scope, and not found, return nullopt
+  if (outer_ == nullptr) return absl::nullopt;
+
+  // There is an outer scope, look in there
+  auto res = outer_->Resolve(name);
+  // Not found, return nullopt
+  if (!res.has_value()) return absl::nullopt;
+
+  // Is it found in global scope or builtin scope?
+  if (res->scope == SymbolScope::kGlobal ||
+      res->scope == SymbolScope::kBuiltin) {
+    return res;
   }
-  return it->second;
+
+  // Otherwise this is a free symbol
+  return DefineFree(*res);
 }
 
 std::string SymbolTable::Repr() const {
