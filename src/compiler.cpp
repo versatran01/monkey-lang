@@ -365,11 +365,11 @@ absl::Status Compiler::CompileLetStmt(const StmtNode& stmt) {
   const auto* ptr = stmt.PtrCast<LetStmt>();
   CHECK_NOTNULL(ptr);
 
+  const auto& symbol = CurrTable().Define(ptr->name.value);
   auto status = CompileImpl(ptr->expr);
   if (!status.ok()) return status;
 
   // Add to symbol table
-  const auto& symbol = CurrTable().Define(ptr->name.value);
   const auto index = static_cast<int>(symbol.index);
   if (symbol.IsGlobal()) {
     Emit(Opcode::kSetGlobal, index);

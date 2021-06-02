@@ -427,7 +427,7 @@ TEST(VmTest, TestBuiltinFunctions) {
 }
 
 TEST(VmTest, TestClosure) {
-  const std::vector<VmTest> errors = {
+  const std::vector<VmTest> tests = {
       {R"r(let newClosure = fn(a) {
           fn() { a; };
         };
@@ -478,7 +478,30 @@ TEST(VmTest, TestClosure) {
        99},
   };
 
-  for (const auto& test : errors) {
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    CheckVm(test);
+  }
+}
+
+TEST(VmTest, TestRecursiveFibonacci) {
+  const std::vector<VmTest> tests = {
+      {R"r(let fibonacci = fn(x) {
+            if (x == 0) {
+                return 0;
+            } else {
+                if (x == 1) {
+                    return 1;
+                } else {
+                    fibonacci(x - 1) + fibonacci(x - 2);
+                }
+            }
+        };
+        fibonacci(15);)r",
+       610},
+  };
+
+  for (const auto& test : tests) {
     SCOPED_TRACE(test.input);
     CheckVm(test);
   }
