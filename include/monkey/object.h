@@ -122,7 +122,7 @@ struct CompiledFunc {
 };
 
 struct Closure {
-  std::string Inspect() const;
+  std::string Inspect() const { return func.Inspect(); }
 
   CompiledFunc func;
   std::vector<Object> free;

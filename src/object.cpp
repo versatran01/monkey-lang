@@ -169,6 +169,4 @@ bool operator==(const Object& lhs, const Object& rhs) {
   return lhs.Inspect() == rhs.Inspect();
 }
 
-std::string Closure::Inspect() const { return "Not Implemented"; }
-
 }  // namespace monkey

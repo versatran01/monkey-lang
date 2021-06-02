@@ -124,7 +124,7 @@ void Lexer::SkipWhitespace() {
 }
 
 char Lexer::PeekChar() const noexcept {
-  return (read_position_ >= input_.size()) ? 0 : input_[read_position_];
+  return (read_position_ >= input_.size()) ? char{0} : input_[read_position_];
 }
 
 std::string Lexer::ReadNumber() {

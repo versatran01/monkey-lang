@@ -10,8 +10,6 @@
 namespace monkey {
 
 struct Frame {
-  //  const Instruction& Ins() const noexcept { return func.ins; }
-  //  CompiledFunc func;
   const Instruction& Ins() const noexcept { return closure.func.ins; }
 
   Closure closure;
@@ -40,8 +38,6 @@ class VirtualMachine {
   absl::Status ExecDictIndex(const Object& lhs, const Object& index);
   absl::Status ExecArrayIndex(const Object& lhs, const Object& index);
   absl::Status ExecFuncCall(const Object& func, size_t num_args);
-  absl::Status ExecCompiledCall(const Object& func, size_t num_args);
-  absl::Status ExecBuiltinCall(const Object& func, size_t num_args);
 
   Object BuildArray(size_t size);
   Object BuildDict(size_t size);

@@ -20,7 +20,6 @@ const std::array<std::string, static_cast<size_t>(Builtin::kNumBuiltins)>
         "puts",
 };
 
-// Object BuiltinLen(const std::vector<Object>& args) {
 Object BuiltinLen(absl::Span<const Object> args) {
   if (args.size() != 1) {
     return ErrorObj(
@@ -39,7 +38,6 @@ Object BuiltinLen(absl::Span<const Object> args) {
   }
 }
 
-// Object BuiltinFirst(const std::vector<Object>& args) {
 Object BuiltinFirst(absl::Span<const Object> args) {
   if (args.size() != 1) {
     return ErrorObj(
@@ -57,7 +55,6 @@ Object BuiltinFirst(absl::Span<const Object> args) {
   return arr.front();
 }
 
-// Object BuiltinLast(const std::vector<Object>& args) {
 Object BuiltinLast(absl::Span<const Object> args) {
   if (args.size() != 1) {
     return ErrorObj(
@@ -75,7 +72,6 @@ Object BuiltinLast(absl::Span<const Object> args) {
   return arr.back();
 }
 
-// Object BuiltinRest(const std::vector<Object>& args) {
 Object BuiltinRest(absl::Span<const Object> args) {
   if (args.size() != 1) {
     return ErrorObj(
@@ -114,7 +110,6 @@ Object BuiltinPush(absl::Span<const Object> args) {
   return ArrayObj(std::move(copy));
 }
 
-// Object BuiltinPuts(const std::vector<Object>& args) {
 Object BuiltinPuts(absl::Span<const Object> args) {
   for (const auto& arg : args) {
     fmt::print("{}\n", arg.Inspect());
