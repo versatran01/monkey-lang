@@ -507,7 +507,7 @@ TEST(CompilerTest, TestClosure) {
        {Encode(Opcode::kClosure, {1, 0}), Encode(Opcode::kPop)}},
       {"fn(a) { fn(b) { fn(c) { a + b + c } } }",
        {CompiledObj({Encode(Opcode::kGetFree, 0),   // a
-                     Encode(Opcode::kGetFree, 0),   // b
+                     Encode(Opcode::kGetFree, 1),   // b
                      Encode(Opcode::kAdd),          // a + b
                      Encode(Opcode::kGetLocal, 0),  // c
                      Encode(Opcode::kAdd),          // (a + b) + c

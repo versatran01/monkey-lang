@@ -53,6 +53,7 @@ class SymbolTable {
   size_t NumFree() const noexcept { return free_symbols_.size(); }
   bool IsGlobal() const noexcept { return outer_ == nullptr; }
   const auto& FreeSymbols() const noexcept { return free_symbols_; }
+  std::vector<Symbol> GetFreeSymbols() const noexcept { return free_symbols_; }
 
   std::string Repr() const;
   friend std::ostream& operator<<(std::ostream& os, const SymbolTable& table);

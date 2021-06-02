@@ -334,20 +334,29 @@ absl::Status Compiler::CompileFuncLiteral(const ExprNode& expr) {
 
   if (ScopedLast().op == Opcode::kPop) {
     // Replace last pop with return
-    const auto last_pos = ScopedLast().pos;
-    ReplaceInstruction(last_pos, Encode(Opcode::kReturnVal));
+    ReplaceInstruction(ScopedLast().pos, Encode(Opcode::kReturnVal));
     ScopedLast().op = Opcode::kReturnVal;
   }
 
   if (ScopedLast().op != Opcode::kReturnVal) Emit(Opcode::kReturn);
 
+  // copy free symbols before exiting the scope (since we pop the table when
+  // exiting this scope)
+  const auto free_symbols = CurrTable().GetFreeSymbols();
   const auto num_locals = CurrTable().NumDefs();
   const auto num_params = ptr->params.size();
+
+  // Exit scope
   auto ins = ExitScope();
 
-  const auto fn_index = static_cast<int>(
+  // Load free symbols
+  for (const auto& sym : free_symbols) {
+    LoadSymbol(sym);
+  }
+
+  const auto index = static_cast<int>(
       AddConstant(CompiledObj({std::move(ins), num_locals, num_params})));
-  Emit(Opcode::kClosure, {fn_index, 0});
+  Emit(Opcode::kClosure, {index, static_cast<int>(free_symbols.size())});
 
   return status;
 }
