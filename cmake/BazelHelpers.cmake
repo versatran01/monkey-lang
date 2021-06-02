@@ -167,8 +167,6 @@ function(cc_binary)
 
   set_property(TARGET ${_NAME} PROPERTY CXX_STANDARD 17)
   set_property(TARGET ${_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
-
-  add_test(NAME ${_NAME} COMMAND ${_NAME})
 endfunction()
 
 # cmake-format: off
@@ -209,12 +207,8 @@ endfunction()
 # )
 # cmake-format: on
 function(cc_test)
-  if(NOT BUILD_TESTING)
-    return()
-  endif()
-
-  cmake_parse_arguments(CC_TEST "" "NAME" "SRCS;COPTS;DEFINES;LINKOPTS;DEPS"
-                        ${ARGN})
+  cmake_parse_arguments(CC_TEST "CATKIN" "NAME"
+                        "SRCS;COPTS;DEFINES;LINKOPTS;DEPS" ${ARGN})
 
   if(CC_TARGET_PREFIX)
     set(_NAME "${CC_TARGET_PREFIX}_${CC_TEST_NAME}")
@@ -222,22 +216,36 @@ function(cc_test)
     set(_NAME ${CC_TEST_NAME})
   endif()
 
-  add_executable(${_NAME} "")
-  target_sources(${_NAME} PRIVATE ${CC_TEST_SRCS})
+  if(CC_TEST_CATKIN)
+    if(CATKIN_ENABLE_TESTING)
+      catkin_add_gtest(${_NAME} ${CC_TEST_SRCS})
+      target_link_libraries(${_NAME} ${CC_TEST_DEPS} ${CC_TEST_LINKOPTS}
+                            GTest::Main)
+    endif()
+  else()
+    if(NOT BUILD_TESTING)
+      return()
+    endif()
 
-  target_compile_definitions(${_NAME} PUBLIC ${CC_TEST_DEFINES})
-  target_compile_options(${_NAME} PRIVATE ${CC_TEST_COPTS})
+    add_executable(${_NAME} "")
+    target_sources(${_NAME} PRIVATE ${CC_TEST_SRCS})
 
-  target_link_libraries(
-    ${_NAME}
-    PUBLIC ${CC_TEST_DEPS}
-    PRIVATE ${CC_TEST_LINKOPTS} GTest::GTest GTest::Main)
+    target_compile_definitions(${_NAME} PUBLIC ${CC_TEST_DEFINES})
+    target_compile_options(${_NAME} PRIVATE ${CC_TEST_COPTS})
 
-  set_property(TARGET ${_NAME} PROPERTY CXX_STANDARD 17)
-  set_property(TARGET ${_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+    target_link_libraries(
+      ${_NAME}
+      PUBLIC ${CC_TEST_DEPS}
+      PRIVATE ${CC_TEST_LINKOPTS} GTest::GTest GTest::Main)
 
-  add_test(NAME ${_NAME} COMMAND ${_NAME})
-  set_tests_properties(${_NAME} PROPERTIES FAIL_REGULAR_EXPRESSION ".*FAILED.*")
+    set_property(TARGET ${_NAME} PROPERTY CXX_STANDARD 17)
+    set_property(TARGET ${_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
+
+    add_test(NAME ${_NAME} COMMAND ${_NAME})
+    set_tests_properties(${_NAME} PROPERTIES FAIL_REGULAR_EXPRESSION
+                                             ".*FAILED.*")
+  endif()
+
 endfunction()
 
 # cmake-format: off
