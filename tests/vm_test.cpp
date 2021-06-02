@@ -485,20 +485,24 @@ TEST(VmTest, TestClosure) {
 }
 
 TEST(VmTest, TestRecursiveFibonacci) {
-  const std::vector<VmTest> tests = {
-      {R"r(let fibonacci = fn(x) {
-            if (x == 0) {
-                return 0;
+  const std::string fib_code = R"r(
+    let fibonacci = fn(x) {
+        if (x == 0) {
+            0
+        } else {
+            if (x == 1) {
+                1
             } else {
-                if (x == 1) {
-                    return 1;
-                } else {
-                    fibonacci(x - 1) + fibonacci(x - 2);
-                }
+                fibonacci(x - 1) + fibonacci(x - 2);
             }
-        };
-        fibonacci(15);)r",
-       610},
+        }
+    };)r";
+
+  const std::vector<VmTest> tests = {
+      {fib_code + "fibonacci(0);", 0},
+      {fib_code + "fibonacci(1);", 1},
+      {fib_code + "fibonacci(2);", 1},
+      {fib_code + "fibonacci(3);", 2},
   };
 
   for (const auto& test : tests) {

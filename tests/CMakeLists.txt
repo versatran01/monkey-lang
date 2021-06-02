@@ -1,6 +1,3 @@
-find_package(GTest REQUIRED)
-find_package(GMock REQUIRED)
-
 cc_test(
   NAME timer_test
   SRCS "timer_test.cpp"
@@ -55,3 +52,8 @@ cc_test(
   NAME vm_test
   SRCS "vm_test.cpp"
   DEPS monkey::vm monkey::parser GMock::GMock)
+
+cc_bench(
+  NAME fibonacci_bench
+  SRCS "fibonacci_bench.cpp"
+  DEPS monkey::parser monkey::evaluator monkey::compiler monkey::vm)

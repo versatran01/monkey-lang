@@ -9,9 +9,15 @@ include(CompilerWarnings)
 add_library(monkey_warnings INTERFACE)
 set_project_warnings(monkey_warnings)
 
+# dep
 find_package(fmt REQUIRED)
 find_package(glog REQUIRED)
 find_package(absl REQUIRED)
+
+# test
+find_package(GTest REQUIRED)
+find_package(GMock REQUIRED)
+find_package(benchmark REQUIRED)
 
 set(CC_TARGET_PREFIX ${PROJECT_NAME})
 include(BazelHelpers)

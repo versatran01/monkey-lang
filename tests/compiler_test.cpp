@@ -18,7 +18,7 @@ struct CompilerTest {
   std::vector<Instruction> inst_vec;
 };
 
-void CheckCompiler(const CompilerTest& test) {
+void CheckLiteral(const CompilerTest& test) {
   Parser parser{test.input};
   const auto program = parser.ParseProgram();
   ASSERT_TRUE(parser.Ok()) << parser.ErrorMsg();
@@ -74,7 +74,7 @@ TEST(CompilerTest, TestIntArithmetic) {
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.input);
-    CheckCompiler(test);
+    CheckLiteral(test);
   }
 }
 
@@ -125,7 +125,7 @@ TEST(CompilerTest, TestBooleanExpression) {
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.input);
-    CheckCompiler(test);
+    CheckLiteral(test);
   }
 }
 
@@ -171,7 +171,7 @@ TEST(CompilerTest, TestConditional) {
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.input);
-    CheckCompiler(test);
+    CheckLiteral(test);
   }
 }
 
@@ -201,7 +201,7 @@ TEST(CompilerTest, TestGlobalLetStatement) {
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.input);
-    CheckCompiler(test);
+    CheckLiteral(test);
   }
 }
 
@@ -219,7 +219,7 @@ TEST(CompilerTest, TestStringExpression) {
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.input);
-    CheckCompiler(test);
+    CheckLiteral(test);
   }
 }
 
@@ -250,7 +250,7 @@ TEST(CompilerTest, TestArrayLiteral) {
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.input);
-    CheckCompiler(test);
+    CheckLiteral(test);
   }
 }
 
@@ -283,7 +283,7 @@ TEST(CompilerTest, TestDictLiterals) {
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.input);
-    CheckCompiler(test);
+    CheckLiteral(test);
   }
 }
 
@@ -314,7 +314,7 @@ TEST(CompilerTest, TestIndexExpression) {
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.input);
-    CheckCompiler(test);
+    CheckLiteral(test);
   }
 }
 
@@ -351,7 +351,7 @@ TEST(CompilerTest, TestFunction) {
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.input);
-    CheckCompiler(test);
+    CheckLiteral(test);
   }
 }
 
@@ -425,7 +425,7 @@ TEST(CompilerTest, TestFunctionCall) {
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.input);
-    CheckCompiler(test);
+    CheckLiteral(test);
   }
 }
 
@@ -462,7 +462,7 @@ TEST(CompilerTest, TestLetStatementScope) {
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.input);
-    CheckCompiler(test);
+    CheckLiteral(test);
   }
 }
 
@@ -490,7 +490,7 @@ TEST(CompilerTest, TestBuiltin) {
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.input);
-    CheckCompiler(test);
+    CheckLiteral(test);
   }
 }
 
@@ -568,7 +568,7 @@ TEST(CompilerTest, TestClosure) {
 
   for (const auto& test : tests) {
     SCOPED_TRACE(test.input);
-    CheckCompiler(test);
+    CheckLiteral(test);
   }
 }
 

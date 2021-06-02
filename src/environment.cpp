@@ -12,14 +12,10 @@ namespace monkey {
 Object Environment::Get(absl::string_view name) const {
   const auto it = store_.find(name);
   // Found
-  if (it != store_.end()) {
-    return it->second;
-  }
+  if (it != store_.end()) return it->second;
 
   // Not found, try outer env
-  if (outer_ != nullptr) {
-    return outer_->Get(name);
-  }
+  if (outer_ != nullptr) return outer_->Get(name);
 
   return Object{};
 }

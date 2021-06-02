@@ -1,42 +1,40 @@
-#include <fmt/ranges.h>
 #include <fmt/ostream.h>
+#include <fmt/ranges.h>
 #include <glog/logging.h>
 
-#include "monkey/compiler.h"
+#include "monkey/environment.h"
+#include "monkey/evaluator.h"
 #include "monkey/parser.h"
-#include "monkey/vm.h"
 
 using namespace monkey;
 using namespace std::string_literals;
 
 int main() {
-  Compiler comp;
-  VirtualMachine vm;
+  Evaluator eval;
+  Environment env;
+  std::string fibcode = R"r(  let fibonacci = fn(x) {
+        if (x == 0) {
+            return 0;
+        } else {
+            if (x == 1) {
+                return 1;
+            } else {
+                return fibonacci(x - 1) + fibonacci(x - 2);
+            }
+        }
+    };)r";
 
-  const auto line1 = "let a = 1;"s;
-  const auto line2 = "let b = 2;"s;
+  std::string input = fibcode + "fibonacci(2);";
 
-  std::vector<std::string> lines = {"let a = 1;", "let b = 2;"};
+  Parser parser{input};
+  auto program = parser.ParseProgram();
 
-  for (const auto& line : lines) {
-    Parser parser{line1};
-    auto program = parser.ParseProgram();
-
-    if (!program.Ok()) {
-      fmt::print("{}\n", parser.ErrorMsg());
-      continue;
-    }
-
-    const auto bc = comp.Compile(program);
-    if (!bc.ok()) {
-      fmt::print("Compilation failed:\n{}\n", bc.status());
-      continue;
-    }
-
-    const auto status = vm.Run(*bc);
-    if (!status.ok()) {
-      fmt::print("Executing bytecode failed:\n{}\n", status);
-      continue;
-    }
+  if (!program.Ok()) {
+    fmt::print("{}\n", parser.ErrorMsg());
+    return 0;
   }
+
+  auto obj = eval.Evaluate(program, env);
+  LOG(INFO) << env;
+  fmt::print("{}\n", obj);
 }

@@ -32,13 +32,11 @@ void CheckLiteral(const Object& obj, const LiteralType& value) {
       EXPECT_EQ(obj.Type(), ObjectType::kNull);
       break;
     case 1: {
-      ASSERT_EQ(obj.Type(), ObjectType::kBool);
-      EXPECT_EQ(obj.Cast<bool>(), std::get<1>(value));
+      EXPECT_EQ(obj, BoolObj(std::get<1>(value)));
       break;
     }
     case 2: {
-      ASSERT_EQ(obj.Type(), ObjectType::kInt);
-      EXPECT_EQ(obj.Cast<IntType>(), std::get<2>(value));
+      EXPECT_EQ(obj, IntObj(std::get<2>(value)));
       break;
     }
     case 3: {  // str
@@ -347,6 +345,33 @@ TEST(EvaluatorTest, TestDictIndexExpression) {
       {"{5: 5}[5]", 5},
       {"{true: 5}[true]", 5},
       {"{false: 5}[false]", 5},
+  };
+
+  for (const auto& test : tests) {
+    SCOPED_TRACE(test.input);
+    const auto obj = ParseAndEval(test.input);
+    CheckLiteral(obj, test.value);
+  }
+}
+
+TEST(EvaluatorTest, TestFibonacci) {
+  const std::string fib_code = R"r(
+    let fibonacci = fn(x) {
+        if (x == 0) {
+            return 0;
+        } else {
+            if (x == 1) {
+                return 1;
+            } else {
+                return fibonacci(x - 1) + fibonacci(x - 2);
+            }
+        }
+    };)r";
+  const std::vector<EvalTest> tests = {
+      {fib_code + "fibonacci(0);", 0},
+      {fib_code + "fibonacci(1);", 1},
+      {fib_code + "fibonacci(2);", 1},
+      {fib_code + "fibonacci(3);", 2},
   };
 
   for (const auto& test : tests) {

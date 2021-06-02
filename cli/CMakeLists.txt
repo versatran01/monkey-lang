@@ -17,4 +17,4 @@ cc_binary(
 cc_binary(
   NAME play
   SRCS "play.cpp"
-  DEPS monkey::base monkey::parser monkey::compiler monkey::vm)
+  DEPS monkey::base monkey::parser monkey::evaluator monkey::environment)

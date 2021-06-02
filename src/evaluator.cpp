@@ -74,7 +74,7 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
     }
     case NodeType::kPrefixExpr: {
       const auto* pe_ptr = node.PtrCast<PrefixExpr>();
-      const auto rhs = Evaluate(pe_ptr->rhs, env);
+      auto rhs = Evaluate(pe_ptr->rhs, env);
       if (IsObjError(rhs)) return rhs;
       return EvalPrefixExpr(pe_ptr->op, rhs);
     }
@@ -123,10 +123,10 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
     case NodeType::kCallExpr: {
       // Skip evaluation for quote
       const auto* ptr = node.PtrCast<CallExpr>();
-      if (ptr->func.TokenLiteral() == "quote") {
-        CHECK_GT(ptr->args.size(), 0);
-        return QuoteObj(ptr->args.front());
-      }
+      //      if (ptr->func.TokenLiteral() == "quote") {
+      //        CHECK_GT(ptr->args.size(), 0);
+      //        return QuoteObj(ptr->args.front());
+      //      }
 
       auto func = Evaluate(ptr->func, env);
       if (IsObjError(func)) return func;
@@ -134,9 +134,7 @@ Object Evaluator::Evaluate(const AstNode& node, Environment& env) const {
       auto args = EvalExprs(ptr->args, env);
 
       // Handle argument evaluation failure
-      if (args.size() == 1 && IsObjError(args.front())) {
-        return args.front();
-      }
+      if (args.size() == 1 && IsObjError(args.front())) return args.front();
 
       return ApplyFunc(func, args);
     }
@@ -162,7 +160,8 @@ Object Evaluator::EvalIdentifier(const Identifier& ident,
   auto obj = env.Get(ident.value);
   if (obj.Ok()) return obj;
 
-  const auto it = std::find_if(
+  // see if it is built in
+  auto it = std::find_if(
       GetBuiltins().begin(), GetBuiltins().end(), [&ident](const Object& obj) {
         return obj.Cast<BuiltinFunc>().name == ident.value;
       });
