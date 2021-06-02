@@ -146,7 +146,7 @@ Object FuncObj(const FuncObject& fn);
 Object QuoteObj(const ExprNode& expr);
 Object CompiledObj(CompiledFunc fn);
 Object CompiledObj(const std::vector<Instruction>& ins);
-Object ClosureObj(CompiledFunc fn);
+Object ClosureObj(Closure cl);
 
 // Directly create object from ast node
 Object ToIntObj(const ExprNode& expr);

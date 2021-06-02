@@ -114,9 +114,7 @@ Object CompiledObj(CompiledFunc fn) {
 Object CompiledObj(const std::vector<Instruction>& ins) {
   return {ObjectType::kCompiled, CompiledFunc{ConcatInstructions(ins)}};
 }
-Object ClosureObj(CompiledFunc fn) {
-  return {ObjectType::kClosure, Closure{std::move(fn)}};
-}
+Object ClosureObj(Closure cl) { return {ObjectType::kClosure, std::move(cl)}; }
 
 Object ToIntObj(const ExprNode& expr) {
   const auto* ptr = expr.PtrCast<IntLiteral>();

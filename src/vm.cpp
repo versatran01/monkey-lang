@@ -146,11 +146,33 @@ absl::Status VirtualMachine::Run(const Bytecode& bc) {
       }
       case Opcode::kClosure: {
         const auto index = ReadUint16(ins.BytePtr(ip + 1));
-        //        const auto num_free = ins.ByteAt(ip + 3);
+        const auto num_free = ins.ByteAt(ip + 3);
         ip += 3;
         const auto& obj = bc.consts[index];
+        if (obj.Type() != ObjectType::kCompiled) {
+          status.Update(MakeError("not a function " + Repr(obj.Type())));
+          break;
+        }
+
+        std::vector<Object> free{stack_.begin() + sp_ - num_free,
+                                 stack_.begin() + sp_};
+        //        std::vector<Object> free;
+        //        free.reserve(num_free);
+        //        for (size_t i = 0; i < num_free; ++i) {
+        //          free.push_back(stack_[sp_ - num_free + i]);
+        //        }
+        sp_ -= num_free;
+
         const auto& func = obj.Cast<CompiledFunc>();
-        PushStack(ClosureObj(func));
+        PushStack(ClosureObj({func, std::move(free)}));
+        break;
+      }
+      case Opcode::kGetFree: {
+        const auto free_index = ins.ByteAt(ip + 1);
+        ip += 1;
+        const auto& closure = CurrFrame().closure;
+        CHECK_LT(free_index, closure.free.size());
+        PushStack(closure.free[free_index]);
         break;
       }
       default:
