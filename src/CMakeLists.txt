@@ -1,6 +1,6 @@
 cc_library(
   NAME base
-  DEPS fmt::fmt glog::glog monkey_warnings
+  DEPS fmt::fmt glog::glog monkey_options
   INTERFACE)
 
 cc_library(
@@ -34,7 +34,8 @@ cc_library(
 cc_library(
   NAME code
   SRCS "code.cpp" "instruction.cpp"
-  LINKOPTS absl::flat_hash_map monkey::base)
+  DEPS monkey::base
+  LINKOPTS absl::flat_hash_map)
 
 cc_library(
   NAME object

@@ -8,8 +8,11 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(Cache)
 include(StaticAnalyzers)
 include(CompilerWarnings)
-add_library(monkey_warnings INTERFACE)
-set_project_warnings(monkey_warnings)
+add_library(monkey_options INTERFACE)
+enable_warnings(monkey_options)
+
+include(Sanitizers)
+enable_sanitizers(monkey_options)
 
 set(CC_TARGET_PREFIX ${PROJECT_NAME})
 include(BazelHelpers)
@@ -23,7 +26,6 @@ find_package(absl REQUIRED)
 find_package(GTest REQUIRED)
 find_package(GMock REQUIRED)
 find_package(benchmark REQUIRED)
-
 
 option(BUILD_SHARED_LIBS "Build shared libraries" On)
 option(BUILD_TESTING "Build testing" On)
