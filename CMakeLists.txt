@@ -5,17 +5,14 @@ set(CMAKE_CXX_STANDARD 17)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-include(Cache)
-include(StaticAnalyzers)
-include(CompilerWarnings)
-add_library(monkey_options INTERFACE)
-enable_warnings(monkey_options)
-
-include(Sanitizers)
-enable_sanitizers(monkey_options)
+option(BUILD_SHARED_LIBS "Build shared libraries" On)
+option(BUILD_TESTING "Build testing" On)
 
 set(CC_TARGET_PREFIX ${PROJECT_NAME})
-include(BazelHelpers)
+include(CMakeHelpers)
+add_library(monkey_options INTERFACE)
+enable_warnings(monkey_options)
+enable_sanitizers(monkey_options)
 
 # dep
 find_package(fmt REQUIRED)
@@ -26,9 +23,6 @@ find_package(absl REQUIRED)
 find_package(GTest REQUIRED)
 find_package(GMock REQUIRED)
 find_package(benchmark REQUIRED)
-
-option(BUILD_SHARED_LIBS "Build shared libraries" On)
-option(BUILD_TESTING "Build testing" On)
 
 include_directories(include)
 add_subdirectory(src)
